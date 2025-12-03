@@ -60,6 +60,19 @@ export default function Layout({ children }) {
             )}
             <span className="relative z-10">首页</span>
           </Link>
+          <Link 
+            to="/playground" 
+            className={`block px-5 py-3 text-dark-text-muted dark:text-dark-text-muted text-light-text-muted no-underline transition-all border-l-[3px] relative group ${
+              location.pathname === '/playground' 
+                ? 'bg-gradient-to-r from-primary/10 to-transparent text-primary border-l-primary' 
+                : 'border-transparent hover:bg-dark-bg dark:hover:bg-dark-bg hover:bg-light-surface hover:text-dark-text dark:hover:text-dark-text hover:text-light-text hover:border-primary/50'
+            }`}
+          >
+            {location.pathname === '/playground' && (
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary to-purple-500"></div>
+            )}
+            <span className="relative z-10">🎮 Playground</span>
+          </Link>
           {chapters.map(chapter => (
             <Link
               key={chapter.id}

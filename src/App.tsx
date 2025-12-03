@@ -4,6 +4,7 @@ import Layout from './components/Layout'
 import ScrollToTop from './components/ScrollToTop'
 import ScrollToTopOnRouteChange from './components/ScrollToTopOnRouteChange'
 import Home from './pages/Home'
+import Playground from './pages/Playground'
 import Chapter1 from './pages/chapters/Chapter1'
 import Chapter2 from './pages/chapters/Chapter2'
 import Chapter3 from './pages/chapters/Chapter3'
@@ -37,6 +38,7 @@ function App() {
         <Layout>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/playground" element={<Playground />} />
             <Route path="/chapter/1" element={<Chapter1 />} />
             <Route path="/chapter/2" element={<Chapter2 />} />
             <Route path="/chapter/3" element={<Chapter3 />} />

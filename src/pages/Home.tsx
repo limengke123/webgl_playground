@@ -67,9 +67,17 @@ export default function Home() {
             WebGL 学习教程
           </span>
         </h1>
-        <p className="text-xl text-dark-text-muted dark:text-dark-text-muted text-light-text-muted relative">
+        <p className="text-xl text-dark-text-muted dark:text-dark-text-muted text-light-text-muted relative mb-6">
           从零开始学习 WebGL，通过交互式示例深入理解图形学基础
         </p>
+        <Link 
+          to="/playground" 
+          className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-purple-500 text-white rounded-lg hover:from-primary/90 hover:to-purple-500/90 transition-all font-medium shadow-lg hover:shadow-xl"
+        >
+          <span>🎮</span>
+          <span>进入 Playground</span>
+          <span>→</span>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-15">
