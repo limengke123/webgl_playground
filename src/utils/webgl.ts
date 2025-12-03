@@ -217,6 +217,65 @@ export const Matrix = {
     ]
   },
   
+  // 正交投影矩阵
+  ortho(left: number, right: number, bottom: number, top: number, near: number, far: number): Mat4 {
+    const lr = 1 / (left - right)
+    const bt = 1 / (bottom - top)
+    const nf = 1 / (near - far)
+    
+    return [
+      -2 * lr, 0, 0, 0,
+      0, -2 * bt, 0, 0,
+      0, 0, 2 * nf, 0,
+      (left + right) * lr, (top + bottom) * bt, (far + near) * nf, 1
+    ]
+  },
+  
+  // 视图矩阵（lookAt）
+  lookAt(eyeX: number, eyeY: number, eyeZ: number, 
+         centerX: number, centerY: number, centerZ: number,
+         upX: number, upY: number, upZ: number): Mat4 {
+    let fx = centerX - eyeX
+    let fy = centerY - eyeY
+    let fz = centerZ - eyeZ
+    
+    // 归一化 f
+    const len = Math.sqrt(fx * fx + fy * fy + fz * fz)
+    if (len > 0.00001) {
+      fx /= len
+      fy /= len
+      fz /= len
+    }
+    
+    // 计算 s = f × up
+    let sx = fy * upZ - fz * upY
+    let sy = fz * upX - fx * upZ
+    let sz = fx * upY - fy * upX
+    
+    // 归一化 s
+    const slen = Math.sqrt(sx * sx + sy * sy + sz * sz)
+    if (slen > 0.00001) {
+      sx /= slen
+      sy /= slen
+      sz /= slen
+    }
+    
+    // 计算 u = s × f
+    const ux = sy * fz - sz * fy
+    const uy = sz * fx - sx * fz
+    const uz = sx * fy - sy * fx
+    
+    return [
+      sx, ux, -fx, 0,
+      sy, uy, -fy, 0,
+      sz, uz, -fz, 0,
+      -(sx * eyeX + sy * eyeY + sz * eyeZ),
+      -(ux * eyeX + uy * eyeY + uz * eyeZ),
+      fx * eyeX + fy * eyeY + fz * eyeZ,
+      1
+    ]
+  },
+  
   // 矩阵相乘
   multiply(a: Mat4, b: Mat4): Mat4 {
     const a00 = a[0 * 4 + 0]

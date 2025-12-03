@@ -1,326 +1,109 @@
+import { useEffect, useRef } from 'react'
 import WebGLCanvas from '../../components/WebGLCanvas'
 import CodeBlock from '../../components/CodeBlock'
 import ChapterNavigation from '../../components/ChapterNavigation'
-import { createProgram, createBuffer, setAttribute } from '../../utils/webgl'
+import { createProgram, createBuffer, setAttribute, Matrix, createIndexBuffer } from '../../utils/webgl'
 
 export default function Chapter5() {
   return (
     <div className="max-w-4xl">
-      <h1 className="text-4xl mb-8 text-primary border-b-2 border-dark-border dark:border-dark-border border-light-border pb-4">第五章：GLSL 语法与 WebGL API</h1>
+      <h1 className="text-4xl mb-8 text-primary border-b-2 border-dark-border dark:border-dark-border border-light-border pb-4">第五章：相机与投影</h1>
       
       <section className="mb-12">
-        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">GLSL 基础</h2>
+        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">什么是相机？</h2>
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          GLSL（OpenGL Shading Language）是用于编写着色器的语言。它类似于 C 语言，但针对 GPU 进行了优化。
+          在 3D 图形学中，相机定义了观察场景的视角。相机有三个关键属性：
         </p>
-      </section>
-
-      <section className="mb-12">
-        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">数据类型</h2>
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">标量类型</h3>
         <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li><strong className="text-primary font-semibold">float</strong>：32 位浮点数</li>
-          <li><strong className="text-primary font-semibold">int</strong>：整数</li>
-          <li><strong className="text-primary font-semibold">bool</strong>：布尔值</li>
-        </ul>
-        
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">向量类型</h3>
-        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li><strong className="text-primary font-semibold">vec2</strong>：2 个浮点数 (x, y)</li>
-          <li><strong className="text-primary font-semibold">vec3</strong>：3 个浮点数 (x, y, z 或 r, g, b)</li>
-          <li><strong className="text-primary font-semibold">vec4</strong>：4 个浮点数 (x, y, z, w 或 r, g, b, a)</li>
-          <li><strong className="text-primary font-semibold">ivec2/ivec3/ivec4</strong>：整数向量</li>
-          <li><strong className="text-primary font-semibold">bvec2/bvec3/bvec4</strong>：布尔向量</li>
-        </ul>
-        
-        <CodeBlock title="向量操作示例" code={`vec3 v1 = vec3(1.0, 2.0, 3.0);
-vec3 v2 = vec3(4.0, 5.0, 6.0);
-
-// 分量访问
-float x = v1.x;
-float y = v1.y;
-float z = v1.z;
-
-// 或使用颜色命名
-float r = v1.r;
-float g = v1.g;
-float b = v1.b;
-
-// 向量运算
-vec3 sum = v1 + v2;
-vec3 scaled = v1 * 2.0;
-float dot = dot(v1, v2);
-vec3 cross = cross(v1, v2);
-float len = length(v1);
-vec3 normalized = normalize(v1);`} />
-      </section>
-
-      <section className="mb-12">
-        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">矩阵类型</h2>
-        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li><strong className="text-primary font-semibold">mat2</strong>：2x2 矩阵</li>
-          <li><strong className="text-primary font-semibold">mat3</strong>：3x3 矩阵</li>
-          <li><strong className="text-primary font-semibold">mat4</strong>：4x4 矩阵</li>
-        </ul>
-        
-        <CodeBlock title="矩阵操作示例" code={`mat4 m1 = mat4(1.0);  // 单位矩阵
-mat4 m2 = mat4(
-  1.0, 0.0, 0.0, 0.0,
-  0.0, 1.0, 0.0, 0.0,
-  0.0, 0.0, 1.0, 0.0,
-  0.0, 0.0, 0.0, 1.0
-);
-
-// 矩阵乘法
-vec4 v = vec4(1.0, 2.0, 3.0, 1.0);
-vec4 result = m1 * v;
-
-// 矩阵相乘
-mat4 m3 = m1 * m2;`} />
-      </section>
-
-      <section className="mb-12">
-        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">变量限定符</h2>
-        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li><strong className="text-primary font-semibold">attribute</strong>：顶点属性，每个顶点不同</li>
-          <li><strong className="text-primary font-semibold">uniform</strong>：统一变量，所有顶点/片段相同</li>
-          <li><strong className="text-primary font-semibold">varying</strong>：从顶点着色器传递到片段着色器</li>
-          <li><strong className="text-primary font-semibold">const</strong>：常量</li>
+          <li><strong className="text-primary font-semibold">位置（Position）</strong>：相机在世界空间中的位置</li>
+          <li><strong className="text-primary font-semibold">目标（Target）</strong>：相机看向的点</li>
+          <li><strong className="text-primary font-semibold">上方向（Up）</strong>：定义相机的上方向（通常是 (0, 1, 0)）</li>
         </ul>
       </section>
 
       <section className="mb-12">
-        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">内置变量</h2>
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">顶点着色器</h3>
-        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li><strong className="text-primary font-semibold">gl_Position</strong>：顶点的裁剪空间坐标（必须设置）</li>
-          <li><strong className="text-primary font-semibold">gl_PointSize</strong>：点的大小（可选）</li>
-        </ul>
-        
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">片段着色器</h3>
-        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li><strong className="text-primary font-semibold">gl_FragColor</strong>：片段的颜色（必须设置）</li>
-          <li><strong className="text-primary font-semibold">gl_FragCoord</strong>：片段的窗口坐标</li>
-        </ul>
-      </section>
-
-      <section className="mb-12">
-        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">常用函数</h2>
-        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li><strong className="text-primary font-semibold">sin, cos, tan</strong>：三角函数</li>
-          <li><strong className="text-primary font-semibold">abs, floor, ceil, round</strong>：数学函数</li>
-          <li><strong className="text-primary font-semibold">min, max, clamp</strong>：范围限制</li>
-          <li><strong className="text-primary font-semibold">mix</strong>：线性插值</li>
-          <li><strong className="text-primary font-semibold">smoothstep</strong>：平滑步进</li>
-          <li><strong className="text-primary font-semibold">texture2D</strong>：采样 2D 纹理</li>
-          <li><strong className="text-primary font-semibold">length, distance, normalize</strong>：向量运算</li>
-        </ul>
-        
-        <CodeBlock title="函数示例" code={`// 线性插值
-float t = 0.5;
-float result = mix(0.0, 1.0, t);  // 结果 = 0.5
-
-// 平滑步进
-float smooth = smoothstep(0.0, 1.0, t);
-
-// 范围限制
-float clamped = clamp(value, 0.0, 1.0);
-
-// 向量长度
-float len = length(vec2(3.0, 4.0));  // 结果 = 5.0`} />
-      </section>
-
-      <section className="mb-12">
-        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">WebGL API 核心方法</h2>
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">上下文和初始化</h3>
-        <CodeBlock title="初始化 WebGL" code={`const canvas = document.getElementById('canvas');
-const gl = canvas.getContext('webgl');
-
-// 设置视口
-gl.viewport(0, 0, canvas.width, canvas.height);
-
-// 设置清除颜色
-gl.clearColor(0.0, 0.0, 0.0, 1.0);
-gl.clear(gl.COLOR_BUFFER_BIT);`} language="javascript" />
-        
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">着色器操作</h3>
-        <CodeBlock title="创建着色器程序" code={`// 创建着色器
-const vertexShader = gl.createShader(gl.VERTEX_SHADER);
-gl.shaderSource(vertexShader, vertexShaderSource);
-gl.compileShader(vertexShader);
-
-// 检查编译错误
-if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
-  console.error(gl.getShaderInfoLog(vertexShader));
-}
-
-// 创建程序
-const program = gl.createProgram();
-gl.attachShader(program, vertexShader);
-gl.attachShader(program, fragmentShader);
-gl.linkProgram(program);
-
-// 使用程序
-gl.useProgram(program);`} language="javascript" />
-        
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">缓冲区操作</h3>
-        <CodeBlock title="缓冲区操作" code={`// 创建缓冲区
-const buffer = gl.createBuffer();
-
-// 绑定缓冲区
-gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-
-// 上传数据
-gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
-
-// 设置属性指针
-const location = gl.getAttribLocation(program, 'a_position');
-gl.enableVertexAttribArray(location);
-gl.vertexAttribPointer(location, 2, gl.FLOAT, false, 0, 0);`} language="javascript" />
-        
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">绘制</h3>
-        <CodeBlock title="绘制图元" code={`// 绘制数组
-gl.drawArrays(gl.TRIANGLES, 0, 3);
-
-// 使用索引绘制
-gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);`} language="javascript" />
-      </section>
-
-      <section className="mb-12">
-        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">Uniform 变量</h2>
+        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">视图矩阵（View Matrix）</h2>
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          设置 uniform 变量的方法：
+          视图矩阵将顶点从世界空间转换到视图空间（相机空间）。可以使用 <code>lookAt</code> 函数创建视图矩阵。
         </p>
         
-        <CodeBlock title="设置 Uniform" code={`// 获取 uniform 位置
-const location = gl.getUniformLocation(program, 'u_color');
+        <CodeBlock title="创建视图矩阵" code={`// lookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ)
+// eye: 相机位置
+// center: 相机看向的点
+// up: 上方向向量
 
-// 设置不同类型的 uniform
-gl.uniform1f(location, 1.0);           // float
-gl.uniform2f(location, 1.0, 2.0);     // vec2
-gl.uniform3f(location, 1.0, 2.0, 3.0); // vec3
-gl.uniform4f(location, 1.0, 2.0, 3.0, 1.0); // vec4
-gl.uniform1i(location, 0);             // int/sampler2D
-gl.uniformMatrix4fv(location, false, matrix); // mat4`} language="javascript" />
-      </section>
-
-      <section className="mb-12">
-        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">纹理 API</h2>
-        <CodeBlock title="纹理操作" code={`// 创建纹理
-const texture = gl.createTexture();
-gl.bindTexture(gl.TEXTURE_2D, texture);
-
-// 设置纹理参数
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-// 上传图像数据
-gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-
-// 绑定到纹理单元
-gl.activeTexture(gl.TEXTURE0);
-gl.bindTexture(gl.TEXTURE_2D, texture);
-gl.uniform1i(gl.getUniformLocation(program, 'u_texture'), 0);`} language="javascript" />
-      </section>
-
-      <section className="mb-12">
-        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">状态管理</h2>
-        <CodeBlock title="WebGL 状态" code={`// 启用/禁用功能
-gl.enable(gl.DEPTH_TEST);
-gl.disable(gl.BLEND);
-
-// 深度测试函数
-gl.depthFunc(gl.LESS);
-
-// 混合函数
-gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-// 清除缓冲区
-gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-// 设置清除颜色
-gl.clearColor(0.0, 0.0, 0.0, 1.0);
-gl.clearDepth(1.0);`} language="javascript" />
-      </section>
-
-      <section className="mb-12">
-        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">错误检查</h2>
-        <CodeBlock title="错误处理" code={`// 检查 WebGL 错误
-const error = gl.getError();
-if (error !== gl.NO_ERROR) {
-  console.error('WebGL Error:', error);
-}
-
-// 检查着色器编译
-if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-  console.error(gl.getShaderInfoLog(shader));
-}
-
-// 检查程序链接
-if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-  console.error(gl.getProgramInfoLog(program));
-}`} language="javascript" />
-      </section>
-
-      <section className="mb-12">
-        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">交互式示例</h2>
+const viewMatrix = Matrix.lookAt(
+  0, 0, 5,    // 相机位置 (0, 0, 5)
+  0, 0, 0,    // 看向原点
+  0, 1, 0     // 上方向 (0, 1, 0)
+);`} language="javascript" />
+        
         <WebGLCanvas width={400} height={400} onInit={(gl, canvas) => {
           const vertexShader = `
-            precision mediump float;
-            attribute vec2 a_position;
-            uniform float u_time;
+            attribute vec3 a_position;
+            uniform mat4 u_viewMatrix;
+            uniform mat4 u_projectionMatrix;
             
             void main() {
-              vec2 pos = a_position;
-              pos.x += sin(u_time + pos.y * 2.0) * 0.1;
-              gl_Position = vec4(pos, 0.0, 1.0);
+              gl_Position = u_projectionMatrix * u_viewMatrix * vec4(a_position, 1.0);
             }
           `
           
           const fragmentShader = `
             precision mediump float;
-            uniform float u_time;
-            uniform vec2 u_resolution;
+            uniform vec4 u_color;
             
             void main() {
-              vec2 uv = gl_FragCoord.xy / u_resolution;
-              vec3 color = vec3(
-                sin(uv.x * 10.0 + u_time),
-                cos(uv.y * 10.0 + u_time),
-                sin((uv.x + uv.y) * 5.0 + u_time)
-              );
-              gl_FragColor = vec4(color * 0.5 + 0.5, 1.0);
+              gl_FragColor = u_color;
             }
           `
           
           const program = createProgram(gl, vertexShader, fragmentShader)
-          const positions = [-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5]
+          
+          // 创建一个立方体的顶点（简化版，只显示前面）
+          const positions = [
+            -0.5, -0.5, -0.5,
+             0.5, -0.5, -0.5,
+             0.5,  0.5, -0.5,
+            -0.5,  0.5, -0.5,
+          ]
+          
           const indices = [0, 1, 2, 0, 2, 3]
           
           const positionBuffer = createBuffer(gl, positions)
-          const indexBuffer = gl.createBuffer()
-          gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
-          gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
+          const indexBuffer = createIndexBuffer(gl, indices)
           
-          const timeLocation = gl.getUniformLocation(program, 'u_time')
-          const resolutionLocation = gl.getUniformLocation(program, 'u_resolution')
+          const viewMatrixLocation = gl.getUniformLocation(program, 'u_viewMatrix')
+          const projectionMatrixLocation = gl.getUniformLocation(program, 'u_projectionMatrix')
+          const colorLocation = gl.getUniformLocation(program, 'u_color')
           
           gl.viewport(0, 0, canvas.width, canvas.height)
+          gl.enable(gl.DEPTH_TEST)
           gl.clearColor(0.1, 0.1, 0.1, 1.0)
+          
+          const aspect = canvas.width / canvas.height
+          const projectionMatrix = Matrix.perspective(Math.PI / 4, aspect, 0.1, 100)
           
           let time = 0
           const render = () => {
-            time += 0.02
-            gl.clear(gl.COLOR_BUFFER_BIT)
+            time += 0.01
+            // 相机绕 Y 轴旋转
+            const radius = 3
+            const eyeX = Math.sin(time) * radius
+            const eyeZ = Math.cos(time) * radius
+            const viewMatrix = Matrix.lookAt(eyeX, 1, eyeZ, 0, 0, 0, 0, 1, 0)
+            
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
             gl.useProgram(program)
             
             gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-            setAttribute(gl, program, 'a_position', 2)
+            setAttribute(gl, program, 'a_position', 3)
             
-            gl.uniform1f(timeLocation, time)
-            gl.uniform2f(resolutionLocation, canvas.width, canvas.height)
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+            
+            gl.uniformMatrix4fv(viewMatrixLocation, false, viewMatrix)
+            gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix)
+            gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
             
             gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
             requestAnimationFrame(render)
@@ -328,18 +111,191 @@ if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
           render()
         }} />
         
-        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">这个示例展示了使用 uniform 变量和时间来创建动画效果。</p>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          上面的示例展示了相机绕场景旋转的效果。注意观察视角的变化。
+        </p>
+      </section>
+
+      <section className="mb-12">
+        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">投影矩阵（Projection Matrix）</h2>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          投影矩阵将 3D 场景投影到 2D 屏幕上。有两种主要的投影方式：
+        </p>
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">1. 透视投影（Perspective Projection）</h3>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          透视投影模拟人眼的视觉效果，远处的物体看起来更小。这是最常用的投影方式。
+        </p>
+        
+        <CodeBlock title="透视投影矩阵" code={`// perspective(fov, aspect, near, far)
+// fov: 视野角度（弧度）
+// aspect: 宽高比（width / height）
+// near: 近裁剪平面距离
+// far: 远裁剪平面距离
+
+const fov = Math.PI / 4;  // 45度
+const aspect = canvas.width / canvas.height;
+const near = 0.1;
+const far = 100.0;
+
+const projectionMatrix = Matrix.perspective(fov, aspect, near, far);`} language="javascript" />
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">2. 正交投影（Orthographic Projection）</h3>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          正交投影保持物体的实际大小，不受距离影响。常用于 2D 渲染或技术图纸。
+        </p>
+        
+        <CodeBlock title="正交投影矩阵" code={`// ortho(left, right, bottom, top, near, far)
+
+const left = -2;
+const right = 2;
+const bottom = -2;
+const top = 2;
+const near = 0.1;
+const far = 100.0;
+
+const projectionMatrix = Matrix.ortho(left, right, bottom, top, near, far);`} language="javascript" />
+      </section>
+
+      <section className="mb-12">
+        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">完整的 MVP 示例</h2>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          下面是一个完整的示例，展示如何使用模型矩阵、视图矩阵和投影矩阵：
+        </p>
+        
+        <WebGLCanvas width={400} height={400} onInit={(gl, canvas) => {
+          const vertexShader = `
+            attribute vec3 a_position;
+            uniform mat4 u_modelMatrix;
+            uniform mat4 u_viewMatrix;
+            uniform mat4 u_projectionMatrix;
+            
+            void main() {
+              mat4 mvp = u_projectionMatrix * u_viewMatrix * u_modelMatrix;
+              gl_Position = mvp * vec4(a_position, 1.0);
+            }
+          `
+          
+          const fragmentShader = `
+            precision mediump float;
+            uniform vec4 u_color;
+            
+            void main() {
+              gl_FragColor = u_color;
+            }
+          `
+          
+          const program = createProgram(gl, vertexShader, fragmentShader)
+          
+          // 立方体顶点
+          const positions = [
+            // 前面
+            -0.5, -0.5,  0.5,  0.5, -0.5,  0.5,  0.5,  0.5,  0.5,  -0.5,  0.5,  0.5,
+            // 后面
+            -0.5, -0.5, -0.5,  -0.5,  0.5, -0.5,  0.5,  0.5, -0.5,  0.5, -0.5, -0.5,
+            // 上面
+            -0.5,  0.5, -0.5,  -0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5, -0.5,
+            // 下面
+            -0.5, -0.5, -0.5,  0.5, -0.5, -0.5,  0.5, -0.5,  0.5,  -0.5, -0.5,  0.5,
+            // 右面
+             0.5, -0.5, -0.5,  0.5,  0.5, -0.5,  0.5,  0.5,  0.5,  0.5, -0.5,  0.5,
+            // 左面
+            -0.5, -0.5, -0.5,  -0.5, -0.5,  0.5,  -0.5,  0.5,  0.5,  -0.5,  0.5, -0.5,
+          ]
+          
+          const indices = [
+            0,  1,  2,   0,  2,  3,    // 前面
+            4,  5,  6,   4,  6,  7,    // 后面
+            8,  9,  10,  8,  10, 11,   // 上面
+            12, 13, 14,  12, 14, 15,   // 下面
+            16, 17, 18,  16, 18, 19,   // 右面
+            20, 21, 22,  20, 22, 23,   // 左面
+          ]
+          
+          const positionBuffer = createBuffer(gl, positions)
+          const indexBuffer = createIndexBuffer(gl, indices)
+          
+          const modelMatrixLocation = gl.getUniformLocation(program, 'u_modelMatrix')
+          const viewMatrixLocation = gl.getUniformLocation(program, 'u_viewMatrix')
+          const projectionMatrixLocation = gl.getUniformLocation(program, 'u_projectionMatrix')
+          const colorLocation = gl.getUniformLocation(program, 'u_color')
+          
+          gl.viewport(0, 0, canvas.width, canvas.height)
+          gl.enable(gl.DEPTH_TEST)
+          gl.clearColor(0.1, 0.1, 0.1, 1.0)
+          
+          const aspect = canvas.width / canvas.height
+          const projectionMatrix = Matrix.perspective(Math.PI / 4, aspect, 0.1, 100)
+          const viewMatrix = Matrix.lookAt(0, 0, 3, 0, 0, 0, 0, 1, 0)
+          
+          let angle = 0
+          const render = () => {
+            angle += 0.02
+            
+            // 模型矩阵：旋转立方体
+            const modelMatrix = Matrix.rotationY(angle)
+            
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+            gl.useProgram(program)
+            
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+            setAttribute(gl, program, 'a_position', 3)
+            
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+            
+            gl.uniformMatrix4fv(modelMatrixLocation, false, modelMatrix)
+            gl.uniformMatrix4fv(viewMatrixLocation, false, viewMatrix)
+            gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix)
+            gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
+            
+            gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0)
+            requestAnimationFrame(render)
+          }
+          render()
+        }} />
+        
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          这个示例展示了完整的 MVP 矩阵变换：立方体绕 Y 轴旋转（模型矩阵），相机固定观察（视图矩阵），使用透视投影（投影矩阵）。
+        </p>
+      </section>
+
+      <section className="mb-12">
+        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">相机控制</h2>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          在实际应用中，我们通常需要控制相机的位置和方向。常见的相机控制方式：
+        </p>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li><strong className="text-primary font-semibold">轨道相机（Orbit Camera）</strong>：相机围绕目标点旋转</li>
+          <li><strong className="text-primary font-semibold">第一人称相机（FPS Camera）</strong>：相机可以自由移动和旋转</li>
+          <li><strong className="text-primary font-semibold">固定相机</strong>：相机位置和方向固定</li>
+        </ul>
+        
+        <CodeBlock title="轨道相机示例" code={`// 使用球坐标系控制相机
+function updateOrbitCamera(radius, theta, phi) {
+  const x = radius * Math.sin(phi) * Math.cos(theta);
+  const y = radius * Math.cos(phi);
+  const z = radius * Math.sin(phi) * Math.sin(theta);
+  
+  const eyeX = x;
+  const eyeY = y;
+  const eyeZ = z;
+  const centerX = 0;
+  const centerY = 0;
+  const centerZ = 0;
+  
+  return Matrix.lookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, 0, 1, 0);
+}`} language="javascript" />
       </section>
 
       <section className="mb-12">
         <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">关键概念总结</h2>
         <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li><strong className="text-primary font-semibold">GLSL 数据类型</strong>：float, vec, mat</li>
-          <li><strong className="text-primary font-semibold">变量限定符</strong>：attribute, uniform, varying</li>
-          <li><strong className="text-primary font-semibold">内置变量</strong>：gl_Position, gl_FragColor</li>
-          <li><strong className="text-primary font-semibold">WebGL API</strong>：创建、绑定、绘制</li>
-          <li><strong className="text-primary font-semibold">状态管理</strong>：启用/禁用功能，设置参数</li>
-          <li><strong className="text-primary font-semibold">错误检查</strong>：getError, getShaderInfoLog</li>
+          <li><strong className="text-primary font-semibold">视图矩阵</strong>：将顶点从世界空间转换到视图空间</li>
+          <li><strong className="text-primary font-semibold">投影矩阵</strong>：将 3D 场景投影到 2D 屏幕</li>
+          <li><strong className="text-primary font-semibold">透视投影</strong>：模拟人眼效果，远处物体更小</li>
+          <li><strong className="text-primary font-semibold">正交投影</strong>：保持物体实际大小</li>
+          <li><strong className="text-primary font-semibold">MVP 矩阵</strong>：Model-View-Projection 的完整变换流程</li>
+          <li><strong className="text-primary font-semibold">相机控制</strong>：轨道相机、第一人称相机等</li>
         </ul>
       </section>
       
@@ -347,4 +303,3 @@ if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
     </div>
   )
 }
-

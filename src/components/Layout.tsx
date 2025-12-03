@@ -4,11 +4,14 @@ import ThemeToggle from './ThemeToggle'
 
 const chapters = [
   { id: 1, title: 'WebGL 基础', path: '/chapter/1' },
-  { id: 2, title: '3D 数学基础', path: '/chapter/2' },
-  { id: 3, title: '渲染管线', path: '/chapter/3' },
-  { id: 4, title: '材质与纹理', path: '/chapter/4' },
-  { id: 5, title: 'GLSL 语法与 API', path: '/chapter/5' },
-  { id: 6, title: '性能优化', path: '/chapter/6' },
+  { id: 2, title: 'GLSL 语法基础', path: '/chapter/2' },
+  { id: 3, title: '3D 数学基础', path: '/chapter/3' },
+  { id: 4, title: '渲染管线', path: '/chapter/4' },
+  { id: 5, title: '相机与投影', path: '/chapter/5' },
+  { id: 6, title: '光照', path: '/chapter/6' },
+  { id: 7, title: '材质与纹理', path: '/chapter/7' },
+  { id: 8, title: '交互与动画', path: '/chapter/8' },
+  { id: 9, title: '性能优化', path: '/chapter/9' },
 ]
 
 export default function Layout({ children }) {
@@ -93,13 +96,15 @@ export default function Layout({ children }) {
       </button>
       
       <main 
-        className="flex-1 p-6 md:p-10 max-w-6xl transition-all duration-500 ease-in-out"
+        className="flex-1 p-6 md:p-10 transition-all duration-500 ease-in-out w-full"
         style={{
           marginLeft: sidebarOpen ? '280px' : '0',
-          marginRight: 'auto',
+          maxWidth: sidebarOpen ? 'calc(100% - 280px)' : '100%',
         }}
       >
-        {children}
+        <div className="max-w-7xl">
+          {children}
+        </div>
       </main>
     </div>
   )

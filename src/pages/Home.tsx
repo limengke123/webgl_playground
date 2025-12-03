@@ -9,33 +9,51 @@ const chapters = [
   },
   {
     id: 2,
-    title: '3D 数学基础',
-    description: '掌握向量、矩阵变换（平移、旋转、缩放）和坐标系统',
+    title: 'GLSL 语法基础',
+    description: '掌握 GLSL 着色器语言的基础语法，数据类型、变量限定符和常用函数',
     path: '/chapter/2'
   },
   {
     id: 3,
-    title: '渲染管线',
-    description: '深入理解 WebGL 渲染管线，顶点处理、图元装配、光栅化等',
+    title: '3D 数学基础',
+    description: '掌握向量、矩阵变换（平移、旋转、缩放）和 MVP 矩阵的完整流程',
     path: '/chapter/3'
   },
   {
     id: 4,
-    title: '材质与纹理',
-    description: '学习如何创建和使用材质，加载和应用纹理贴图',
+    title: '渲染管线',
+    description: '深入理解 WebGL 渲染管线，顶点处理、图元装配、光栅化等',
     path: '/chapter/4'
   },
   {
     id: 5,
-    title: 'GLSL 语法与 API',
-    description: '掌握 GLSL 着色器语言语法和 WebGL API 的使用',
+    title: '相机与投影',
+    description: '学习视图矩阵、投影矩阵（透视和正交），理解完整的 MVP 变换',
     path: '/chapter/5'
   },
   {
     id: 6,
+    title: '光照',
+    description: '掌握环境光、漫反射光和镜面反射光，实现 Phong 光照模型',
+    path: '/chapter/6'
+  },
+  {
+    id: 7,
+    title: '材质与纹理',
+    description: '学习如何创建和使用材质，加载和应用纹理贴图',
+    path: '/chapter/7'
+  },
+  {
+    id: 8,
+    title: '交互与动画',
+    description: '实现鼠标、键盘交互控制，创建流畅的动画效果',
+    path: '/chapter/8'
+  },
+  {
+    id: 9,
     title: '性能优化',
     description: '学习 WebGL 性能优化技巧，提升渲染效率',
-    path: '/chapter/6'
+    path: '/chapter/9'
   },
 ]
 
@@ -96,10 +114,13 @@ export default function Home() {
         <ul className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted leading-loose pl-8 space-y-2">
           {[
             'WebGL 基础概念和 API',
-            '3D 数学（向量、矩阵变换）',
-            '渲染管线和着色器编程',
-            '材质、纹理和光照',
-            'GLSL 语法和高级技巧',
+            'GLSL 着色器语言语法',
+            '3D 数学（向量、矩阵、MVP 变换）',
+            '渲染管线深入理解',
+            '相机控制和投影矩阵',
+            '光照模型（环境光、漫反射、镜面反射）',
+            '材质、纹理和贴图',
+            '交互控制和动画循环',
             '性能优化最佳实践'
           ].map((item, index) => (
             <li key={index} className="flex items-center gap-2">

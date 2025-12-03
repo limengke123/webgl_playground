@@ -10,6 +10,9 @@ import Chapter3 from './pages/chapters/Chapter3'
 import Chapter4 from './pages/chapters/Chapter4'
 import Chapter5 from './pages/chapters/Chapter5'
 import Chapter6 from './pages/chapters/Chapter6'
+import Chapter7 from './pages/chapters/Chapter7'
+import Chapter8 from './pages/chapters/Chapter8'
+import Chapter9 from './pages/chapters/Chapter9'
 
 // 获取 base path，用于 GitHub Pages 部署
 // 如果是在 GitHub Pages 上，base 会是 /repo-name/，basename 应该是 /repo-name
@@ -40,6 +43,9 @@ function App() {
             <Route path="/chapter/4" element={<Chapter4 />} />
             <Route path="/chapter/5" element={<Chapter5 />} />
             <Route path="/chapter/6" element={<Chapter6 />} />
+            <Route path="/chapter/7" element={<Chapter7 />} />
+            <Route path="/chapter/8" element={<Chapter8 />} />
+            <Route path="/chapter/9" element={<Chapter9 />} />
           </Routes>
         </Layout>
         <ScrollToTop />

@@ -2,11 +2,14 @@ import { Link, useLocation } from 'react-router-dom'
 
 const chapters = [
   { id: 1, title: 'WebGL 基础', path: '/chapter/1' },
-  { id: 2, title: '3D 数学基础', path: '/chapter/2' },
-  { id: 3, title: '渲染管线', path: '/chapter/3' },
-  { id: 4, title: '材质与纹理', path: '/chapter/4' },
-  { id: 5, title: 'GLSL 语法与 API', path: '/chapter/5' },
-  { id: 6, title: '性能优化', path: '/chapter/6' },
+  { id: 2, title: 'GLSL 语法基础', path: '/chapter/2' },
+  { id: 3, title: '3D 数学基础', path: '/chapter/3' },
+  { id: 4, title: '渲染管线', path: '/chapter/4' },
+  { id: 5, title: '相机与投影', path: '/chapter/5' },
+  { id: 6, title: '光照', path: '/chapter/6' },
+  { id: 7, title: '材质与纹理', path: '/chapter/7' },
+  { id: 8, title: '交互与动画', path: '/chapter/8' },
+  { id: 9, title: '性能优化', path: '/chapter/9' },
 ]
 
 export default function ChapterNavigation() {
