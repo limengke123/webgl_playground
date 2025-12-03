@@ -10,6 +10,7 @@ const defaultCode = `// WebGL Playground
 
 // 顶点着色器
 const vertexShader = \`
+  precision mediump float;
   attribute vec2 a_position;
   uniform float u_time;
   
@@ -77,9 +78,14 @@ function init(gl, canvas) {
 
 const templates = [
   {
+    name: '动画示例',
+    code: defaultCode
+  },
+  {
     name: '基础三角形',
     code: `// 基础三角形
 const vertexShader = \`
+  precision mediump float;
   attribute vec2 a_position;
   void main() {
     gl_Position = vec4(a_position, 0.0, 1.0);
@@ -114,6 +120,7 @@ function init(gl, canvas) {
     name: '旋转三角形',
     code: `// 旋转三角形
 const vertexShader = \`
+  precision mediump float;
   attribute vec2 a_position;
   uniform mat4 u_matrix;
   void main() {
@@ -159,6 +166,7 @@ function init(gl, canvas) {
     name: '彩色渐变',
     code: `// 彩色渐变
 const vertexShader = \`
+  precision mediump float;
   attribute vec2 a_position;
   attribute vec3 a_color;
   varying vec3 v_color;
@@ -267,6 +275,7 @@ export default function Playground() {
   const [error, setError] = useState('')
   const [isRunning, setIsRunning] = useState(false)
   const [isDark, setIsDark] = useState(false)
+  const [canvasKey, setCanvasKey] = useState(0) // 用于强制重新创建 canvas
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const glRef = useRef<WebGLRenderingContext | null>(null)
   const cleanupRef = useRef<(() => void) | null>(null)
@@ -289,22 +298,52 @@ export default function Playground() {
     return () => observer.disconnect()
   }, [])
 
+  const animationFrames = useRef<number[]>([])
+
   const stopAnimation = () => {
+    animationFrames.current.forEach(id => {
+      try {
+        cancelAnimationFrame(id)
+      } catch (e) {
+        // 忽略已取消的动画帧错误
+      }
+    })
+    animationFrames.current = []
     if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current)
+      try {
+        cancelAnimationFrame(animationFrameRef.current)
+      } catch (e) {
+        // 忽略已取消的动画帧错误
+      }
       animationFrameRef.current = null
     }
   }
 
   const cleanup = () => {
     stopAnimation()
+    // 清理用户代码设置的清理函数
     if (cleanupRef.current) {
       try {
         cleanupRef.current()
       } catch (e) {
-        console.error('清理错误:', e)
+        // 忽略清理错误
       }
       cleanupRef.current = null
+    }
+    // 清理 WebGL 上下文
+    if (glRef.current) {
+      // 重置 WebGL 状态
+      const gl = glRef.current
+      try {
+        // 取消所有绑定
+        gl.bindBuffer(gl.ARRAY_BUFFER, null)
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null)
+        gl.bindTexture(gl.TEXTURE_2D, null)
+        gl.useProgram(null)
+      } catch (e) {
+        // 忽略错误
+      }
+      glRef.current = null
     }
   }
 
@@ -321,10 +360,19 @@ export default function Playground() {
       return
     }
 
+    // 获取或创建 WebGL 上下文
     let gl: WebGLRenderingContext | null = null
     try {
-      gl = canvas.getContext('webgl') as WebGLRenderingContext || 
-           canvas.getContext('experimental-webgl') as WebGLRenderingContext
+      // 先尝试获取现有上下文
+      gl = canvas.getContext('webgl', {
+        antialias: true,
+        preserveDrawingBuffer: false,
+      }) as WebGLRenderingContext
+      
+      if (!gl) {
+        gl = canvas.getContext('experimental-webgl') as WebGLRenderingContext
+      }
+      
       if (!gl) {
         setError('无法创建 WebGL 上下文')
         setIsRunning(false)
@@ -336,11 +384,36 @@ export default function Playground() {
       return
     }
 
+    // 清理之前的上下文状态
+    if (glRef.current && glRef.current !== gl) {
+      try {
+        glRef.current.bindBuffer(glRef.current.ARRAY_BUFFER, null)
+        glRef.current.bindBuffer(glRef.current.ELEMENT_ARRAY_BUFFER, null)
+        glRef.current.useProgram(null)
+      } catch (e) {
+        // 忽略错误
+      }
+    }
+
     glRef.current = gl
 
     try {
       // 创建执行环境，注入工具函数
       const utils = { createProgram, createBuffer, setAttribute, Matrix, createIndexBuffer }
+      
+      // 包装 requestAnimationFrame 以便追踪和清理
+      const originalRAF = window.requestAnimationFrame
+      const rafIds: number[] = []
+      
+      window.requestAnimationFrame = function(callback: FrameRequestCallback): number {
+        const id = originalRAF.call(window, (...args) => {
+          const index = rafIds.indexOf(id)
+          if (index > -1) rafIds.splice(index, 1)
+          callback(...args)
+        })
+        rafIds.push(id)
+        return id
+      }
       
       // 使用 Function 构造函数创建执行环境
       const executeFunction = new Function(
@@ -366,9 +439,30 @@ export default function Playground() {
         utils.createIndexBuffer
       )
       
-      cleanupRef.current = cleanup
+      // 恢复原始的 requestAnimationFrame
+      window.requestAnimationFrame = originalRAF
+      
+      // 设置清理函数（清理动画帧）
+      cleanupRef.current = () => {
+        rafIds.forEach(id => {
+          try {
+            cancelAnimationFrame(id)
+          } catch (e) {
+            // 忽略已取消的动画帧错误
+          }
+        })
+        rafIds.length = 0
+      }
+      
+      // 将 rafIds 添加到全局追踪列表
+      animationFrames.current.push(...rafIds)
+      
       setIsRunning(false)
     } catch (err) {
+      // 恢复原始的 requestAnimationFrame
+      if (window.requestAnimationFrame !== originalRAF) {
+        window.requestAnimationFrame = originalRAF
+      }
       setError(err instanceof Error ? err.message : '代码执行出错')
       console.error('执行错误:', err)
       setIsRunning(false)
@@ -383,8 +477,10 @@ export default function Playground() {
   useEffect(() => {
     // 延迟一下，确保 canvas 已经渲染
     const timer = setTimeout(() => {
-      executeCode(defaultCode)
-    }, 200)
+      if (canvasRef.current) {
+        executeCode(defaultCode)
+      }
+    }, 300)
     
     return () => {
       clearTimeout(timer)
@@ -393,13 +489,30 @@ export default function Playground() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // 当 canvas key 变化时，等待 canvas 重新创建后运行当前代码
+  useEffect(() => {
+    if (canvasKey > 0 && code) {
+      const timer = setTimeout(() => {
+        if (canvasRef.current) {
+          // 确保清理完成后再执行
+          cleanup()
+          executeCode(code)
+        }
+      }, 200)
+      return () => clearTimeout(timer)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canvasKey])
+
   const loadTemplate = (templateCode: string) => {
+    // 先清理所有资源
+    cleanup()
+    // 更新代码
     setCode(templateCode)
     setError('')
-    // 延迟一下确保代码已更新，然后自动运行
-    setTimeout(() => {
-      executeCode(templateCode)
-    }, 150)
+    // 强制重新创建 canvas（通过改变 key）
+    // useEffect 会监听 canvasKey 变化并自动运行代码
+    setCanvasKey(prev => prev + 1)
   }
 
   return (
@@ -480,6 +593,7 @@ export default function Playground() {
           <h2 className="text-xl mb-3 text-dark-text dark:text-dark-text text-light-text">预览</h2>
           <div className="flex-1 rounded-lg border border-dark-border dark:border-dark-border border-light-border bg-dark-surface dark:bg-dark-surface bg-light-surface p-4 flex items-center justify-center" style={{ minHeight: '500px' }}>
             <canvas
+              key={canvasKey}
               ref={canvasRef}
               width={600}
               height={500}

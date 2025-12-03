@@ -72,7 +72,7 @@ export default function Home() {
         </p>
         <Link 
           to="/playground" 
-          className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-purple-500 text-white rounded-lg hover:from-primary/90 hover:to-purple-500/90 transition-all font-medium shadow-lg hover:shadow-xl"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-purple-500 text-white rounded-lg hover:from-primary/90 hover:to-purple-500/90 transition-all font-medium shadow-lg hover:shadow-xl relative z-10"
         >
           <span>🎮</span>
           <span>进入 Playground</span>

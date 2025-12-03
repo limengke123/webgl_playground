@@ -188,6 +188,7 @@ void main() {
         
         <WebGLCanvas width={400} height={400} onInit={(gl, canvas) => {
           const vertexShader = `
+            precision mediump float;
             attribute vec2 a_position;
             uniform float u_time;
             
