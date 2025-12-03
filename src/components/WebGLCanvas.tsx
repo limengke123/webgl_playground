@@ -1,9 +1,27 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export default function WebGLCanvas({ width = 800, height = 600, onInit }) {
   const canvasRef = useRef(null)
   const glRef = useRef(null)
   const cleanupRef = useRef(null)
+  const [isDark, setIsDark] = useState(false)
+
+  useEffect(() => {
+    // 检查当前主题
+    const checkTheme = () => {
+      setIsDark(document.documentElement.classList.contains('dark'))
+    }
+    checkTheme()
+    
+    // 监听主题变化
+    const observer = new MutationObserver(checkTheme)
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    })
+    
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -62,19 +80,25 @@ export default function WebGLCanvas({ width = 800, height = 600, onInit }) {
   }, [onInit])
 
   return (
-    <div className="my-5 flex justify-center rounded-lg p-5 relative group" style={{
-      background: 'linear-gradient(135deg, rgba(10, 10, 15, 0.8), rgba(21, 21, 32, 0.8))',
-      border: '1px solid rgba(74, 158, 255, 0.2)',
-      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(74, 158, 255, 0.1)',
-    }}>
-      <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"></div>
+    <div 
+      className="my-6 flex justify-center rounded-lg p-4 relative" 
+      style={{
+        backgroundColor: isDark ? 'rgba(21, 21, 32, 0.6)' : 'rgba(248, 249, 250, 0.8)',
+        border: `1px solid ${isDark ? 'rgba(74, 158, 255, 0.15)' : 'rgba(74, 158, 255, 0.12)'}`,
+        boxShadow: isDark 
+          ? '0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.03)' 
+          : '0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+      }}
+    >
       <canvas
         ref={canvasRef}
         width={width}
         height={height}
         className="block max-w-full h-auto relative z-10 rounded"
         style={{
-          boxShadow: '0 0 20px rgba(74, 158, 255, 0.1)',
+          boxShadow: isDark 
+            ? '0 2px 4px rgba(0, 0, 0, 0.3)' 
+            : '0 2px 4px rgba(0, 0, 0, 0.1)',
         }}
       />
     </div>

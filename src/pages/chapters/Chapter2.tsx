@@ -16,15 +16,15 @@ export default function Chapter2() {
 
   return (
     <div className="max-w-4xl">
-      <h1 className="text-4xl mb-8 text-primary border-b-2 border-dark-border pb-4">第二章：3D 数学基础</h1>
+      <h1 className="text-4xl mb-8 text-primary border-b-2 border-dark-border dark:border-dark-border border-light-border pb-4">第二章：3D 数学基础</h1>
       
       <section className="mb-12">
-        <h2 className="text-3xl my-10 text-dark-text">向量（Vector）</h2>
-        <p className="text-dark-text-muted leading-relaxed mb-4">
+        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">向量（Vector）</h2>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           向量是图形学的基础，表示方向和大小。在 3D 空间中，向量通常用三个分量 (x, y, z) 表示。
         </p>
-        <h3 className="text-2xl my-8 text-dark-text">向量的基本运算</h3>
-        <ul className="text-dark-text-muted leading-loose pl-8 mb-5">
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">向量的基本运算</h3>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
           <li><strong className="text-primary font-semibold">加法</strong>：v1 + v2 = (x1+x2, y1+y2, z1+z2)</li>
           <li><strong className="text-primary font-semibold">减法</strong>：v1 - v2 = (x1-x2, y1-y2, z1-z2)</li>
           <li><strong className="text-primary font-semibold">标量乘法</strong>：s * v = (s*x, s*y, s*z)</li>

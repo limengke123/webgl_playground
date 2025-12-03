@@ -7,14 +7,14 @@ import { createProgram, createBuffer, setAttribute, createTexture } from '../../
 export default function Chapter4() {
   return (
     <div className="max-w-4xl">
-      <h1 className="text-4xl mb-8 text-primary border-b-2 border-dark-border pb-4">第四章：材质与纹理</h1>
+      <h1 className="text-4xl mb-8 text-primary border-b-2 border-dark-border dark:border-dark-border border-light-border pb-4">第四章：材质与纹理</h1>
       
       <section className="mb-12">
-        <h2 className="text-3xl my-10 text-dark-text">什么是材质？</h2>
-        <p className="text-dark-text-muted leading-relaxed mb-4">
+        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">什么是材质？</h2>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           材质定义了物体表面的视觉属性，包括：
         </p>
-        <ul className="text-dark-text-muted leading-loose pl-8 mb-5">
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
           <li><strong className="text-primary font-semibold">颜色</strong>：基础颜色</li>
           <li><strong className="text-primary font-semibold">纹理</strong>：表面图案</li>
           <li><strong className="text-primary font-semibold">光照属性</strong>：环境光、漫反射、镜面反射</li>
@@ -23,8 +23,8 @@ export default function Chapter4() {
       </section>
 
       <section className="mb-12">
-        <h2 className="text-3xl my-10 text-dark-text">纹理基础</h2>
-        <p className="text-dark-text-muted leading-relaxed mb-4">
+        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">纹理基础</h2>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           纹理是 2D 图像，可以映射到 3D 物体的表面。纹理坐标（UV 坐标）范围从 0 到 1。
         </p>
         
@@ -43,11 +43,11 @@ const texCoords = [
       </section>
 
       <section className="mb-12">
-        <h2 className="text-3xl my-10 text-dark-text">创建纹理</h2>
-        <p className="text-dark-text-muted leading-relaxed mb-4">
+        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">创建纹理</h2>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           在 WebGL 中创建纹理的步骤：
         </p>
-        <ol className="text-dark-text-muted leading-loose pl-8 mb-5">
+        <ol className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
           <li>创建纹理对象</li>
           <li>绑定纹理</li>
           <li>设置纹理参数（过滤、包装）</li>
@@ -73,11 +73,11 @@ const texCoords = [
       </section>
 
       <section className="mb-12">
-        <h2 className="text-3xl my-10 text-dark-text">纹理过滤</h2>
-        <p className="text-dark-text-muted leading-relaxed mb-4">
+        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">纹理过滤</h2>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           纹理过滤决定如何采样纹理：
         </p>
-        <ul className="text-dark-text-muted leading-loose pl-8 mb-5">
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
           <li><strong className="text-primary font-semibold">gl.NEAREST</strong>：最近邻采样，像素化效果</li>
           <li><strong className="text-primary font-semibold">gl.LINEAR</strong>：线性插值，平滑效果</li>
           <li><strong className="text-primary font-semibold">gl.NEAREST_MIPMAP_NEAREST</strong>：使用最近的 mipmap</li>
@@ -86,11 +86,11 @@ const texCoords = [
       </section>
 
       <section className="mb-12">
-        <h2 className="text-3xl my-10 text-dark-text">纹理包装</h2>
-        <p className="text-dark-text-muted leading-relaxed mb-4">
+        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">纹理包装</h2>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           纹理包装决定超出 [0,1] 范围的纹理坐标如何处理：
         </p>
-        <ul className="text-dark-text-muted leading-loose pl-8 mb-5">
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
           <li><strong className="text-primary font-semibold">gl.REPEAT</strong>：重复纹理</li>
           <li><strong className="text-primary font-semibold">gl.CLAMP_TO_EDGE</strong>：夹紧到边缘</li>
           <li><strong className="text-primary font-semibold">gl.MIRRORED_REPEAT</strong>：镜像重复</li>
@@ -98,8 +98,8 @@ const texCoords = [
       </section>
 
       <section className="mb-12">
-        <h2 className="text-3xl my-10 text-dark-text">程序化纹理</h2>
-        <p className="text-dark-text-muted leading-relaxed mb-4">
+        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">程序化纹理</h2>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           使用着色器代码生成纹理，而不是加载图像：
         </p>
         
@@ -188,11 +188,11 @@ void main() {
       </section>
 
       <section className="mb-12">
-        <h2 className="text-3xl my-10 text-dark-text">多纹理</h2>
-        <p className="text-dark-text-muted leading-relaxed mb-4">
+        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">多纹理</h2>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           可以同时使用多个纹理，实现复杂的效果：
         </p>
-        <ul className="text-dark-text-muted leading-loose pl-8 mb-5">
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
           <li>基础颜色纹理</li>
           <li>法线贴图（Normal Map）</li>
           <li>粗糙度贴图</li>
@@ -221,11 +221,11 @@ void main() {
       </section>
 
       <section className="mb-12">
-        <h2 className="text-3xl my-10 text-dark-text">立方体贴图（Cubemap）</h2>
-        <p className="text-dark-text-muted leading-relaxed mb-4">
+        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">立方体贴图（Cubemap）</h2>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           立方体贴图用于环境映射、天空盒等效果：
         </p>
-        <ul className="text-dark-text-muted leading-loose pl-8 mb-5">
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
           <li>6 个面的纹理</li>
           <li>使用 3D 方向向量采样</li>
           <li>常用于反射和天空盒</li>
@@ -233,8 +233,8 @@ void main() {
       </section>
 
       <section className="mb-12">
-        <h2 className="text-3xl my-10 text-dark-text">关键概念总结</h2>
-        <ul className="text-dark-text-muted leading-loose pl-8 mb-5">
+        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">关键概念总结</h2>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
           <li><strong className="text-primary font-semibold">纹理坐标</strong>：UV 坐标范围 [0,1]</li>
           <li><strong className="text-primary font-semibold">纹理过滤</strong>：NEAREST 或 LINEAR</li>
           <li><strong className="text-primary font-semibold">纹理包装</strong>：REPEAT 或 CLAMP_TO_EDGE</li>

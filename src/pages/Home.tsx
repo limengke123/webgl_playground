@@ -42,14 +42,14 @@ const chapters = [
 export default function Home() {
   return (
     <div className="max-w-4xl relative z-10">
-      <div className="text-center py-15 border-b border-dark-border mb-10 relative">
+      <div className="text-center py-15 border-b border-dark-border dark:border-dark-border border-light-border mb-10 relative">
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent blur-3xl"></div>
         <h1 className="text-5xl mb-5 relative">
           <span className="bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]">
             WebGL 学习教程
           </span>
         </h1>
-        <p className="text-xl text-dark-text-muted relative">
+        <p className="text-xl text-dark-text-muted dark:text-dark-text-muted text-light-text-muted relative">
           从零开始学习 WebGL，通过交互式示例深入理解图形学基础
         </p>
       </div>
@@ -72,7 +72,7 @@ export default function Home() {
                 {chapter.title}
               </span>
             </h2>
-            <p className="text-dark-text-muted mb-5 leading-relaxed relative z-10">{chapter.description}</p>
+            <p className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted mb-5 leading-relaxed relative z-10">{chapter.description}</p>
             <div className="text-primary font-medium relative z-10 flex items-center gap-2 group-hover:gap-3 transition-all">
               开始学习 
               <span className="inline-block group-hover:translate-x-1 transition-transform">→</span>
@@ -88,12 +88,12 @@ export default function Home() {
             关于本教程
           </span>
         </h2>
-        <p className="text-dark-text-muted leading-relaxed mb-5">
+        <p className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted leading-relaxed mb-5">
           这是一个交互式的 WebGL 学习平台，旨在帮助你从零开始掌握 WebGL 和图形学基础。
           每个章节都包含详细的理论讲解和可交互的代码示例，让你在实践中学习。
         </p>
-        <h3 className="text-2xl my-8 text-dark-text">你将学到：</h3>
-        <ul className="text-dark-text-muted leading-loose pl-8 space-y-2">
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">你将学到：</h3>
+        <ul className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted leading-loose pl-8 space-y-2">
           {[
             'WebGL 基础概念和 API',
             '3D 数学（向量、矩阵变换）',

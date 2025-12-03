@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { ThemeProvider } from './contexts/ThemeContext'
 import Layout from './components/Layout'
 import ScrollToTop from './components/ScrollToTop'
 import ScrollToTopOnRouteChange from './components/ScrollToTopOnRouteChange'
@@ -22,26 +23,28 @@ function getBasename(): string | undefined {
 
 function App() {
   return (
-    <Router 
-      basename={getBasename()}
-      future={{
-        v7_startTransition: true,
-      }}
-    >
-      <ScrollToTopOnRouteChange />
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/chapter/1" element={<Chapter1 />} />
-          <Route path="/chapter/2" element={<Chapter2 />} />
-          <Route path="/chapter/3" element={<Chapter3 />} />
-          <Route path="/chapter/4" element={<Chapter4 />} />
-          <Route path="/chapter/5" element={<Chapter5 />} />
-          <Route path="/chapter/6" element={<Chapter6 />} />
-        </Routes>
-      </Layout>
-      <ScrollToTop />
-    </Router>
+    <ThemeProvider>
+      <Router 
+        basename={getBasename()}
+        future={{
+          v7_startTransition: true,
+        }}
+      >
+        <ScrollToTopOnRouteChange />
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/chapter/1" element={<Chapter1 />} />
+            <Route path="/chapter/2" element={<Chapter2 />} />
+            <Route path="/chapter/3" element={<Chapter3 />} />
+            <Route path="/chapter/4" element={<Chapter4 />} />
+            <Route path="/chapter/5" element={<Chapter5 />} />
+            <Route path="/chapter/6" element={<Chapter6 />} />
+          </Routes>
+        </Layout>
+        <ScrollToTop />
+      </Router>
+    </ThemeProvider>
   )
 }
 

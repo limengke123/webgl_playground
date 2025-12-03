@@ -23,18 +23,18 @@ export default function ChapterNavigation() {
   if (currentIndex === -1) return null
 
   return (
-    <div className="flex justify-between items-center gap-4 mt-12 pt-8 border-t border-dark-border relative">
+    <div className="flex justify-between items-center gap-4 mt-12 pt-8 border-t border-dark-border dark:border-dark-border border-light-border relative">
       <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
       {prevChapter ? (
         <Link
           to={prevChapter.path}
-          className="tech-card flex items-center gap-3 px-6 py-4 no-underline text-dark-text-muted flex-1 max-w-[48%] group"
+          className="tech-card flex items-center gap-3 px-6 py-4 no-underline text-dark-text-muted dark:text-dark-text-muted text-light-text-muted flex-1 max-w-[48%] group"
         >
           <svg className="w-5 h-5 flex-shrink-0 text-primary group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
           <div className="flex flex-col min-w-0">
-            <span className="text-xs text-dark-text-muted mb-1">上一章</span>
+            <span className="text-xs text-dark-text-muted dark:text-dark-text-muted text-light-text-muted mb-1">上一章</span>
             <span className="font-medium truncate bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent group-hover:from-primary group-hover:to-primary transition-all">
               {prevChapter.id}. {prevChapter.title}
             </span>
@@ -47,10 +47,10 @@ export default function ChapterNavigation() {
       {nextChapter ? (
         <Link
           to={nextChapter.path}
-          className="tech-card flex items-center gap-3 px-6 py-4 no-underline text-dark-text-muted flex-1 max-w-[48%] ml-auto group"
+          className="tech-card flex items-center gap-3 px-6 py-4 no-underline text-dark-text-muted dark:text-dark-text-muted text-light-text-muted flex-1 max-w-[48%] ml-auto group"
         >
           <div className="flex flex-col text-right min-w-0 flex-1">
-            <span className="text-xs text-dark-text-muted mb-1">下一章</span>
+            <span className="text-xs text-dark-text-muted dark:text-dark-text-muted text-light-text-muted mb-1">下一章</span>
             <span className="font-medium truncate bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent group-hover:from-primary group-hover:to-primary transition-all">
               {nextChapter.id}. {nextChapter.title}
             </span>

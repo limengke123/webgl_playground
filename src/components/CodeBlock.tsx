@@ -1,7 +1,28 @@
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { useEffect, useState } from 'react'
 
 export default function CodeBlock({ title, code, language = 'glsl' }) {
+  const [isDark, setIsDark] = useState(false)
+
+  useEffect(() => {
+    // 检查当前主题
+    const checkTheme = () => {
+      setIsDark(document.documentElement.classList.contains('dark'))
+    }
+    checkTheme()
+    
+    // 监听主题变化
+    const observer = new MutationObserver(checkTheme)
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    })
+    
+    return () => observer.disconnect()
+  }, [])
+
   // 映射语言名称（Prism.js 支持的语言）
   const languageMap = {
     glsl: 'glsl', // GLSL 可能需要注册，如果没有则使用 c 或 cpp
@@ -23,42 +44,103 @@ export default function CodeBlock({ title, code, language = 'glsl' }) {
     mappedLanguage = 'cpp'
   }
 
+  // 自定义样式，提高对比度和可读性
+  const customDarkStyle = {
+    ...vscDarkPlus,
+    'code[class*="language-"]': {
+      ...vscDarkPlus['code[class*="language-"]'],
+      color: '#e0e0e0',
+      background: 'transparent',
+    },
+    'pre[class*="language-"]': {
+      ...vscDarkPlus['pre[class*="language-"]'],
+      background: 'transparent',
+    },
+    '.token.comment': {
+      color: '#6a9955',
+    },
+    '.token.string': {
+      color: '#ce9178',
+    },
+    '.token.keyword': {
+      color: '#569cd6',
+    },
+    '.token.function': {
+      color: '#dcdcaa',
+    },
+    '.token.number': {
+      color: '#b5cea8',
+    },
+  }
+
+  const customLightStyle = {
+    ...oneLight,
+    'code[class*="language-"]': {
+      ...oneLight['code[class*="language-"]'],
+      color: '#1f2937',
+      background: 'transparent',
+    },
+    'pre[class*="language-"]': {
+      ...oneLight['pre[class*="language-"]'],
+      background: 'transparent',
+    },
+    '.token.comment': {
+      color: '#6a737d',
+    },
+    '.token.string': {
+      color: '#032f62',
+    },
+    '.token.keyword': {
+      color: '#d73a49',
+    },
+    '.token.function': {
+      color: '#6f42c1',
+    },
+    '.token.number': {
+      color: '#005cc5',
+    },
+  }
+
   return (
     <div className="my-6 rounded-lg overflow-hidden relative group" style={{
-      background: 'linear-gradient(135deg, rgba(30, 30, 30, 0.95), rgba(21, 21, 32, 0.95))',
-      border: '1px solid rgba(74, 158, 255, 0.2)',
-      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(74, 158, 255, 0.1)',
+      backgroundColor: isDark ? 'rgba(21, 21, 32, 0.6)' : 'rgba(248, 249, 250, 0.8)',
+      border: `1px solid ${isDark ? 'rgba(74, 158, 255, 0.15)' : 'rgba(74, 158, 255, 0.12)'}`,
+      boxShadow: isDark 
+        ? '0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.03)' 
+        : '0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
     }}>
-      <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity"></div>
       {title && (
-        <div className="px-4 py-2.5 border-b border-dark-border text-sm font-medium flex items-center gap-2 relative" style={{
-          background: 'linear-gradient(135deg, rgba(21, 21, 32, 0.9), rgba(26, 26, 40, 0.9))',
-          borderBottom: '1px solid rgba(74, 158, 255, 0.2)',
+        <div className="px-4 py-2.5 border-b text-sm font-medium flex items-center gap-2 relative" style={{
+          borderColor: isDark ? 'rgba(74, 158, 255, 0.15)' : 'rgba(74, 158, 255, 0.12)',
+          backgroundColor: isDark ? 'rgba(21, 21, 32, 0.4)' : 'rgba(248, 249, 250, 0.6)',
         }}>
           <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
           </svg>
-          <span className="bg-gradient-to-r from-gray-400 to-gray-300 bg-clip-text text-transparent">{title}</span>
+          <span style={{
+            color: isDark ? '#a0a0b0' : '#6b7280',
+          }}>{title}</span>
         </div>
       )}
       <div className="overflow-x-auto relative">
         <SyntaxHighlighter
           language={mappedLanguage}
-          style={vscDarkPlus}
+          style={isDark ? customDarkStyle : customLightStyle}
           customStyle={{
             margin: 0,
             padding: '1rem',
             background: 'transparent',
-            fontSize: '0.875rem',
-            lineHeight: '1.6',
+            fontSize: '0.9rem',
+            lineHeight: '1.7',
+            color: isDark ? '#e0e0e0' : '#1f2937',
           }}
           showLineNumbers={code.split('\n').length > 5}
           lineNumberStyle={{
             minWidth: '3em',
             paddingRight: '1em',
-            color: 'rgba(110, 118, 129, 0.6)',
+            color: isDark ? 'rgba(160, 160, 176, 0.5)' : 'rgba(107, 114, 128, 0.5)',
             userSelect: 'none',
-            borderRight: '1px solid rgba(74, 158, 255, 0.1)',
+            borderRight: isDark ? '1px solid rgba(74, 158, 255, 0.08)' : '1px solid rgba(74, 158, 255, 0.1)',
             marginRight: '1em',
           }}
         >
