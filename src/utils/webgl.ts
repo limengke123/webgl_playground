@@ -102,6 +102,23 @@ export function createIndexBuffer(
 }
 
 /**
+ * 检查 WebGL 上下文是否丢失
+ */
+function isContextLost(gl: WebGLRenderingContext): boolean {
+  // WebGL 2.0 有 isContextLost 方法
+  if ('isContextLost' in gl && typeof (gl as any).isContextLost === 'function') {
+    return (gl as any).isContextLost()
+  }
+  // WebGL 1.0 需要通过尝试操作来检测
+  try {
+    gl.getParameter(gl.VERSION)
+    return false
+  } catch (e) {
+    return true
+  }
+}
+
+/**
  * 设置属性指针
  */
 export function setAttribute(
@@ -114,13 +131,41 @@ export function setAttribute(
   stride: number = 0,
   offset: number = 0
 ): void {
-  const location = gl.getAttribLocation(program, name)
-  if (location === -1) {
-    console.warn(`属性 ${name} 未找到`)
+  // 检查上下文是否丢失
+  if (isContextLost(gl)) {
+    console.warn(`WebGL 上下文已丢失，无法设置属性 ${name}`)
     return
   }
-  gl.enableVertexAttribArray(location)
-  gl.vertexAttribPointer(location, size, type, normalized, stride, offset)
+  
+  // 检查程序是否有效
+  try {
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      const error = gl.getProgramInfoLog(program)
+      console.error(`着色器程序链接失败: ${error || '未知错误'}`)
+      return
+    }
+  } catch (e) {
+    // 如果上下文已丢失，getProgramParameter 会抛出错误
+    console.warn(`WebGL 上下文可能已丢失，无法检查程序状态`)
+    return
+  }
+  
+  const location = gl.getAttribLocation(program, name)
+  if (location === -1) {
+    // 检查属性是否在着色器中声明但未使用（被优化掉了）
+    console.warn(`属性 ${name} 未找到。可能的原因：`)
+    console.warn(`1. 着色器中没有声明此属性`)
+    console.warn(`2. 属性已声明但未使用，被编译器优化掉了`)
+    console.warn(`3. 着色器程序链接失败`)
+    return
+  }
+  
+  try {
+    gl.enableVertexAttribArray(location)
+    gl.vertexAttribPointer(location, size, type, normalized, stride, offset)
+  } catch (e) {
+    console.warn(`设置属性 ${name} 时出错: ${e}`)
+  }
 }
 
 /**

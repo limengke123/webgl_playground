@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import WebGLCanvas from '../../components/WebGLCanvas'
 import CodeBlock from '../../components/CodeBlock'
 import ChapterNavigation from '../../components/ChapterNavigation'
-import { createProgram, createBuffer, setAttribute, Matrix } from '../../utils/webgl'
+import { createProgram, createBuffer, Matrix } from '../../utils/webgl'
 
 export default function Chapter3() {
   const rotationRef = useRef(0)
@@ -22,27 +22,83 @@ export default function Chapter3() {
         <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">向量（Vector）</h2>
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           向量是图形学的基础，表示方向和大小。在 3D 空间中，向量通常用三个分量 (x, y, z) 表示。
+          向量既可以表示位置（从原点到某点的位移），也可以表示方向（不关心起点，只关心方向）。
         </p>
         <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">向量的基本运算</h3>
         <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li><strong className="text-primary font-semibold">加法</strong>：v1 + v2 = (x1+x2, y1+y2, z1+z2)</li>
-          <li><strong className="text-primary font-semibold">减法</strong>：v1 - v2 = (x1-x2, y1-y2, z1-z2)</li>
-          <li><strong className="text-primary font-semibold">标量乘法</strong>：s * v = (s*x, s*y, s*z)</li>
-          <li><strong className="text-primary font-semibold">点积</strong>：v1 · v2 = x1*x2 + y1*y2 + z1*z2（结果是一个标量）</li>
-          <li><strong className="text-primary font-semibold">叉积</strong>：v1 × v2（结果是一个向量，垂直于两个输入向量）</li>
-          <li><strong className="text-primary font-semibold">长度</strong>：|v| = √(x² + y² + z²)</li>
-          <li><strong className="text-primary font-semibold">归一化</strong>：v' = v / |v|（长度为 1 的单位向量）</li>
+          <li><strong className="text-primary font-semibold">加法</strong>：v1 + v2 = (x1+x2, y1+y2, z1+z2)，用于平移、组合位移</li>
+          <li><strong className="text-primary font-semibold">减法</strong>：v1 - v2 = (x1-x2, y1-y2, z1-z2)，用于计算两点间的向量</li>
+          <li><strong className="text-primary font-semibold">标量乘法</strong>：s * v = (s*x, s*y, s*z)，用于缩放向量长度</li>
+          <li><strong className="text-primary font-semibold">点积</strong>：v1 · v2 = x1*x2 + y1*y2 + z1*z2（结果是一个标量）
+            <ul className="mt-2 pl-6">
+              <li>用于计算两个向量的夹角：cos(θ) = dot(v1, v2) / (|v1| * |v2|)</li>
+              <li>用于计算投影：投影长度 = dot(v1, normalize(v2))</li>
+              <li>用于光照计算：光照强度 = max(0, dot(normal, lightDir))</li>
+            </ul>
+          </li>
+          <li><strong className="text-primary font-semibold">叉积</strong>：v1 × v2（结果是一个向量，垂直于两个输入向量）
+            <ul className="mt-2 pl-6">
+              <li>用于计算法线向量（垂直于表面）</li>
+              <li>用于确定三角形的朝向（正面/背面）</li>
+              <li>用于构建正交坐标系</li>
+            </ul>
+          </li>
+          <li><strong className="text-primary font-semibold">长度</strong>：|v| = √(x² + y² + z²)，用于计算距离、归一化</li>
+          <li><strong className="text-primary font-semibold">归一化</strong>：v' = v / |v|（长度为 1 的单位向量），用于表示方向</li>
         </ul>
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">向量运算的实际应用</h3>
+        <CodeBlock title="计算两点间的距离" code={`// JavaScript 中计算距离
+function distance(p1, p2) {
+  const dx = p2.x - p1.x;
+  const dy = p2.y - p1.y;
+  const dz = p2.z - p1.z;
+  return Math.sqrt(dx * dx + dy * dy + dz * dz);
+}
+
+// GLSL 中使用内置函数
+float dist = distance(pointA, pointB);`} />
+        
+        <CodeBlock title="计算方向向量" code={`// 从点 A 指向点 B 的方向向量
+vec3 direction = normalize(pointB - pointA);
+
+// 用于相机看向目标
+vec3 forward = normalize(target - cameraPosition);
+vec3 right = normalize(cross(forward, up));
+vec3 up = normalize(cross(right, forward));`} />
+        
+        <CodeBlock title="使用点积计算角度" code={`// 计算两个向量的夹角
+vec3 v1 = normalize(vec3(1, 0, 0));
+vec3 v2 = normalize(vec3(0, 1, 0));
+float cosAngle = dot(v1, v2);  // 结果为 0，表示垂直
+
+// 计算光照强度（兰伯特定律）
+float lightIntensity = max(0.0, dot(normalize(normal), normalize(-lightDirection)));`} />
+        
+        <CodeBlock title="使用叉积计算法线" code={`// 计算三角形的法线向量
+vec3 v0 = vertex0;
+vec3 v1 = vertex1;
+vec3 v2 = vertex2;
+
+vec3 edge1 = v1 - v0;
+vec3 edge2 = v2 - v0;
+vec3 normal = normalize(cross(edge1, edge2));`} />
       </section>
 
       <section className="mb-12">
         <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">矩阵（Matrix）</h2>
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           矩阵用于表示变换（平移、旋转、缩放）。WebGL 使用 4x4 矩阵来表示 3D 变换。
+          4x4 矩阵可以统一表示所有常见的 3D 变换，并且可以通过矩阵乘法组合多个变换。
         </p>
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          矩阵的每一行代表一个坐标轴的方向，最后一列代表平移。
+          <strong className="text-primary font-semibold">矩阵结构</strong>：
         </p>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li>前 3x3 部分：表示旋转和缩放</li>
+          <li>第 4 列的前 3 个元素：表示平移</li>
+          <li>第 4 行：通常为 [0, 0, 0, 1]，用于齐次坐标</li>
+        </ul>
         
         <CodeBlock title="单位矩阵（不进行任何变换）" code={`[
   1, 0, 0, 0,
@@ -50,6 +106,38 @@ export default function Chapter3() {
   0, 0, 1, 0,
   0, 0, 0, 1
 ]`} language="javascript" />
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">矩阵乘法</h3>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          矩阵乘法用于组合多个变换。注意：矩阵乘法不满足交换律，顺序很重要！
+        </p>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          <strong className="text-primary font-semibold">重要</strong>：在 WebGL 中，矩阵乘法是从右到左应用的。
+          例如：<code>M = T * R * S</code> 表示先应用缩放 S，再应用旋转 R，最后应用平移 T。
+        </p>
+        
+        <CodeBlock title="矩阵乘法示例" code={`// 组合变换：先缩放，再旋转，最后平移
+const scale = Matrix.scaling(0.5, 0.5, 1);
+const rotate = Matrix.rotationZ(Math.PI / 4);
+const translate = Matrix.translation(0.2, 0, 0);
+
+// 注意：从右到左应用
+const combined = Matrix.multiply(
+  translate,
+  Matrix.multiply(rotate, scale)
+);
+
+// 在着色器中应用
+gl_Position = u_matrix * vec4(a_position, 1.0);`} language="javascript" />
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">矩阵的逆和转置</h3>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          在某些情况下需要计算矩阵的逆或转置：
+        </p>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li><strong className="text-primary font-semibold">逆矩阵</strong>：撤销变换，用于将点从世界空间转换回模型空间</li>
+          <li><strong className="text-primary font-semibold">转置矩阵</strong>：用于法线变换（法线矩阵 = 模型视图矩阵的逆矩阵的转置）</li>
+        </ul>
       </section>
 
       <section className="mb-12">
@@ -66,23 +154,19 @@ export default function Chapter3() {
 ]`} language="javascript" />
         
         <WebGLCanvas width={400} height={400} onInit={(gl, canvas) => {
-          const vertexShader = `
-            attribute vec2 a_position;
-            uniform mat4 u_matrix;
-            
-            void main() {
-              gl_Position = u_matrix * vec4(a_position, 0.0, 1.0);
-            }
-          `
+          const vertexShader = `attribute vec2 a_position;
+uniform mat4 u_matrix;
+
+void main() {
+  gl_Position = u_matrix * vec4(a_position, 0.0, 1.0);
+}`
           
-          const fragmentShader = `
-            precision mediump float;
-            uniform vec4 u_color;
-            
-            void main() {
-              gl_FragColor = u_color;
-            }
-          `
+          const fragmentShader = `precision mediump float;
+uniform vec4 u_color;
+
+void main() {
+  gl_FragColor = u_color;
+}`
           
           const program = createProgram(gl, vertexShader, fragmentShader)
           const positions = [0, 0.3, -0.3, -0.3, 0.3, -0.3]
@@ -90,6 +174,12 @@ export default function Chapter3() {
           
           const matrixLocation = gl.getUniformLocation(program, 'u_matrix')
           const colorLocation = gl.getUniformLocation(program, 'u_color')
+          const positionLocation = gl.getAttribLocation(program, 'a_position')
+          
+          if (positionLocation === -1) {
+            console.error('属性 a_position 未找到')
+            return
+          }
           
           gl.viewport(0, 0, canvas.width, canvas.height)
           gl.clearColor(0.1, 0.1, 0.1, 1.0)
@@ -103,7 +193,8 @@ export default function Chapter3() {
             gl.clear(gl.COLOR_BUFFER_BIT)
             gl.useProgram(program)
             gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-            setAttribute(gl, program, 'a_position', 2)
+            gl.enableVertexAttribArray(positionLocation)
+            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
             
             gl.uniformMatrix4fv(matrixLocation, false, translation)
             gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
@@ -131,23 +222,19 @@ export default function Chapter3() {
 ]`} language="javascript" />
         
         <WebGLCanvas width={400} height={400} onInit={(gl, canvas) => {
-          const vertexShader = `
-            attribute vec2 a_position;
-            uniform mat4 u_matrix;
-            
-            void main() {
-              gl_Position = u_matrix * vec4(a_position, 0.0, 1.0);
-            }
-          `
+          const vertexShader = `attribute vec2 a_position;
+uniform mat4 u_matrix;
+
+void main() {
+  gl_Position = u_matrix * vec4(a_position, 0.0, 1.0);
+}`
           
-          const fragmentShader = `
-            precision mediump float;
-            uniform vec4 u_color;
-            
-            void main() {
-              gl_FragColor = u_color;
-            }
-          `
+          const fragmentShader = `precision mediump float;
+uniform vec4 u_color;
+
+void main() {
+  gl_FragColor = u_color;
+}`
           
           const program = createProgram(gl, vertexShader, fragmentShader)
           const positions = [0, 0.3, -0.3, -0.3, 0.3, -0.3]
@@ -155,6 +242,12 @@ export default function Chapter3() {
           
           const matrixLocation = gl.getUniformLocation(program, 'u_matrix')
           const colorLocation = gl.getUniformLocation(program, 'u_color')
+          const positionLocation = gl.getAttribLocation(program, 'a_position')
+          
+          if (positionLocation === -1) {
+            console.error('属性 a_position 未找到')
+            return
+          }
           
           gl.viewport(0, 0, canvas.width, canvas.height)
           gl.clearColor(0.1, 0.1, 0.1, 1.0)
@@ -167,7 +260,8 @@ export default function Chapter3() {
             gl.clear(gl.COLOR_BUFFER_BIT)
             gl.useProgram(program)
             gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-            setAttribute(gl, program, 'a_position', 2)
+            gl.enableVertexAttribArray(positionLocation)
+            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
             
             gl.uniformMatrix4fv(matrixLocation, false, rotation)
             gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
@@ -195,23 +289,19 @@ export default function Chapter3() {
 ]`} language="javascript" />
         
         <WebGLCanvas width={400} height={400} onInit={(gl, canvas) => {
-          const vertexShader = `
-            attribute vec2 a_position;
-            uniform mat4 u_matrix;
-            
-            void main() {
-              gl_Position = u_matrix * vec4(a_position, 0.0, 1.0);
-            }
-          `
+          const vertexShader = `attribute vec2 a_position;
+uniform mat4 u_matrix;
+
+void main() {
+  gl_Position = u_matrix * vec4(a_position, 0.0, 1.0);
+}`
           
-          const fragmentShader = `
-            precision mediump float;
-            uniform vec4 u_color;
-            
-            void main() {
-              gl_FragColor = u_color;
-            }
-          `
+          const fragmentShader = `precision mediump float;
+uniform vec4 u_color;
+
+void main() {
+  gl_FragColor = u_color;
+}`
           
           const program = createProgram(gl, vertexShader, fragmentShader)
           const positions = [0, 0.3, -0.3, -0.3, 0.3, -0.3]
@@ -219,6 +309,12 @@ export default function Chapter3() {
           
           const matrixLocation = gl.getUniformLocation(program, 'u_matrix')
           const colorLocation = gl.getUniformLocation(program, 'u_color')
+          const positionLocation = gl.getAttribLocation(program, 'a_position')
+          
+          if (positionLocation === -1) {
+            console.error('属性 a_position 未找到')
+            return
+          }
           
           gl.viewport(0, 0, canvas.width, canvas.height)
           gl.clearColor(0.1, 0.1, 0.1, 1.0)
@@ -232,7 +328,8 @@ export default function Chapter3() {
             gl.clear(gl.COLOR_BUFFER_BIT)
             gl.useProgram(program)
             gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-            setAttribute(gl, program, 'a_position', 2)
+            gl.enableVertexAttribArray(positionLocation)
+            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
             
             gl.uniformMatrix4fv(matrixLocation, false, scaling)
             gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
@@ -265,23 +362,19 @@ const translate = Matrix.translation(0.2, 0, 0)
 const matrix = Matrix.multiply(translate, Matrix.multiply(rotate, scale))`} language="javascript" />
         
         <WebGLCanvas width={400} height={400} onInit={(gl, canvas) => {
-          const vertexShader = `
-            attribute vec2 a_position;
-            uniform mat4 u_matrix;
-            
-            void main() {
-              gl_Position = u_matrix * vec4(a_position, 0.0, 1.0);
-            }
-          `
+          const vertexShader = `attribute vec2 a_position;
+uniform mat4 u_matrix;
+
+void main() {
+  gl_Position = u_matrix * vec4(a_position, 0.0, 1.0);
+}`
           
-          const fragmentShader = `
-            precision mediump float;
-            uniform vec4 u_color;
-            
-            void main() {
-              gl_FragColor = u_color;
-            }
-          `
+          const fragmentShader = `precision mediump float;
+uniform vec4 u_color;
+
+void main() {
+  gl_FragColor = u_color;
+}`
           
           const program = createProgram(gl, vertexShader, fragmentShader)
           const positions = [0, 0.3, -0.3, -0.3, 0.3, -0.3]
@@ -289,6 +382,12 @@ const matrix = Matrix.multiply(translate, Matrix.multiply(rotate, scale))`} lang
           
           const matrixLocation = gl.getUniformLocation(program, 'u_matrix')
           const colorLocation = gl.getUniformLocation(program, 'u_color')
+          const positionLocation = gl.getAttribLocation(program, 'a_position')
+          
+          if (positionLocation === -1) {
+            console.error('属性 a_position 未找到')
+            return
+          }
           
           gl.viewport(0, 0, canvas.width, canvas.height)
           gl.clearColor(0.1, 0.1, 0.1, 1.0)
@@ -304,7 +403,8 @@ const matrix = Matrix.multiply(translate, Matrix.multiply(rotate, scale))`} lang
             gl.clear(gl.COLOR_BUFFER_BIT)
             gl.useProgram(program)
             gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-            setAttribute(gl, program, 'a_position', 2)
+            gl.enableVertexAttribArray(positionLocation)
+            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
             
             gl.uniformMatrix4fv(matrixLocation, false, matrix)
             gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)

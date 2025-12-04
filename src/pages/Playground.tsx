@@ -10,9 +10,8 @@ const defaultCode = `// WebGL Playground
 
 // 顶点着色器
 const vertexShader = \`
-  precision mediump float;
   attribute vec2 a_position;
-  uniform float u_time;
+  uniform mediump float u_time;
   
   void main() {
     vec2 pos = a_position;
@@ -85,7 +84,6 @@ const templates = [
     name: '基础三角形',
     code: `// 基础三角形
 const vertexShader = \`
-  precision mediump float;
   attribute vec2 a_position;
   void main() {
     gl_Position = vec4(a_position, 0.0, 1.0);
@@ -120,7 +118,6 @@ function init(gl, canvas) {
     name: '旋转三角形',
     code: `// 旋转三角形
 const vertexShader = \`
-  precision mediump float;
   attribute vec2 a_position;
   uniform mat4 u_matrix;
   void main() {
@@ -166,7 +163,6 @@ function init(gl, canvas) {
     name: '彩色渐变',
     code: `// 彩色渐变
 const vertexShader = \`
-  precision mediump float;
   attribute vec2 a_position;
   attribute vec3 a_color;
   varying vec3 v_color;
@@ -398,18 +394,102 @@ export default function Playground() {
     glRef.current = gl
 
     try {
+      // 创建一个标志来跟踪上下文是否仍然有效
+      let isContextValid = true
+      
+      // 检查上下文是否丢失的辅助函数
+      const checkContextLost = (): boolean => {
+        if (!isContextValid) return true
+        try {
+          // WebGL 2.0 有 isContextLost 方法
+          if ('isContextLost' in gl && typeof (gl as any).isContextLost === 'function') {
+            if ((gl as any).isContextLost()) {
+              isContextValid = false
+              return true
+            }
+          } else {
+            // WebGL 1.0 需要通过尝试操作来检测
+            gl.getParameter(gl.VERSION)
+          }
+          return false
+        } catch (e) {
+          isContextValid = false
+          return true
+        }
+      }
+      
+      // 包装 setAttribute 以检查上下文状态（静默失败，避免重复警告）
+      const safeSetAttribute = (...args: Parameters<typeof setAttribute>) => {
+        if (!isContextValid || checkContextLost()) {
+          // 静默失败，不打印警告（上下文丢失时会有其他警告）
+          return
+        }
+        try {
+          setAttribute(...args)
+        } catch (e) {
+          // 静默失败
+        }
+      }
+      
       // 创建执行环境，注入工具函数
-      const utils = { createProgram, createBuffer, setAttribute, Matrix, createIndexBuffer }
+      const utils = { 
+        createProgram, 
+        createBuffer, 
+        setAttribute: safeSetAttribute, 
+        Matrix, 
+        createIndexBuffer 
+      }
       
       // 包装 requestAnimationFrame 以便追踪和清理
       const originalRAF = window.requestAnimationFrame
       const rafIds: number[] = []
+      let rafActive = true
+      let contextLostWarned = false
       
       window.requestAnimationFrame = function(callback: FrameRequestCallback): number {
+        if (!rafActive) {
+          return -1
+        }
+        // 在调度前检查上下文状态
+        if (checkContextLost()) {
+          if (!contextLostWarned) {
+            console.warn('WebGL 上下文已丢失，停止渲染循环')
+            contextLostWarned = true
+          }
+          rafActive = false
+          return -1
+        }
+        
         const id = originalRAF.call(window, (...args) => {
           const index = rafIds.indexOf(id)
           if (index > -1) rafIds.splice(index, 1)
-          callback(...args)
+          
+          // 在回调执行前再次检查上下文状态
+          if (!isContextValid || checkContextLost()) {
+            if (!contextLostWarned) {
+              console.warn('WebGL 上下文已丢失，停止渲染循环')
+              contextLostWarned = true
+            }
+            rafActive = false
+            return
+          }
+          
+          // 执行回调
+          try {
+            callback(...args)
+          } catch (e) {
+            // 如果回调执行出错，检查是否是上下文丢失导致的
+            if (checkContextLost()) {
+              if (!contextLostWarned) {
+                console.warn('WebGL 上下文已丢失，停止渲染循环')
+                contextLostWarned = true
+              }
+              rafActive = false
+            } else {
+              // 其他错误，重新抛出
+              throw e
+            }
+          }
         })
         rafIds.push(id)
         return id
@@ -441,6 +521,27 @@ export default function Playground() {
       
       // 恢复原始的 requestAnimationFrame
       window.requestAnimationFrame = originalRAF
+      
+      // 更新清理函数以停止所有动画帧
+      const originalCleanup = cleanupRef.current
+      cleanupRef.current = () => {
+        rafActive = false
+        if (originalCleanup) {
+          try {
+            originalCleanup()
+          } catch (e) {
+            // 忽略清理错误
+          }
+        }
+        rafIds.forEach(id => {
+          try {
+            cancelAnimationFrame(id)
+          } catch (e) {
+            // 忽略已取消的动画帧错误
+          }
+        })
+        rafIds.length = 0
+      }
       
       // 设置清理函数（清理动画帧）
       cleanupRef.current = () => {

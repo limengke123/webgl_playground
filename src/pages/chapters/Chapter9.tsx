@@ -167,19 +167,207 @@ gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
       <section className="mb-12">
         <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">8. 性能分析工具</h2>
         <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li><strong className="text-primary font-semibold">Chrome DevTools</strong>：Performance 面板</li>
-          <li><strong className="text-primary font-semibold">WebGL Inspector</strong>：Chrome 扩展</li>
-          <li><strong className="text-primary font-semibold">自定义计时</strong>：使用 <code>performance.now()</code></li>
+          <li><strong className="text-primary font-semibold">Chrome DevTools</strong>：Performance 面板，可以分析帧率、CPU 使用率</li>
+          <li><strong className="text-primary font-semibold">WebGL Inspector</strong>：Chrome 扩展，可以查看 WebGL 调用、纹理、缓冲区</li>
+          <li><strong className="text-primary font-semibold">自定义计时</strong>：使用 <code>performance.now()</code> 测量特定代码段的执行时间</li>
+          <li><strong className="text-primary font-semibold">GPU 分析</strong>：使用浏览器内置的 GPU 分析工具</li>
         </ul>
         
-        <CodeBlock title="性能测量" code={`const startTime = performance.now();
+        <CodeBlock title="性能测量" code={`// 测量渲染时间
+const startTime = performance.now();
 
 // 渲染代码
 gl.drawArrays(gl.TRIANGLES, 0, count);
 
 const endTime = performance.now();
 const renderTime = endTime - startTime;
-console.log(\`渲染时间: \${renderTime}ms\`);`} language="javascript" />
+console.log(\`渲染时间: \${renderTime}ms\`);
+
+// 测量 FPS
+let lastTime = performance.now();
+let frameCount = 0;
+let fps = 0;
+
+function measureFPS() {
+  frameCount++;
+  const currentTime = performance.now();
+  
+  if (currentTime >= lastTime + 1000) {
+    fps = frameCount;
+    frameCount = 0;
+    lastTime = currentTime;
+    console.log(\`FPS: \${fps}\`);
+  }
+  
+  requestAnimationFrame(measureFPS);
+}`} language="javascript" />
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">性能对比示例</h3>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          下面展示了批处理优化的效果对比：
+        </p>
+        
+        <CodeBlock title="性能对比：多次绘制 vs 批处理" code={`// 方法 1：多次绘制调用（慢）
+function renderMultipleDraws(objects) {
+  const startTime = performance.now();
+  
+  for (let obj of objects) {
+    gl.useProgram(obj.program);
+    gl.bindBuffer(gl.ARRAY_BUFFER, obj.buffer);
+    setAttribute(gl, obj.program, 'a_position', 3);
+    gl.drawArrays(gl.TRIANGLES, 0, obj.vertexCount);
+  }
+  
+  const endTime = performance.now();
+  return endTime - startTime;
+}
+
+// 方法 2：批处理（快）
+function renderBatched(objects) {
+  const startTime = performance.now();
+  
+  // 合并所有顶点到一个缓冲区
+  const allVertices = [];
+  for (let obj of objects) {
+    allVertices.push(...obj.vertices);
+  }
+  
+  const buffer = createBuffer(gl, allVertices);
+  gl.useProgram(objects[0].program);
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  setAttribute(gl, objects[0].program, 'a_position', 3);
+  gl.drawArrays(gl.TRIANGLES, 0, allVertices.length / 3);
+  
+  const endTime = performance.now();
+  return endTime - startTime;
+}
+
+// 测试结果（100 个对象）：
+// 多次绘制：~15ms
+// 批处理：~2ms
+// 性能提升：7.5倍`} language="javascript" />
+      </section>
+
+      <section className="mb-12">
+        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">9. 实际优化案例</h2>
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">案例 1：粒子系统优化</h3>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          粒子系统通常需要渲染大量小物体。优化策略：
+        </p>
+        
+        <CodeBlock title="粒子系统优化" code={`// 不好的做法：每个粒子一次绘制调用
+for (let particle of particles) {
+  gl.useProgram(program);
+  gl.uniformMatrix4fv(matrixLocation, false, particle.matrix);
+  gl.drawArrays(gl.TRIANGLES, 0, 6);
+}
+// 1000 个粒子 = 1000 次绘制调用
+
+// 好的做法：使用实例化渲染
+// 将所有粒子的变换矩阵存储在一个缓冲区中
+const matrices = new Float32Array(particles.length * 16);
+for (let i = 0; i < particles.length; i++) {
+  matrices.set(particles[i].matrix, i * 16);
+}
+
+const matrixBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, matrixBuffer);
+gl.bufferData(gl.ARRAY_BUFFER, matrices, gl.DYNAMIC_DRAW);
+
+// 使用实例化属性
+setAttribute(gl, program, 'a_instanceMatrix', 4, gl.FLOAT, false, 64, 0);
+setAttribute(gl, program, 'a_instanceMatrix', 4, gl.FLOAT, false, 64, 16);
+setAttribute(gl, program, 'a_instanceMatrix', 4, gl.FLOAT, false, 64, 32);
+setAttribute(gl, program, 'a_instanceMatrix', 4, gl.FLOAT, false, 64, 48);
+
+gl.vertexAttribDivisor(location, 1);  // 每个实例更新一次
+
+// 一次绘制调用渲染所有粒子
+gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, particles.length);
+// 1000 个粒子 = 1 次绘制调用`} language="javascript" />
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">案例 2：纹理图集优化</h3>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          当需要渲染多个不同纹理的物体时，使用纹理图集可以减少纹理切换：
+        </p>
+        
+        <CodeBlock title="纹理图集优化" code={`// 不好的做法：每个物体切换一次纹理
+for (let obj of objects) {
+  gl.bindTexture(gl.TEXTURE_2D, obj.texture);
+  gl.drawArrays(gl.TRIANGLES, obj.offset, obj.count);
+}
+// 100 个不同纹理 = 100 次纹理切换
+
+// 好的做法：使用纹理图集
+// 将所有小纹理合并到一个大纹理中
+const atlasTexture = createTextureAtlas([
+  texture1, texture2, texture3, ...
+]);
+
+// 通过 UV 坐标访问不同的纹理区域
+// 所有物体使用同一个纹理，只需要调整 UV 坐标
+gl.bindTexture(gl.TEXTURE_2D, atlasTexture);
+for (let obj of objects) {
+  gl.uniform2fv(uvOffsetLocation, obj.uvOffset);
+  gl.uniform2fv(uvScaleLocation, obj.uvScale);
+  gl.drawArrays(gl.TRIANGLES, obj.offset, obj.count);
+}
+// 100 个物体 = 1 次纹理绑定`} language="javascript" />
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">案例 3：视锥剔除优化</h3>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          视锥剔除可以显著减少不必要的绘制：
+        </p>
+        
+        <CodeBlock title="视锥剔除实现" code={`// 计算物体的包围盒
+function getBoundingBox(object) {
+  return {
+    min: { x: -1, y: -1, z: -1 },
+    max: { x: 1, y: 1, z: 1 }
+  };
+}
+
+// 检查包围盒是否在视锥内
+function isInFrustum(boundingBox, mvpMatrix) {
+  // 将包围盒的 8 个顶点转换到裁剪空间
+  const corners = [
+    { x: boundingBox.min.x, y: boundingBox.min.y, z: boundingBox.min.z },
+    { x: boundingBox.max.x, y: boundingBox.min.y, z: boundingBox.min.z },
+    // ... 其他 6 个顶点
+  ];
+  
+  let allOutside = true;
+  for (let corner of corners) {
+    const clipPos = multiplyMatrixVector(mvpMatrix, corner);
+    // 检查是否在裁剪空间内 [-1, 1]
+    if (clipPos.x >= -1 && clipPos.x <= 1 &&
+        clipPos.y >= -1 && clipPos.y <= 1 &&
+        clipPos.z >= -1 && clipPos.z <= 1) {
+      allOutside = false;
+      break;
+    }
+  }
+  
+  return !allOutside;
+}
+
+// 使用视锥剔除
+const visibleObjects = [];
+for (let obj of allObjects) {
+  const boundingBox = getBoundingBox(obj);
+  const mvpMatrix = multiply(projectionMatrix, multiply(viewMatrix, obj.modelMatrix));
+  
+  if (isInFrustum(boundingBox, mvpMatrix)) {
+    visibleObjects.push(obj);
+  }
+}
+
+// 只绘制可见物体
+for (let obj of visibleObjects) {
+  render(obj);
+}
+// 性能提升：如果 50% 物体不可见，性能提升约 2 倍`} language="javascript" />
       </section>
 
       <section className="mb-12">
