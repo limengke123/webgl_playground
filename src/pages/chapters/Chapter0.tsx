@@ -4,7 +4,7 @@ import ChapterNavigation from '../../components/ChapterNavigation'
 
 export default function Chapter0() {
   return (
-    <div className="max-w-4xl">
+    <div className="w-full">
       <h1 className="text-4xl mb-8 text-primary border-b-2 border-dark-border dark:border-dark-border border-light-border pb-4">第零章：从零开始创建 WebGL 项目</h1>
       
       <section className="mb-12">
@@ -110,10 +110,42 @@ const canvas = document.getElementById('glCanvas')`} />
           获取 WebGL 上下文是使用 WebGL 的关键步骤。上下文（Context）是 WebGL 的"接口"，所有 WebGL 操作都通过它来完成。
         </p>
         
-        <CodeBlock title="获取 WebGL 上下文" language="javascript" code={`// 获取 canvas 元素
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">WebGL 1.0 vs WebGL 2.0</h3>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          WebGL 有两个主要版本：
+        </p>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li><strong className="text-primary font-semibold">WebGL 1.0</strong>：使用 <code>'webgl'</code> 获取上下文
+            <ul className="mt-2 pl-6">
+              <li>兼容性最好，几乎所有现代浏览器都支持</li>
+              <li>功能足够满足大多数基础需求</li>
+              <li>适合初学者学习</li>
+            </ul>
+          </li>
+          <li><strong className="text-primary font-semibold">WebGL 2.0</strong>：使用 <code>'webgl2'</code> 获取上下文
+            <ul className="mt-2 pl-6">
+              <li>提供更多高级功能（如 3D 纹理、变换反馈等）</li>
+              <li>性能更好，支持更多顶点属性</li>
+              <li>兼容性稍差，但现代浏览器基本都支持</li>
+            </ul>
+          </li>
+        </ul>
+        
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          <strong className="text-primary font-semibold">建议</strong>：对于初学者，建议使用 <code>'webgl'</code>（WebGL 1.0），因为：
+        </p>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li>兼容性更好，可以在更多设备上运行</li>
+          <li>概念更简单，更容易理解</li>
+          <li>本教程主要使用 WebGL 1.0</li>
+          <li>WebGL 2.0 向后兼容，学完 1.0 后很容易迁移</li>
+        </ul>
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">方法一：使用 WebGL 1.0（推荐）</h3>
+        <CodeBlock title="获取 WebGL 1.0 上下文" language="javascript" code={`// 获取 canvas 元素
 const canvas = document.getElementById('glCanvas')
 
-// 获取 WebGL 上下文
+// 获取 WebGL 1.0 上下文（推荐用于初学者）
 const gl = canvas.getContext('webgl')
 
 // 如果浏览器不支持 'webgl'，尝试 'experimental-webgl'（旧版浏览器）
@@ -122,27 +154,62 @@ const gl = canvas.getContext('webgl')
 // 检查是否成功获取上下文
 if (!gl) {
   alert('您的浏览器不支持 WebGL！')
-  // 或者显示错误信息
   console.error('无法创建 WebGL 上下文')
+}`} />
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">方法二：优先使用 WebGL 2.0，回退到 1.0</h3>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          如果你想要使用 WebGL 2.0 的高级功能，可以优先尝试获取 WebGL 2.0 上下文，如果不支持则回退到 WebGL 1.0：
+        </p>
+        <CodeBlock title="优先使用 WebGL 2.0，回退到 1.0" language="javascript" code={`// 获取 canvas 元素
+const canvas = document.getElementById('glCanvas')
+
+// 优先尝试获取 WebGL 2.0 上下文
+let gl = canvas.getContext('webgl2')
+
+// 如果不支持 WebGL 2.0，回退到 WebGL 1.0
+if (!gl) {
+  gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl')
+}
+
+// 检查是否成功获取上下文
+if (!gl) {
+  alert('您的浏览器不支持 WebGL！')
+  console.error('无法创建 WebGL 上下文')
+} else {
+  // 检查使用的是哪个版本
+  const version = gl.getParameter(gl.VERSION)
+  console.log('WebGL 版本:', version) // 输出: "WebGL 1.0" 或 "WebGL 2.0"
 }`} />
         
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           <strong className="text-primary font-semibold">getContext()</strong> 方法说明：
         </p>
         <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li><strong className="text-primary font-semibold">参数</strong>：<code>'webgl'</code> 或 <code>'webgl2'</code>（WebGL 2.0）</li>
-          <li><strong className="text-primary font-semibold">返回值</strong>：WebGLRenderingContext 对象，如果失败则返回 <code>null</code></li>
-          <li><strong className="text-primary font-semibold">兼容性</strong>：旧版浏览器可能需要使用 <code>'experimental-webgl'</code></li>
+          <li><strong className="text-primary font-semibold">参数</strong>：
+            <ul className="mt-2 pl-6">
+              <li><code>'webgl'</code>：获取 WebGL 1.0 上下文（返回 WebGLRenderingContext）</li>
+              <li><code>'webgl2'</code>：获取 WebGL 2.0 上下文（返回 WebGL2RenderingContext）</li>
+              <li><code>'experimental-webgl'</code>：旧版浏览器的 WebGL 1.0（已废弃，但某些旧浏览器可能需要）</li>
+            </ul>
+          </li>
+          <li><strong className="text-primary font-semibold">返回值</strong>：WebGLRenderingContext 或 WebGL2RenderingContext 对象，如果失败则返回 <code>null</code></li>
+          <li><strong className="text-primary font-semibold">兼容性</strong>：
+            <ul className="mt-2 pl-6">
+              <li>WebGL 1.0：几乎所有现代浏览器都支持（Chrome 9+, Firefox 4+, Safari 5.1+, Edge）</li>
+              <li>WebGL 2.0：现代浏览器基本都支持（Chrome 56+, Firefox 51+, Safari 15.2+, Edge 79+）</li>
+            </ul>
+          </li>
         </ul>
       </section>
 
       <section className="mb-12">
         <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">完整的初始化代码</h2>
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          下面是一个完整的 WebGL 初始化示例，包含错误处理和基本设置。
+          下面是一个完整的 WebGL 初始化示例，包含错误处理和基本设置。这里使用 WebGL 1.0，因为它兼容性最好，适合初学者。
         </p>
         
-        <CodeBlock title="main.js - 完整的初始化代码" language="javascript" code={`// 等待 DOM 加载完成
+        <CodeBlock title="main.js - 完整的初始化代码（WebGL 1.0）" language="javascript" code={`// 等待 DOM 加载完成
 window.addEventListener('DOMContentLoaded', () => {
   // 1. 获取 canvas 元素
   const canvas = document.getElementById('glCanvas')
@@ -152,7 +219,9 @@ window.addEventListener('DOMContentLoaded', () => {
     return
   }
   
-  // 2. 获取 WebGL 上下文
+  // 2. 获取 WebGL 1.0 上下文
+  // 注意：这里使用 'webgl' 获取 WebGL 1.0 上下文
+  // 如果需要 WebGL 2.0，可以使用 'webgl2'，但需要检查浏览器支持
   const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl')
   
   // 3. 检查是否成功获取上下文

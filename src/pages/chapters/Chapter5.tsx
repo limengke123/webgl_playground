@@ -6,7 +6,7 @@ import { createProgram, createBuffer, Matrix, createIndexBuffer } from '../../ut
 
 export default function Chapter5() {
   return (
-    <div className="max-w-4xl">
+    <div className="w-full">
       <h1 className="text-4xl mb-8 text-primary border-b-2 border-dark-border dark:border-dark-border border-light-border pb-4">第五章：相机与投影</h1>
       
       <section className="mb-12">

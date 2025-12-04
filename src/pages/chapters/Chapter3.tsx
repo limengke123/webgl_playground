@@ -15,7 +15,7 @@ export default function Chapter3() {
   }, [])
 
   return (
-    <div className="max-w-4xl">
+    <div className="w-full">
       <h1 className="text-4xl mb-8 text-primary border-b-2 border-dark-border dark:border-dark-border border-light-border pb-4">第三章：3D 数学基础</h1>
       
       <section className="mb-12">
