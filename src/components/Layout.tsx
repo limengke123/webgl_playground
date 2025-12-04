@@ -34,18 +34,15 @@ export default function Layout({ children }) {
               WebGL 教程
             </h1>
           </Link>
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 hover:bg-dark-bg dark:hover:bg-dark-bg hover:bg-light-surface rounded transition-all text-dark-text-muted dark:text-dark-text-muted text-light-text-muted hover:text-primary dark:hover:text-primary hover:shadow-lg hover:shadow-primary/20"
-              aria-label={sidebarOpen ? '收起侧边栏' : '展开侧边栏'}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-              </svg>
-            </button>
-          </div>
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="p-2 hover:bg-dark-bg dark:hover:bg-dark-bg hover:bg-light-surface rounded transition-all text-dark-text-muted dark:text-dark-text-muted text-light-text-muted hover:text-primary dark:hover:text-primary hover:shadow-lg hover:shadow-primary/20"
+            aria-label={sidebarOpen ? '收起侧边栏' : '展开侧边栏'}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+            </svg>
+          </button>
         </div>
         <nav className="py-5 overflow-y-auto flex-1">
           <Link 
@@ -110,12 +107,16 @@ export default function Layout({ children }) {
       </button>
       
       <main 
-        className="flex-1 p-6 md:p-10 transition-all duration-500 ease-in-out w-full"
+        className="flex-1 p-6 md:p-10 transition-all duration-500 ease-in-out w-full relative"
         style={{
           marginLeft: sidebarOpen ? '280px' : '0',
           maxWidth: sidebarOpen ? 'calc(100% - 280px)' : '100%',
         }}
       >
+        {/* 主题切换器 - 固定在右上角 */}
+        <div className="fixed top-4 right-4 z-50">
+          <ThemeToggle />
+        </div>
         <div className="max-w-7xl">
           {children}
         </div>
