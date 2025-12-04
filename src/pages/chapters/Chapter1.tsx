@@ -110,7 +110,7 @@ export default function Chapter1() {
           让我们从最简单的例子开始：绘制一个三角形。这是 WebGL 的"Hello World"。
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl, canvas) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
           const program = createProgram(gl, vertexShaderSource, fragmentShaderSource)
           const positions = [0, 0.5, -0.5, -0.5, 0.5, -0.5]
           const positionBuffer = createBuffer(gl, positions)
@@ -145,7 +145,7 @@ export default function Chapter1() {
           现在让我们为每个顶点添加不同的颜色，看看 WebGL 如何插值颜色。
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl, canvas) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `
             attribute vec2 a_position;
             attribute vec3 a_color;
@@ -209,7 +209,7 @@ export default function Chapter1() {
           矩形由两个三角形组成。我们可以使用索引缓冲区来避免重复顶点。
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl, canvas) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `
             attribute vec2 a_position;
             uniform vec4 u_color;
@@ -288,7 +288,7 @@ gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)`} />
           圆形可以通过将圆周分成多个三角形来近似。三角形越多，圆形越平滑。
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl, canvas) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `
             attribute vec2 a_position;
             uniform vec4 u_color;
@@ -374,7 +374,7 @@ function createCircleVertices(segments: number, radius: number) {
           星形是另一个有趣的例子，展示了如何通过数学计算生成复杂形状。
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl, canvas) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `
             attribute vec2 a_position;
             uniform vec4 u_color;
@@ -463,7 +463,7 @@ function createCircleVertices(segments: number, radius: number) {
           <li>在后续章节中，我们会学习如何使用矩阵变换来将任意坐标转换到 NDC 空间</li>
         </ul>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl, canvas) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `
             attribute vec2 a_position;
             uniform vec4 u_color;
@@ -540,7 +540,7 @@ function createCircleVertices(segments: number, radius: number) {
           <li><strong className="text-primary font-semibold">gl.TRIANGLE_FAN</strong>：从第一个顶点出发的三角形扇</li>
         </ul>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl, canvas) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `
             attribute vec2 a_position;
             uniform vec4 u_color;

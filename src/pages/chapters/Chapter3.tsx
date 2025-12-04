@@ -153,7 +153,7 @@ gl_Position = u_matrix * vec4(a_position, 1.0);`} language="javascript" />
   tx, ty, tz, 1  // 平移量
 ]`} language="javascript" />
         
-        <WebGLCanvas width={400} height={400} onInit={(gl, canvas) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `attribute vec2 a_position;
 uniform mat4 u_matrix;
 
@@ -221,7 +221,7 @@ void main() {
   0, 0, 0, 1
 ]`} language="javascript" />
         
-        <WebGLCanvas width={400} height={400} onInit={(gl, canvas) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `attribute vec2 a_position;
 uniform mat4 u_matrix;
 
@@ -288,7 +288,7 @@ void main() {
   0, 0, 0, 1
 ]`} language="javascript" />
         
-        <WebGLCanvas width={400} height={400} onInit={(gl, canvas) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `attribute vec2 a_position;
 uniform mat4 u_matrix;
 
@@ -361,7 +361,7 @@ const translate = Matrix.translation(0.2, 0, 0)
 // 先应用 scale，再应用 rotate，最后应用 translate
 const matrix = Matrix.multiply(translate, Matrix.multiply(rotate, scale))`} language="javascript" />
         
-        <WebGLCanvas width={400} height={400} onInit={(gl, canvas) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `attribute vec2 a_position;
 uniform mat4 u_matrix;
 

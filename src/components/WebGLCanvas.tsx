@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 
-export default function WebGLCanvas({ width = 800, height = 600, onInit }) {
+interface WebGLCanvasProps {
+  width?: number
+  height?: number
+  onInit?: (gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => void
+}
+
+export default function WebGLCanvas({ width = 800, height = 600, onInit }: WebGLCanvasProps) {
   const canvasRef = useRef(null)
   const glRef = useRef(null)
   const cleanupRef = useRef(null)

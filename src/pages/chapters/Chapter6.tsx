@@ -58,7 +58,7 @@ void main() {
   gl_FragColor = vec4(ambient, 1.0);
 }`} />
         
-        <WebGLCanvas width={400} height={400} onInit={(gl, canvas) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `
             attribute vec3 a_position;
             uniform mat4 u_mvpMatrix;
@@ -144,7 +144,7 @@ void main() {
   gl_FragColor = vec4(diffuse, 1.0);
 }`} />
         
-        <WebGLCanvas width={400} height={400} onInit={(gl, canvas) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `
             attribute vec3 a_position;
             attribute vec3 a_normal;
@@ -308,7 +308,7 @@ void main() {
           下面是一个完整的 Phong 光照示例，展示旋转的立方体：
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl, canvas) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `attribute vec3 a_position;
 attribute vec3 a_normal;
 uniform mat4 u_modelMatrix;

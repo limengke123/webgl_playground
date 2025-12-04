@@ -266,7 +266,7 @@ void main() {
           下面是一个使用 GLSL 函数创建动画效果的示例：
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl, canvas) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `attribute vec2 a_position;
 uniform mediump float u_time;
 
@@ -335,7 +335,7 @@ void main() {
           使用 smoothstep 函数创建平滑的径向渐变效果：
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl, canvas) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `attribute vec2 a_position;
 attribute vec2 a_texCoord;
 varying vec2 v_texCoord;
@@ -410,7 +410,7 @@ void main() {
           使用 fract 函数创建棋盘格和其他重复图案：
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl, canvas) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `attribute vec2 a_position;
 attribute vec2 a_texCoord;
 varying vec2 v_texCoord;

@@ -99,7 +99,7 @@ canvas.addEventListener('mouseup', () => {
   isDragging = false;
 });`} language="javascript" />
         
-        <WebGLCanvas width={400} height={400} onInit={(gl, canvas) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `attribute vec2 a_position;
 uniform mat4 u_matrix;
 
@@ -338,7 +338,7 @@ function animate(start, end, duration, easing) {
           下面是一个使用不同缓动函数的动画示例：
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl, canvas) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `attribute vec2 a_position;
 uniform mat4 u_matrix;
 

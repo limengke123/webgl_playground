@@ -115,7 +115,7 @@ vec4 color = texture2D(u_texture, repeatedUV);`} />
           下面展示了不同包装模式的效果：
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl, canvas) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `attribute vec2 a_position;
 attribute vec2 a_texCoord;
 varying vec2 v_texCoord;
@@ -213,7 +213,7 @@ void main() {
         </ul>
         
         <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">示例 1：基础波形纹理</h3>
-        <WebGLCanvas width={400} height={400} onInit={(gl, canvas) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `attribute vec2 a_position;
 attribute vec2 a_texCoord;
 varying vec2 v_texCoord;
@@ -284,7 +284,7 @@ void main() {
           使用噪声函数创建自然纹理：
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl, canvas) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `attribute vec2 a_position;
 attribute vec2 a_texCoord;
 varying vec2 v_texCoord;
@@ -367,7 +367,7 @@ void main() {
         }} />
         
         <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">示例 3：径向渐变纹理</h3>
-        <WebGLCanvas width={400} height={400} onInit={(gl, canvas) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `attribute vec2 a_position;
 attribute vec2 a_texCoord;
 varying vec2 v_texCoord;
