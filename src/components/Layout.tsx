@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import ThemeToggle from './ThemeToggle'
+import Search from './Search'
+import { useSearchHighlight } from '../hooks/useSearchHighlight'
 
 const chapters = [
   { id: 0, title: '从零开始创建项目', path: '/chapter/0' },
@@ -18,6 +20,9 @@ const chapters = [
 export default function Layout({ children }) {
   const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  
+  // 处理搜索高亮
+  useSearchHighlight()
 
   return (
     <div className="flex min-h-screen">
@@ -43,6 +48,9 @@ export default function Layout({ children }) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
             </svg>
           </button>
+        </div>
+        <div className="p-5 border-b border-dark-border dark:border-dark-border border-light-border">
+          <Search />
         </div>
         <nav className="py-5 overflow-y-auto flex-1">
           <Link 

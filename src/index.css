@@ -299,5 +299,29 @@
     border-color: rgba(74, 158, 255, 0.6);
     box-shadow: 0 0 20px rgba(74, 158, 255, 0.4);
   }
+
+  /* 搜索高亮样式 */
+  .search-highlight {
+    @apply bg-primary/30 dark:bg-primary/30 text-primary dark:text-primary font-semibold px-1 py-0.5 rounded;
+    background: linear-gradient(135deg, rgba(74, 158, 255, 0.4), rgba(138, 43, 226, 0.4));
+    color: #fff;
+    text-shadow: 0 0 8px rgba(74, 158, 255, 0.6);
+    animation: highlight-pulse 2s ease-in-out;
+  }
+
+  body:not(.dark) .search-highlight {
+    background: linear-gradient(135deg, rgba(74, 158, 255, 0.5), rgba(138, 43, 226, 0.5));
+    color: #fff;
+    text-shadow: 0 0 4px rgba(74, 158, 255, 0.4);
+  }
+
+  @keyframes highlight-pulse {
+    0%, 100% {
+      background: linear-gradient(135deg, rgba(74, 158, 255, 0.4), rgba(138, 43, 226, 0.4));
+    }
+    50% {
+      background: linear-gradient(135deg, rgba(74, 158, 255, 0.6), rgba(138, 43, 226, 0.6));
+    }
+  }
 }
 
