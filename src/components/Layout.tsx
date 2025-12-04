@@ -36,7 +36,7 @@ export default function Layout({ children }) {
           </Link>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 hover:bg-dark-bg dark:hover:bg-dark-bg hover:bg-light-surface rounded transition-all text-dark-text-muted dark:text-dark-text-muted text-light-text-muted hover:text-primary dark:hover:text-primary hover:shadow-lg hover:shadow-primary/20"
+            className="p-2 hover:bg-dark-bg dark:hover:bg-dark-bg hover:bg-light-surface rounded transition-all text-dark-text-muted dark:text-dark-text-muted text-light-text-muted hover:text-primary dark:hover:text-primary"
             aria-label={sidebarOpen ? '收起侧边栏' : '展开侧边栏'}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -120,7 +120,7 @@ export default function Layout({ children }) {
             href="https://github.com/limengke123/webgl_playground"
             target="_blank"
             rel="noopener noreferrer"
-            className="p-2 hover:bg-dark-bg dark:hover:bg-dark-bg hover:bg-light-surface rounded transition-all text-dark-text-muted dark:text-dark-text-muted text-light-text-muted hover:text-dark-text dark:hover:text-dark-text hover:text-light-text hover:text-primary dark:hover:text-primary hover:shadow-lg hover:shadow-primary/20"
+            className="p-2 hover:bg-dark-bg dark:hover:bg-dark-bg hover:bg-light-surface rounded transition-all text-dark-text-muted dark:text-dark-text-muted text-light-text-muted hover:text-dark-text dark:hover:text-dark-text hover:text-light-text hover:text-primary dark:hover:text-primary"
             aria-label="查看 GitHub 项目"
           >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">

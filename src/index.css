@@ -152,11 +152,11 @@
   }
 
   ::-webkit-scrollbar-track {
-    background: rgba(10, 10, 15, 0.3);
+    background: rgba(10, 10, 15, 0.15);
   }
 
   body:not(.dark) ::-webkit-scrollbar-track {
-    background: rgba(240, 240, 245, 0.3);
+    background: rgba(240, 240, 245, 0.15);
   }
 
   ::-webkit-scrollbar-thumb {
