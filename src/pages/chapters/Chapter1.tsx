@@ -189,12 +189,56 @@ export default function Chapter1() {
           gl.drawArrays(gl.TRIANGLES, 0, 3)
         }} />
         
+        <CodeBlock title="顶点着色器" code={`attribute vec2 a_position;
+attribute vec3 a_color;
+varying vec3 v_color;
+
+void main() {
+  gl_Position = vec4(a_position, 0.0, 1.0);
+  v_color = a_color;
+}`} />
+        
+        <CodeBlock title="片段着色器" code={`precision mediump float;
+varying vec3 v_color;
+
+void main() {
+  gl_FragColor = vec4(v_color, 1.0);
+}`} />
+        
+        <CodeBlock title="JavaScript 代码" code={`// 顶点位置（3个顶点）
+const positions = [0, 0.5, -0.5, -0.5, 0.5, -0.5]
+
+// 顶点颜色（RGB，每个顶点一个颜色）
+// 红色、绿色、蓝色
+const colors = [
+  1.0, 0.0, 0.0,  // 顶点1：红色
+  0.0, 1.0, 0.0,  // 顶点2：绿色
+  0.0, 0.0, 1.0   // 顶点3：蓝色
+]
+
+// 创建缓冲区
+const positionBuffer = createBuffer(gl, positions)
+const colorBuffer = createBuffer(gl, colors)
+
+// 设置顶点位置属性
+gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+setAttribute(gl, program, 'a_position', 2)
+
+// 设置顶点颜色属性
+gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer)
+setAttribute(gl, program, 'a_color', 3)
+
+// 绘制
+gl.drawArrays(gl.TRIANGLES, 0, 3)`} />
+        
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           注意观察三角形内部的颜色是如何平滑过渡的。这是因为 WebGL 在光栅化阶段会对顶点颜色进行插值。
         </p>
         <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
           <li><strong className="text-primary font-semibold">varying</strong>：从顶点着色器传递到片段着色器的变量，会被自动插值</li>
           <li>每个顶点的颜色不同，WebGL 会在三角形内部进行线性插值</li>
+          <li>顶点着色器中的 <code>v_color = a_color</code> 将每个顶点的颜色传递给片段着色器</li>
+          <li>片段着色器接收到的 <code>v_color</code> 是经过插值后的颜色值</li>
         </ul>
       </section>
 
@@ -401,11 +445,14 @@ function createCircleVertices(segments: number, radius: number) {
           const points = 5
           const outerRadius = 0.5
           const innerRadius = 0.25
-          const positions: number[] = []
+          const positions: number[] = [0, 0] // 中心点（索引0）
           const indices: number[] = []
           
+          // 生成外顶点和内顶点，交替排列
           for (let i = 0; i < points * 2; i++) {
+            // 角度：从 -90度开始，每个顶点间隔 360/(points*2) 度
             const angle = (i / (points * 2)) * Math.PI * 2 - Math.PI / 2
+            // 外顶点和内顶点交替
             const radius = i % 2 === 0 ? outerRadius : innerRadius
             positions.push(
               Math.cos(angle) * radius,
@@ -413,11 +460,13 @@ function createCircleVertices(segments: number, radius: number) {
             )
           }
           
-          // 生成三角形索引
-          for (let i = 0; i < points * 2 - 2; i++) {
-            indices.push(0, i + 1, i + 2)
+          // 生成三角形索引：从中心点出发，连接相邻的两个顶点
+          // 索引0是中心点，索引1-10是外顶点和内顶点
+          for (let i = 1; i < points * 2; i++) {
+            indices.push(0, i, i + 1)
           }
-          indices.push(0, points * 2 - 1, 1) // 闭合
+          // 闭合最后一个三角形：连接最后一个顶点和第一个顶点
+          indices.push(0, points * 2, 1)
           
           const positionBuffer = createBuffer(gl, positions)
           const indexBuffer = gl.createBuffer()
@@ -437,6 +486,41 @@ function createCircleVertices(segments: number, radius: number) {
           gl.uniform4f(colorLocation, 1.0, 0.8, 0.2, 1.0)
           gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0)
         }} />
+        
+        <CodeBlock title="生成五角星顶点" code={`// 生成五角星顶点
+const points = 5
+const outerRadius = 0.5  // 外半径
+const innerRadius = 0.25 // 内半径
+const positions = [0, 0]  // 中心点（索引0）
+const indices = []
+
+// 生成外顶点和内顶点，交替排列
+for (let i = 0; i < points * 2; i++) {
+  // 角度：从 -90度开始，每个顶点间隔 360/(points*2) 度
+  const angle = (i / (points * 2)) * Math.PI * 2 - Math.PI / 2
+  // 外顶点和内顶点交替
+  const radius = i % 2 === 0 ? outerRadius : innerRadius
+  positions.push(
+    Math.cos(angle) * radius,
+    Math.sin(angle) * radius
+  )
+}
+
+// 生成三角形索引：从中心点出发，连接相邻的两个顶点
+// 索引0是中心点，索引1-10是外顶点和内顶点
+for (let i = 1; i < points * 2; i++) {
+  indices.push(0, i, i + 1)
+}
+// 闭合最后一个三角形：连接最后一个顶点和第一个顶点
+indices.push(0, points * 2, 1)
+
+// 创建索引缓冲区
+const indexBuffer = gl.createBuffer()
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
+
+// 使用 gl.drawElements 绘制
+gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0)`} />
         
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           这些示例展示了 WebGL 的基本绘制能力。通过组合多个三角形，我们可以创建任意复杂的形状。

@@ -65,7 +65,7 @@ const chapters = [
 
 export default function Home() {
   return (
-    <div className="max-w-4xl relative z-10">
+    <div className="w-full relative z-10">
       <div className="text-center py-15 border-b border-dark-border dark:border-dark-border border-light-border mb-10 relative">
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent blur-3xl"></div>
         <h1 className="text-5xl mb-5 relative">

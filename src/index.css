@@ -231,15 +231,20 @@
   /* 科技感卡片 */
   .tech-card {
     @apply bg-dark-surface dark:bg-dark-surface bg-light-surface border border-dark-border dark:border-dark-border border-light-border rounded-xl;
+    transition: all 0.3s ease;
+  }
+
+  /* Dark mode styles */
+  html.dark .tech-card {
     background: linear-gradient(135deg, rgba(21, 21, 32, 0.9), rgba(26, 26, 40, 0.9));
     border: 1px solid rgba(74, 158, 255, 0.2);
     box-shadow: 
       0 8px 32px rgba(0, 0, 0, 0.4),
       inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    transition: all 0.3s ease;
   }
 
-  body:not(.dark) .tech-card {
+  /* Light mode styles */
+  html:not(.dark) .tech-card {
     background: linear-gradient(135deg, rgba(248, 249, 250, 0.9), rgba(255, 255, 255, 0.9));
     border: 1px solid rgba(74, 158, 255, 0.15);
     box-shadow: 
@@ -247,7 +252,8 @@
       inset 0 1px 0 rgba(0, 0, 0, 0.02);
   }
 
-  .tech-card:hover {
+  /* Dark mode hover */
+  html.dark .tech-card:hover {
     border-color: rgba(74, 158, 255, 0.5);
     box-shadow: 
       0 12px 40px rgba(74, 158, 255, 0.2),
@@ -256,12 +262,14 @@
     transform: translateY(-2px);
   }
 
-  body:not(.dark) .tech-card:hover {
+  /* Light mode hover */
+  html:not(.dark) .tech-card:hover {
     border-color: rgba(74, 158, 255, 0.3);
     box-shadow: 
       0 8px 24px rgba(74, 158, 255, 0.15),
       0 0 12px rgba(74, 158, 255, 0.08),
       inset 0 1px 0 rgba(0, 0, 0, 0.05);
+    transform: translateY(-2px);
   }
 
   /* 科技感按钮 */
