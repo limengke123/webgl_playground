@@ -2,6 +2,12 @@ import { Link } from 'react-router-dom'
 
 const chapters = [
   {
+    id: 0,
+    title: '从零开始创建项目',
+    description: '手把手教你创建 canvas 元素，获取 WebGL 上下文，搭建第一个 WebGL 项目',
+    path: '/chapter/0'
+  },
+  {
     id: 1,
     title: 'WebGL 基础',
     description: '学习 WebGL 的基本概念，绘制第一个三角形，了解着色器的工作原理',

@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
 
 const chapters = [
+  { id: 0, title: '从零开始创建项目', path: '/chapter/0' },
   { id: 1, title: 'WebGL 基础', path: '/chapter/1' },
   { id: 2, title: 'GLSL 语法基础', path: '/chapter/2' },
   { id: 3, title: '3D 数学基础', path: '/chapter/3' },
