@@ -31,11 +31,11 @@ export default function Chapter3() {
         </p>
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           <strong className="text-primary font-semibold">位置向量 vs 方向向量</strong>：
-          <ul className="mt-2 pl-6">
-            <li><strong>位置向量</strong>：表示空间中一个点的位置，通常相对于原点 (0, 0, 0)</li>
-            <li><strong>方向向量</strong>：表示一个方向，不依赖于起点位置。方向向量通常会被归一化（长度为 1）</li>
-          </ul>
         </p>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li><strong>位置向量</strong>：表示空间中一个点的位置，通常相对于原点 (0, 0, 0)</li>
+          <li><strong>方向向量</strong>：表示一个方向，不依赖于起点位置。方向向量通常会被归一化（长度为 1）</li>
+        </ul>
         <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">向量的基本运算</h3>
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           向量运算在图形学中无处不在。理解这些运算的几何意义和实际应用非常重要。
