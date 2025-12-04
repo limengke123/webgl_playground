@@ -645,7 +645,7 @@ export default function Playground() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* 代码编辑器 */}
         <div className="flex flex-col">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-3 h-[42px]">
             <h2 className="text-xl text-dark-text dark:text-dark-text text-light-text">代码编辑器</h2>
             <button
               onClick={runCode}
@@ -672,9 +672,9 @@ export default function Playground() {
             </button>
           </div>
           <div 
-            className="flex-1 rounded-lg border border-dark-border dark:border-dark-border border-light-border overflow-hidden" 
+            className="rounded-lg border border-dark-border dark:border-dark-border border-light-border overflow-hidden" 
             style={{ 
-              minHeight: '500px',
+              height: '500px',
               backgroundColor: isDark ? 'rgba(21, 21, 32, 0.6)' : 'rgba(248, 249, 250, 0.8)',
             }}
           >
@@ -707,8 +707,11 @@ export default function Playground() {
 
         {/* 预览区域 */}
         <div className="flex flex-col">
-          <h2 className="text-xl mb-3 text-dark-text dark:text-dark-text text-light-text">预览</h2>
-          <div className="flex-1 rounded-lg border border-dark-border dark:border-dark-border border-light-border bg-dark-surface dark:bg-dark-surface bg-light-surface p-4 flex items-center justify-center" style={{ minHeight: '500px' }}>
+          <div className="flex items-center justify-between mb-3 h-[42px]">
+            <h2 className="text-xl text-dark-text dark:text-dark-text text-light-text">预览</h2>
+            <div className="w-[120px]"></div>
+          </div>
+          <div className="rounded-lg border border-dark-border dark:border-dark-border border-light-border bg-dark-surface dark:bg-dark-surface bg-light-surface p-4 flex items-center justify-center" style={{ height: '500px' }}>
             <canvas
               key={canvasKey}
               ref={canvasRef}
