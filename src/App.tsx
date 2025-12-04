@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { HashRouter as Router, Routes, Route } from 'react-router-dom'
 import { ThemeProvider } from './contexts/ThemeContext'
 import Layout from './components/Layout'
 import ScrollToTop from './components/ScrollToTop'
@@ -16,21 +16,10 @@ import Chapter7 from './pages/chapters/Chapter7'
 import Chapter8 from './pages/chapters/Chapter8'
 import Chapter9 from './pages/chapters/Chapter9'
 
-// 获取 base path，用于 GitHub Pages 部署
-// 如果是在 GitHub Pages 上，base 会是 /repo-name/，basename 应该是 /repo-name
-// 本地开发时，basename 是 undefined（使用默认的 /）
-function getBasename(): string | undefined {
-  // 从 import.meta.env.BASE_URL 获取（Vite 会自动设置）
-  const base = import.meta.env.BASE_URL
-  // 移除末尾的斜杠，React Router 的 basename 不需要
-  return base === '/' ? undefined : base.slice(0, -1)
-}
-
 function App() {
   return (
     <ThemeProvider>
       <Router 
-        basename={getBasename()}
         future={{
           v7_startTransition: true,
         }}
