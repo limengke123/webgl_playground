@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 
 export default function CodeBlock({ title, code, language = 'glsl' }) {
   const [isDark, setIsDark] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     // 检查当前主题
@@ -22,6 +23,16 @@ export default function CodeBlock({ title, code, language = 'glsl' }) {
     
     return () => observer.disconnect()
   }, [])
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(code)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error('复制失败:', err)
+    }
+  }
 
   // 映射语言名称（Prism.js 支持的语言）
   const languageMap = {
@@ -110,17 +121,53 @@ export default function CodeBlock({ title, code, language = 'glsl' }) {
         : '0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
     }}>
       {title && (
-        <div className="px-4 py-2.5 border-b text-sm font-medium flex items-center gap-2 relative" style={{
+        <div className="px-4 py-2.5 border-b text-sm font-medium flex items-center justify-between gap-2 relative" style={{
           borderColor: isDark ? 'rgba(74, 158, 255, 0.15)' : 'rgba(74, 158, 255, 0.12)',
           backgroundColor: isDark ? 'rgba(21, 21, 32, 0.4)' : 'rgba(248, 249, 250, 0.6)',
         }}>
-          <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-          </svg>
-          <span style={{
-            color: isDark ? '#a0a0b0' : '#6b7280',
-          }}>{title}</span>
+          <div className="flex items-center gap-2">
+            <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+            </svg>
+            <span style={{
+              color: isDark ? '#a0a0b0' : '#6b7280',
+            }}>{title}</span>
+          </div>
+          <button
+            onClick={handleCopy}
+            className="p-1.5 rounded hover:bg-dark-bg dark:hover:bg-dark-bg hover:bg-light-surface transition-all text-dark-text-muted dark:text-dark-text-muted text-light-text-muted hover:text-primary dark:hover:text-primary"
+            aria-label={copied ? '已复制' : '复制代码'}
+            title={copied ? '已复制' : '复制代码'}
+          >
+            {copied ? (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            ) : (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            )}
+          </button>
         </div>
+      )}
+      {!title && (
+        <button
+          onClick={handleCopy}
+          className="absolute top-2 right-2 p-1.5 rounded hover:bg-dark-bg dark:hover:bg-dark-bg hover:bg-light-surface transition-all text-dark-text-muted dark:text-dark-text-muted text-light-text-muted hover:text-primary dark:hover:text-primary z-10 opacity-0 group-hover:opacity-100"
+          aria-label={copied ? '已复制' : '复制代码'}
+          title={copied ? '已复制' : '复制代码'}
+        >
+          {copied ? (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          ) : (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          )}
+        </button>
       )}
       <div className="overflow-x-auto relative">
         <SyntaxHighlighter
