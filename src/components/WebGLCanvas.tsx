@@ -33,6 +33,12 @@ export default function WebGLCanvas({ width = 800, height = 600, onInit }: WebGL
     const canvas = canvasRef.current
     if (!canvas) return
 
+    // 确保 canvas 的尺寸正确设置
+    if (canvas.width !== width || canvas.height !== height) {
+      canvas.width = width
+      canvas.height = height
+    }
+
     // 如果已经有上下文，先清理
     if (cleanupRef.current) {
       cleanupRef.current()
@@ -61,6 +67,8 @@ export default function WebGLCanvas({ width = 800, height = 600, onInit }: WebGL
 
     if (onInit) {
       try {
+        // 确保视口设置正确
+        gl.viewport(0, 0, canvas.width, canvas.height)
         onInit(gl, canvas)
       } catch (error) {
         console.error('WebGL 初始化错误:', error)
@@ -83,28 +91,25 @@ export default function WebGLCanvas({ width = 800, height = 600, onInit }: WebGL
         cleanupRef.current = null
       }
     }
-  }, [onInit])
+  }, [onInit, width, height])
 
   return (
     <div 
-      className="my-6 flex justify-center rounded-lg p-4 relative" 
-      style={{
-        backgroundColor: isDark ? 'rgba(21, 21, 32, 0.6)' : 'rgba(248, 249, 250, 0.8)',
-        border: `1px solid ${isDark ? 'rgba(74, 158, 255, 0.15)' : 'rgba(74, 158, 255, 0.12)'}`,
-        boxShadow: isDark 
-          ? '0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.03)' 
-          : '0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
-      }}
+      className="my-6 flex justify-center rounded-lg p-4 relative bg-dark-surface dark:bg-dark-surface bg-light-surface border border-dark-border dark:border-dark-border border-light-border shadow-lg"
     >
       <canvas
         ref={canvasRef}
         width={width}
         height={height}
-        className="block max-w-full h-auto relative z-10 rounded"
+        className="block relative z-10 rounded"
         style={{
+          width: `${width}px`,
+          height: `${height}px`,
+          maxWidth: '100%',
+          backgroundColor: '#000000',
           boxShadow: isDark 
-            ? '0 2px 4px rgba(0, 0, 0, 0.3)' 
-            : '0 2px 4px rgba(0, 0, 0, 0.1)',
+            ? '0 2px 4px rgba(0, 0, 0, 0.5)' 
+            : '0 2px 4px rgba(0, 0, 0, 0.2)',
         }}
       />
     </div>
