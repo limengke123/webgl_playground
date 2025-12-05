@@ -137,6 +137,204 @@ export default function Chapter1() {
           <li><strong className="text-primary font-semibold">attribute</strong>：每个顶点不同的数据（如位置、颜色）</li>
           <li><strong className="text-primary font-semibold">uniform</strong>：所有顶点共享的数据（如颜色、变换矩阵）</li>
         </ul>
+
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">Attribute 和 Uniform 的区别</h3>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          理解 <code>attribute</code> 和 <code>uniform</code> 的区别是掌握 WebGL 的关键。它们是着色器中两种不同的输入变量类型。
+        </p>
+        
+        <h4 className="text-xl my-6 text-dark-text dark:text-dark-text text-light-text">Attribute（属性变量）</h4>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          <strong className="text-primary font-semibold">定义</strong>：<code>attribute</code> 是顶点着色器的输入变量，用于接收每个顶点不同的数据。
+        </p>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          <strong className="text-primary font-semibold">特点</strong>：
+        </p>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li><strong>每个顶点都有不同的值</strong>：例如，3个顶点就有3个不同的位置值</li>
+          <li><strong>只能在顶点着色器中使用</strong>：片段着色器无法直接访问 attribute</li>
+          <li><strong>从缓冲区读取</strong>：数据存储在 GPU 缓冲区中，通过 <code>gl.vertexAttribPointer()</code> 设置</li>
+          <li><strong>执行频率</strong>：顶点着色器对每个顶点执行一次，所以每个顶点都会读取不同的 attribute 值</li>
+          <li><strong>常见用途</strong>：顶点位置、顶点颜色、纹理坐标、法向量等</li>
+        </ul>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          <strong className="text-primary font-semibold">示例</strong>：
+        </p>
+        <CodeBlock title="Attribute 示例" code={`// 顶点着色器
+attribute vec2 a_position;  // 每个顶点有不同的位置
+attribute vec3 a_color;      // 每个顶点有不同的颜色
+
+void main() {
+  gl_Position = vec4(a_position, 0.0, 1.0);
+}
+
+// JavaScript 代码
+// 为每个顶点设置不同的位置
+const positions = [
+  0.0,  0.5,   // 顶点1的位置
+  -0.5, -0.5,  // 顶点2的位置
+  0.5,  -0.5   // 顶点3的位置
+]
+// 每个顶点都会读取对应的位置值`} />
+
+        <h4 className="text-xl my-6 text-dark-text dark:text-dark-text text-light-text">Uniform（统一变量）</h4>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          <strong className="text-primary font-semibold">定义</strong>：<code>uniform</code> 是所有顶点或片段共享的常量，在一次绘制调用中保持不变。
+        </p>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          <strong className="text-primary font-semibold">特点</strong>：
+        </p>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li><strong>所有顶点/片段共享同一个值</strong>：在一次绘制调用中，uniform 的值对所有顶点和片段都相同</li>
+          <li><strong>可以在顶点和片段着色器中使用</strong>：两个着色器都可以访问 uniform</li>
+          <li><strong>通过 JavaScript 设置</strong>：使用 <code>gl.uniform*()</code> 函数设置值</li>
+          <li><strong>执行频率</strong>：虽然着色器对每个顶点/片段执行，但 uniform 的值在整个绘制过程中保持不变</li>
+          <li><strong>可以随时修改</strong>：在每次绘制前可以改变 uniform 的值，但一次绘制中保持不变</li>
+          <li><strong>常见用途</strong>：变换矩阵、时间、全局颜色、光照参数等</li>
+        </ul>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          <strong className="text-primary font-semibold">示例</strong>：
+        </p>
+        <CodeBlock title="Uniform 示例" code={`// 片段着色器
+precision mediump float;
+uniform vec4 u_color;  // 所有片段共享同一个颜色
+
+void main() {
+  gl_FragColor = u_color;  // 所有像素都是同一个颜色
+}
+
+// JavaScript 代码
+const colorLocation = gl.getUniformLocation(program, 'u_color')
+gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)  // 设置一次，所有片段都使用这个颜色`} />
+
+        <h4 className="text-xl my-6 text-dark-text dark:text-dark-text text-light-text">对比总结</h4>
+        <div className="overflow-x-auto mb-5">
+          <table className="w-full border-collapse border border-dark-border dark:border-dark-border border-light-border">
+            <thead>
+              <tr className="bg-dark-surface dark:bg-dark-surface bg-light-surface">
+                <th className="border border-dark-border dark:border-dark-border border-light-border px-4 py-2 text-left text-dark-text dark:text-dark-text text-light-text">特性</th>
+                <th className="border border-dark-border dark:border-dark-border border-light-border px-4 py-2 text-left text-dark-text dark:text-dark-text text-light-text">Attribute</th>
+                <th className="border border-dark-border dark:border-dark-border border-light-border px-4 py-2 text-left text-dark-text dark:text-dark-text text-light-text">Uniform</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="border border-dark-border dark:border-dark-border border-light-border px-4 py-2 text-dark-text-muted dark:text-dark-text-muted text-light-text-muted">值的变化</td>
+                <td className="border border-dark-border dark:border-dark-border border-light-border px-4 py-2 text-dark-text-muted dark:text-dark-text-muted text-light-text-muted">每个顶点不同</td>
+                <td className="border border-dark-border dark:border-dark-border border-light-border px-4 py-2 text-dark-text-muted dark:text-dark-text-muted text-light-text-muted">所有顶点/片段相同</td>
+              </tr>
+              <tr>
+                <td className="border border-dark-border dark:border-dark-border border-light-border px-4 py-2 text-dark-text-muted dark:text-dark-text-muted text-light-text-muted">使用位置</td>
+                <td className="border border-dark-border dark:border-dark-border border-light-border px-4 py-2 text-dark-text-muted dark:text-dark-text-muted text-light-text-muted">仅顶点着色器</td>
+                <td className="border border-dark-border dark:border-dark-border border-light-border px-4 py-2 text-dark-text-muted dark:text-dark-text-muted text-light-text-muted">顶点和片段着色器</td>
+              </tr>
+              <tr>
+                <td className="border border-dark-border dark:border-dark-border border-light-border px-4 py-2 text-dark-text-muted dark:text-dark-text-muted text-light-text-muted">数据来源</td>
+                <td className="border border-dark-border dark:border-dark-border border-light-border px-4 py-2 text-dark-text-muted dark:text-dark-text-muted text-light-text-muted">GPU 缓冲区</td>
+                <td className="border border-dark-border dark:border-dark-border border-light-border px-4 py-2 text-dark-text-muted dark:text-dark-text-muted text-light-text-muted">JavaScript 直接设置</td>
+              </tr>
+              <tr>
+                <td className="border border-dark-border dark:border-dark-border border-light-border px-4 py-2 text-dark-text-muted dark:text-dark-text-muted text-light-text-muted">设置方式</td>
+                <td className="border border-dark-border dark:border-dark-border border-light-border px-4 py-2 text-dark-text-muted dark:text-dark-text-muted text-light-text-muted">gl.vertexAttribPointer()</td>
+                <td className="border border-dark-border dark:border-dark-border border-light-border px-4 py-2 text-dark-text-muted dark:text-dark-text-muted text-light-text-muted">gl.uniform*()</td>
+              </tr>
+              <tr>
+                <td className="border border-dark-border dark:border-dark-border border-light-border px-4 py-2 text-dark-text-muted dark:text-dark-text-muted text-light-text-muted">典型用途</td>
+                <td className="border border-dark-border dark:border-dark-border border-light-border px-4 py-2 text-dark-text-muted dark:text-dark-text-muted text-light-text-muted">位置、颜色、纹理坐标</td>
+                <td className="border border-dark-border dark:border-dark-border border-light-border px-4 py-2 text-dark-text-muted dark:text-dark-text-muted text-light-text-muted">变换矩阵、时间、全局参数</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">precision mediump float 的意义</h3>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          在片段着色器中，你经常会看到第一行是 <code>precision mediump float;</code>，这是 GLSL 的精度限定符声明。
+        </p>
+        
+        <h4 className="text-xl my-6 text-dark-text dark:text-dark-text text-light-text">为什么需要精度声明？</h4>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          WebGL 基于 OpenGL ES 2.0，它要求片段着色器必须为 <code>float</code> 类型指定精度。如果不声明精度，片段着色器中的 <code>float</code> 类型将无法使用，会导致编译错误。
+        </p>
+        
+        <h4 className="text-xl my-6 text-dark-text dark:text-dark-text text-light-text">精度级别</h4>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          GLSL 提供了三种精度级别：
+        </p>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li><strong className="text-primary font-semibold">highp</strong>：高精度
+            <ul className="mt-2 pl-6">
+              <li>精度：至少 32 位浮点数</li>
+              <li>范围：-2^62 到 2^62</li>
+              <li>用途：需要高精度的计算（如复杂的光照计算）</li>
+              <li>性能：较慢，消耗更多资源</li>
+              <li>兼容性：某些设备可能不支持</li>
+            </ul>
+          </li>
+          <li><strong className="text-primary font-semibold">mediump</strong>：中等精度（推荐）
+            <ul className="mt-2 pl-6">
+              <li>精度：至少 16 位浮点数</li>
+              <li>范围：-2^14 到 2^14</li>
+              <li>用途：大多数颜色和纹理计算</li>
+              <li>性能：平衡性能和精度</li>
+              <li>兼容性：所有设备都支持</li>
+            </ul>
+          </li>
+          <li><strong className="text-primary font-semibold">lowp</strong>：低精度
+            <ul className="mt-2 pl-6">
+              <li>精度：至少 10 位浮点数</li>
+              <li>范围：-2 到 2</li>
+              <li>用途：简单的颜色计算，不需要高精度</li>
+              <li>性能：最快，消耗资源最少</li>
+              <li>兼容性：所有设备都支持</li>
+            </ul>
+          </li>
+        </ul>
+
+        <h4 className="text-xl my-6 text-dark-text dark:text-dark-text text-light-text">为什么使用 mediump？</h4>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          <code>precision mediump float;</code> 是最常用的选择，原因如下：
+        </p>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li><strong className="text-primary font-semibold">精度足够</strong>：16 位精度对于大多数颜色和纹理计算已经足够</li>
+          <li><strong className="text-primary font-semibold">性能良好</strong>：比 highp 快，比 lowp 精度高，是性能和精度的最佳平衡</li>
+          <li><strong className="text-primary font-semibold">兼容性好</strong>：所有支持 WebGL 的设备都支持 mediump</li>
+          <li><strong className="text-primary font-semibold">标准做法</strong>：这是 WebGL 开发中的标准实践</li>
+        </ul>
+
+        <h4 className="text-xl my-6 text-dark-text dark:text-dark-text text-light-text">使用示例</h4>
+        <CodeBlock title="精度声明示例" code={`// ✅ 正确：声明了精度
+precision mediump float;
+
+uniform vec4 u_color;
+
+void main() {
+  gl_FragColor = u_color;
+}
+
+// ❌ 错误：没有声明精度
+uniform vec4 u_color;
+
+void main() {
+  gl_FragColor = u_color;  // 编译错误：float 类型未定义精度
+}
+
+// 也可以为特定变量指定精度
+precision mediump float;
+
+highp float complexCalculation;  // 这个变量使用高精度
+mediump vec3 color;              // 这个变量使用中等精度
+lowp float simpleValue;          // 这个变量使用低精度`} />
+
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          <strong className="text-primary font-semibold">重要提示</strong>：
+        </p>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li>顶点着色器不需要声明精度，因为顶点着色器中的 <code>float</code> 默认是 <code>highp</code></li>
+          <li>片段着色器必须声明精度，否则无法使用 <code>float</code> 类型</li>
+          <li>如果没有特殊需求，始终使用 <code>precision mediump float;</code> 是最安全的选择</li>
+          <li>精度声明应该放在片段着色器的最开始，在任何变量声明之前</li>
+        </ul>
       </section>
 
       <section className="mb-12">
