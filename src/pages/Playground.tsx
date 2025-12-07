@@ -676,7 +676,7 @@ export default function Playground() {
           <div 
             className="rounded-lg border border-dark-border dark:border-dark-border border-light-border" 
             style={{ 
-              height: '500px',
+              height: '600px',
               backgroundColor: isDark ? 'rgba(21, 21, 32, 0.6)' : 'rgba(248, 249, 250, 0.8)',
               position: 'relative',
               overflow: 'auto',
@@ -684,7 +684,7 @@ export default function Playground() {
           >
             <CodeMirror
               value={code}
-              height="500px"
+              height="600px"
               extensions={[
                 javascript({ jsx: false }),
                 webglAutocomplete,
@@ -715,12 +715,12 @@ export default function Playground() {
             <h2 className="text-xl text-dark-text dark:text-dark-text text-light-text">预览</h2>
             <div className="w-[100px]"></div>
           </div>
-          <div className="rounded-lg border border-dark-border dark:border-dark-border border-light-border bg-dark-surface dark:bg-dark-surface bg-light-surface p-4 flex items-center justify-center" style={{ height: '500px' }}>
+          <div className="rounded-lg border border-dark-border dark:border-dark-border border-light-border bg-dark-surface dark:bg-dark-surface bg-light-surface p-4 flex items-center justify-center" style={{ height: '600px' }}>
             <canvas
               key={canvasKey}
               ref={canvasRef}
               width={600}
-              height={500}
+              height={600}
               className="max-w-full h-auto rounded"
             />
           </div>
@@ -747,6 +747,178 @@ export default function Playground() {
           <li>• 点击"运行代码"按钮执行代码</li>
           <li>• 可以使用预设模板快速开始</li>
         </ul>
+      </div>
+
+      {/* 工具函数说明 */}
+      <div className="mt-6 rounded-lg border border-dark-border dark:border-dark-border border-light-border bg-dark-surface dark:bg-dark-surface bg-light-surface overflow-hidden">
+        <details className="group">
+          <summary className="px-4 py-3 cursor-pointer select-none flex items-center justify-between hover:bg-dark-bg dark:hover:bg-dark-bg hover:bg-light-surface transition-colors">
+            <h2 className="text-lg font-medium text-dark-text dark:text-dark-text text-light-text">📚 可用工具函数 API 文档</h2>
+            <svg className="w-5 h-5 text-dark-text-muted dark:text-dark-text-muted text-light-text-muted group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </summary>
+          <div className="px-4 py-4 border-t border-dark-border dark:border-dark-border border-light-border">
+            <div className="space-y-6 text-sm">
+              {/* createProgram */}
+              <div>
+                <h3 className="text-base font-semibold text-primary mb-2">createProgram(gl, vertexShaderSource, fragmentShaderSource)</h3>
+                <p className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted mb-2">
+                  创建并链接 WebGL 着色器程序。
+                </p>
+                <div className="bg-dark-bg dark:bg-dark-bg bg-light-bg p-3 rounded text-xs font-mono mb-2">
+                  <div className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted">参数：</div>
+                  <div className="ml-4 mt-1">gl: WebGLRenderingContext - WebGL 上下文</div>
+                  <div className="ml-4">vertexShaderSource: string - 顶点着色器源代码</div>
+                  <div className="ml-4">fragmentShaderSource: string - 片段着色器源代码</div>
+                  <div className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted mt-2">返回：WebGLProgram</div>
+                </div>
+                <div className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted text-xs">
+                  示例：<code className="bg-dark-bg dark:bg-dark-bg px-1 py-0.5 rounded">const program = createProgram(gl, vertexShader, fragmentShader)</code>
+                </div>
+              </div>
+
+              {/* createBuffer */}
+              <div>
+                <h3 className="text-base font-semibold text-primary mb-2">createBuffer(gl, data, usage?)</h3>
+                <p className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted mb-2">
+                  创建顶点缓冲区（ARRAY_BUFFER）。
+                </p>
+                <div className="bg-dark-bg dark:bg-dark-bg bg-light-bg p-3 rounded text-xs font-mono mb-2">
+                  <div className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted">参数：</div>
+                  <div className="ml-4 mt-1">gl: WebGLRenderingContext - WebGL 上下文</div>
+                  <div className="ml-4">data: number[] - 顶点数据数组</div>
+                  <div className="ml-4">usage?: number - 使用方式（默认：gl.STATIC_DRAW）</div>
+                  <div className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted mt-2">返回：WebGLBuffer | null</div>
+                </div>
+                <div className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted text-xs">
+                  示例：<code className="bg-dark-bg dark:bg-dark-bg px-1 py-0.5 rounded">const buffer = createBuffer(gl, [-0.5, -0.5, 0.5, -0.5, 0.5, 0.5])</code>
+                </div>
+              </div>
+
+              {/* createIndexBuffer */}
+              <div>
+                <h3 className="text-base font-semibold text-primary mb-2">createIndexBuffer(gl, data, usage?)</h3>
+                <p className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted mb-2">
+                  创建索引缓冲区（ELEMENT_ARRAY_BUFFER）。
+                </p>
+                <div className="bg-dark-bg dark:bg-dark-bg bg-light-bg p-3 rounded text-xs font-mono mb-2">
+                  <div className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted">参数：</div>
+                  <div className="ml-4 mt-1">gl: WebGLRenderingContext - WebGL 上下文</div>
+                  <div className="ml-4">data: number[] - 索引数据数组</div>
+                  <div className="ml-4">usage?: number - 使用方式（默认：gl.STATIC_DRAW）</div>
+                  <div className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted mt-2">返回：WebGLBuffer | null</div>
+                </div>
+                <div className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted text-xs">
+                  示例：<code className="bg-dark-bg dark:bg-dark-bg px-1 py-0.5 rounded">const indexBuffer = createIndexBuffer(gl, [0, 1, 2, 0, 2, 3])</code>
+                </div>
+              </div>
+
+              {/* setAttribute */}
+              <div>
+                <h3 className="text-base font-semibold text-primary mb-2">setAttribute(gl, program, name, size, type?, normalized?, stride?, offset?)</h3>
+                <p className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted mb-2">
+                  设置顶点属性指针，启用并配置顶点属性。
+                </p>
+                <div className="bg-dark-bg dark:bg-dark-bg bg-light-bg p-3 rounded text-xs font-mono mb-2">
+                  <div className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted">参数：</div>
+                  <div className="ml-4 mt-1">gl: WebGLRenderingContext - WebGL 上下文</div>
+                  <div className="ml-4">program: WebGLProgram - 着色器程序</div>
+                  <div className="ml-4">name: string - 属性名称</div>
+                  <div className="ml-4">size: number - 每个顶点的分量数（1-4）</div>
+                  <div className="ml-4">type?: number - 数据类型（默认：gl.FLOAT）</div>
+                  <div className="ml-4">normalized?: boolean - 是否归一化（默认：false）</div>
+                  <div className="ml-4">stride?: number - 步长（默认：0）</div>
+                  <div className="ml-4">offset?: number - 偏移量（默认：0）</div>
+                  <div className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted mt-2">返回：void</div>
+                </div>
+                <div className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted text-xs">
+                  示例：<code className="bg-dark-bg dark:bg-dark-bg px-1 py-0.5 rounded">setAttribute(gl, program, 'a_position', 2)</code>
+                </div>
+              </div>
+
+              {/* Matrix */}
+              <div>
+                <h3 className="text-base font-semibold text-primary mb-2">Matrix - 矩阵工具对象</h3>
+                <p className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted mb-3">
+                  提供常用的 4x4 矩阵运算函数，返回的矩阵是列主序的 16 元素数组。
+                </p>
+                
+                <div className="space-y-3">
+                  <div>
+                    <div className="font-semibold text-dark-text dark:text-dark-text text-light-text mb-1">Matrix.identity()</div>
+                    <div className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted text-xs mb-1">创建单位矩阵</div>
+                    <code className="bg-dark-bg dark:bg-dark-bg px-1 py-0.5 rounded text-xs">const m = Matrix.identity()</code>
+                  </div>
+
+                  <div>
+                    <div className="font-semibold text-dark-text dark:text-dark-text text-light-text mb-1">Matrix.translation(tx, ty, tz)</div>
+                    <div className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted text-xs mb-1">创建平移矩阵</div>
+                    <code className="bg-dark-bg dark:bg-dark-bg px-1 py-0.5 rounded text-xs">const m = Matrix.translation(1, 2, 3)</code>
+                  </div>
+
+                  <div>
+                    <div className="font-semibold text-dark-text dark:text-dark-text text-light-text mb-1">Matrix.scaling(sx, sy, sz)</div>
+                    <div className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted text-xs mb-1">创建缩放矩阵</div>
+                    <code className="bg-dark-bg dark:bg-dark-bg px-1 py-0.5 rounded text-xs">const m = Matrix.scaling(2, 2, 2)</code>
+                  </div>
+
+                  <div>
+                    <div className="font-semibold text-dark-text dark:text-dark-text text-light-text mb-1">Matrix.rotationX(angleInRadians)</div>
+                    <div className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted text-xs mb-1">创建绕 X 轴旋转矩阵（角度为弧度）</div>
+                    <code className="bg-dark-bg dark:bg-dark-bg px-1 py-0.5 rounded text-xs">const m = Matrix.rotationX(Math.PI / 4)</code>
+                  </div>
+
+                  <div>
+                    <div className="font-semibold text-dark-text dark:text-dark-text text-light-text mb-1">Matrix.rotationY(angleInRadians)</div>
+                    <div className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted text-xs mb-1">创建绕 Y 轴旋转矩阵（角度为弧度）</div>
+                    <code className="bg-dark-bg dark:bg-dark-bg px-1 py-0.5 rounded text-xs">const m = Matrix.rotationY(Math.PI / 4)</code>
+                  </div>
+
+                  <div>
+                    <div className="font-semibold text-dark-text dark:text-dark-text text-light-text mb-1">Matrix.rotationZ(angleInRadians)</div>
+                    <div className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted text-xs mb-1">创建绕 Z 轴旋转矩阵（角度为弧度）</div>
+                    <code className="bg-dark-bg dark:bg-dark-bg px-1 py-0.5 rounded text-xs">const m = Matrix.rotationZ(Math.PI / 4)</code>
+                  </div>
+
+                  <div>
+                    <div className="font-semibold text-dark-text dark:text-dark-text text-light-text mb-1">Matrix.perspective(fov, aspect, near, far)</div>
+                    <div className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted text-xs mb-1">创建透视投影矩阵（fov 为弧度）</div>
+                    <code className="bg-dark-bg dark:bg-dark-bg px-1 py-0.5 rounded text-xs">const m = Matrix.perspective(Math.PI / 4, canvas.width / canvas.height, 0.1, 100)</code>
+                  </div>
+
+                  <div>
+                    <div className="font-semibold text-dark-text dark:text-dark-text text-light-text mb-1">Matrix.ortho(left, right, bottom, top, near, far)</div>
+                    <div className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted text-xs mb-1">创建正交投影矩阵</div>
+                    <code className="bg-dark-bg dark:bg-dark-bg px-1 py-0.5 rounded text-xs">const m = Matrix.ortho(-1, 1, -1, 1, 0.1, 100)</code>
+                  </div>
+
+                  <div>
+                    <div className="font-semibold text-dark-text dark:text-dark-text text-light-text mb-1">Matrix.lookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ)</div>
+                    <div className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted text-xs mb-1">创建视图矩阵（相机位置、目标点、上方向）</div>
+                    <code className="bg-dark-bg dark:bg-dark-bg px-1 py-0.5 rounded text-xs">const m = Matrix.lookAt(0, 0, 5, 0, 0, 0, 0, 1, 0)</code>
+                  </div>
+
+                  <div>
+                    <div className="font-semibold text-dark-text dark:text-dark-text text-light-text mb-1">Matrix.multiply(a, b)</div>
+                    <div className="text-dark-text-muted dark:text-dark-text-muted text-light-text-muted text-xs mb-1">矩阵相乘（返回 a × b，注意顺序：先应用 b，再应用 a）</div>
+                    <code className="bg-dark-bg dark:bg-dark-bg px-1 py-0.5 rounded text-xs">const mvp = Matrix.multiply(projection, Matrix.multiply(view, model))</code>
+                  </div>
+                </div>
+
+                <div className="mt-4 p-3 bg-dark-bg dark:bg-dark-bg bg-light-bg rounded text-xs">
+                  <div className="text-primary font-semibold mb-1">💡 使用提示：</div>
+                  <ul className="list-disc list-inside space-y-1 text-dark-text-muted dark:text-dark-text-muted text-light-text-muted">
+                    <li>矩阵是列主序的，可以直接传递给 WebGL 的 uniformMatrix4fv</li>
+                    <li>矩阵相乘的顺序很重要：Matrix.multiply(a, b) 表示先应用 b，再应用 a</li>
+                    <li>MVP 矩阵通常的顺序：MVP = multiply(projection, multiply(view, model))</li>
+                    <li>角度使用弧度制，可以使用 Math.PI / 180 * degrees 转换</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </details>
       </div>
     </div>
   )
