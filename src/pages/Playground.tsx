@@ -393,6 +393,9 @@ export default function Playground() {
 
     glRef.current = gl
 
+    // 保存原始的 requestAnimationFrame，在 try 块外定义以确保 catch 块可以访问
+    const originalRAF = window.requestAnimationFrame
+
     try {
       // 创建一个标志来跟踪上下文是否仍然有效
       let isContextValid = true
@@ -441,7 +444,6 @@ export default function Playground() {
       }
       
       // 包装 requestAnimationFrame 以便追踪和清理
-      const originalRAF = window.requestAnimationFrame
       const rafIds: number[] = []
       let rafActive = true
       let contextLostWarned = false
@@ -677,7 +679,7 @@ export default function Playground() {
               height: '500px',
               backgroundColor: isDark ? 'rgba(21, 21, 32, 0.6)' : 'rgba(248, 249, 250, 0.8)',
               position: 'relative',
-              overflow: 'hidden',
+              overflow: 'auto',
             }}
           >
             <CodeMirror
