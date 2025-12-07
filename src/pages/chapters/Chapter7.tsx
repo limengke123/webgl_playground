@@ -153,7 +153,7 @@ gl.depthMask(true);  // 恢复深度写入`} language="javascript" />
           下面展示了透明度的效果：
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `
             attribute vec3 a_position;
             uniform mat4 u_mvpMatrix;

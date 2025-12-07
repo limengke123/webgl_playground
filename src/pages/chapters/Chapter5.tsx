@@ -226,7 +226,7 @@ const viewMatrix4 = Matrix.lookAt(
   0, 1, 0
 );`} language="javascript" />
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `attribute vec3 a_position;
 uniform mat4 u_viewMatrix;
 uniform mat4 u_projectionMatrix;
@@ -569,7 +569,7 @@ function create2DProjection(canvas) {
           下面展示了两种投影方式的区别：
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `attribute vec3 a_position;
 uniform mat4 u_modelMatrix;
 uniform mat4 u_viewMatrix;
@@ -714,7 +714,7 @@ void main() {
           下面是一个完整的示例，展示如何使用模型矩阵、视图矩阵和投影矩阵：
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `attribute vec3 a_position;
 uniform mat4 u_modelMatrix;
 uniform mat4 u_viewMatrix;
@@ -1220,7 +1220,7 @@ function animate() {
           下面是一个可以用鼠标控制的轨道相机示例：
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `attribute vec3 a_position;
 uniform mat4 u_mvpMatrix;
 

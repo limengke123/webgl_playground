@@ -110,76 +110,24 @@ const canvas = document.getElementById('glCanvas')`} />
           获取 WebGL 上下文是使用 WebGL 的关键步骤。上下文（Context）是 WebGL 的"接口"，所有 WebGL 操作都通过它来完成。
         </p>
         
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">WebGL 1.0 vs WebGL 2.0</h3>
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">获取 WebGL2 上下文</h3>
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          WebGL 有两个主要版本：
+          WebGL2 是现代 WebGL 的标准版本，提供了更多高级功能和更好的性能。本教程使用 WebGL2。
         </p>
-        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li><strong className="text-primary font-semibold">WebGL 1.0</strong>：使用 <code>'webgl'</code> 获取上下文
-            <ul className="mt-2 pl-6">
-              <li>兼容性最好，几乎所有现代浏览器都支持</li>
-              <li>功能足够满足大多数基础需求</li>
-              <li>适合初学者学习</li>
-            </ul>
-          </li>
-          <li><strong className="text-primary font-semibold">WebGL 2.0</strong>：使用 <code>'webgl2'</code> 获取上下文
-            <ul className="mt-2 pl-6">
-              <li>提供更多高级功能（如 3D 纹理、变换反馈等）</li>
-              <li>性能更好，支持更多顶点属性</li>
-              <li>兼容性稍差，但现代浏览器基本都支持</li>
-            </ul>
-          </li>
-        </ul>
-        
-        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          <strong className="text-primary font-semibold">建议</strong>：对于初学者，建议使用 <code>'webgl'</code>（WebGL 1.0），因为：
-        </p>
-        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li>兼容性更好，可以在更多设备上运行</li>
-          <li>概念更简单，更容易理解</li>
-          <li>本教程主要使用 WebGL 1.0</li>
-          <li>WebGL 2.0 向后兼容，学完 1.0 后很容易迁移</li>
-        </ul>
-        
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">方法一：使用 WebGL 1.0（推荐）</h3>
-        <CodeBlock title="获取 WebGL 1.0 上下文" language="javascript" code={`// 获取 canvas 元素
+        <CodeBlock title="获取 WebGL2 上下文" language="javascript" code={`// 获取 canvas 元素
 const canvas = document.getElementById('glCanvas')
 
-// 获取 WebGL 1.0 上下文（推荐用于初学者）
-const gl = canvas.getContext('webgl')
-
-// 如果浏览器不支持 'webgl'，尝试 'experimental-webgl'（旧版浏览器）
-// const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl')
+// 获取 WebGL2 上下文
+const gl = canvas.getContext('webgl2')
 
 // 检查是否成功获取上下文
 if (!gl) {
-  alert('您的浏览器不支持 WebGL！')
-  console.error('无法创建 WebGL 上下文')
-}`} />
-        
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">方法二：优先使用 WebGL 2.0，回退到 1.0</h3>
-        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          如果你想要使用 WebGL 2.0 的高级功能，可以优先尝试获取 WebGL 2.0 上下文，如果不支持则回退到 WebGL 1.0：
-        </p>
-        <CodeBlock title="优先使用 WebGL 2.0，回退到 1.0" language="javascript" code={`// 获取 canvas 元素
-const canvas = document.getElementById('glCanvas')
-
-// 优先尝试获取 WebGL 2.0 上下文
-let gl = canvas.getContext('webgl2')
-
-// 如果不支持 WebGL 2.0，回退到 WebGL 1.0
-if (!gl) {
-  gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl')
-}
-
-// 检查是否成功获取上下文
-if (!gl) {
-  alert('您的浏览器不支持 WebGL！')
-  console.error('无法创建 WebGL 上下文')
+  alert('您的浏览器不支持 WebGL2！请使用现代浏览器（Chrome 56+, Firefox 51+, Safari 15.2+, Edge 79+）')
+  console.error('无法创建 WebGL2 上下文')
 } else {
-  // 检查使用的是哪个版本
+  // 检查 WebGL 版本
   const version = gl.getParameter(gl.VERSION)
-  console.log('WebGL 版本:', version) // 输出: "WebGL 1.0" 或 "WebGL 2.0"
+  console.log('WebGL 版本:', version) // 输出: "WebGL 2.0"
 }`} />
         
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
@@ -188,16 +136,14 @@ if (!gl) {
         <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
           <li><strong className="text-primary font-semibold">参数</strong>：
             <ul className="mt-2 pl-6">
-              <li><code>'webgl'</code>：获取 WebGL 1.0 上下文（返回 WebGLRenderingContext）</li>
-              <li><code>'webgl2'</code>：获取 WebGL 2.0 上下文（返回 WebGL2RenderingContext）</li>
-              <li><code>'experimental-webgl'</code>：旧版浏览器的 WebGL 1.0（已废弃，但某些旧浏览器可能需要）</li>
+              <li><code>'webgl2'</code>：获取 WebGL2 上下文（返回 WebGL2RenderingContext）</li>
             </ul>
           </li>
-          <li><strong className="text-primary font-semibold">返回值</strong>：WebGLRenderingContext 或 WebGL2RenderingContext 对象，如果失败则返回 <code>null</code></li>
+          <li><strong className="text-primary font-semibold">返回值</strong>：WebGL2RenderingContext 对象，如果失败则返回 <code>null</code></li>
           <li><strong className="text-primary font-semibold">兼容性</strong>：
             <ul className="mt-2 pl-6">
-              <li>WebGL 1.0：几乎所有现代浏览器都支持（Chrome 9+, Firefox 4+, Safari 5.1+, Edge）</li>
-              <li>WebGL 2.0：现代浏览器基本都支持（Chrome 56+, Firefox 51+, Safari 15.2+, Edge 79+）</li>
+              <li>WebGL2：现代浏览器都支持（Chrome 56+, Firefox 51+, Safari 15.2+, Edge 79+）</li>
+              <li>如果浏览器不支持 WebGL2，会返回 null，需要提示用户更新浏览器</li>
             </ul>
           </li>
         </ul>
@@ -206,10 +152,10 @@ if (!gl) {
       <section className="mb-12">
         <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">完整的初始化代码</h2>
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          下面是一个完整的 WebGL 初始化示例，包含错误处理和基本设置。这里使用 WebGL 1.0，因为它兼容性最好，适合初学者。
+          下面是一个完整的 WebGL2 初始化示例，包含错误处理和基本设置。
         </p>
         
-        <CodeBlock title="main.js - 完整的初始化代码（WebGL 1.0）" language="javascript" code={`// 等待 DOM 加载完成
+        <CodeBlock title="main.js - 完整的初始化代码（WebGL2）" language="javascript" code={`// 等待 DOM 加载完成
 window.addEventListener('DOMContentLoaded', () => {
   // 1. 获取 canvas 元素
   const canvas = document.getElementById('glCanvas')
@@ -219,14 +165,12 @@ window.addEventListener('DOMContentLoaded', () => {
     return
   }
   
-  // 2. 获取 WebGL 1.0 上下文
-  // 注意：这里使用 'webgl' 获取 WebGL 1.0 上下文
-  // 如果需要 WebGL 2.0，可以使用 'webgl2'，但需要检查浏览器支持
-  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl')
+  // 2. 获取 WebGL2 上下文
+  const gl = canvas.getContext('webgl2')
   
   // 3. 检查是否成功获取上下文
   if (!gl) {
-    alert('您的浏览器不支持 WebGL！请使用现代浏览器（Chrome、Firefox、Safari、Edge）')
+    alert('您的浏览器不支持 WebGL2！请使用现代浏览器（Chrome 56+, Firefox 51+, Safari 15.2+, Edge 79+）')
     return
   }
   
@@ -242,8 +186,8 @@ window.addEventListener('DOMContentLoaded', () => {
   // COLOR_BUFFER_BIT 表示清除颜色缓冲区
   gl.clear(gl.COLOR_BUFFER_BIT)
   
-  // 现在 WebGL 已经初始化完成！
-  console.log('WebGL 初始化成功！')
+  // 现在 WebGL2 已经初始化完成！
+  console.log('WebGL2 初始化成功！')
   console.log('WebGL 版本:', gl.getParameter(gl.VERSION))
   console.log('着色器语言版本:', gl.getParameter(gl.SHADING_LANGUAGE_VERSION))
   console.log('最大纹理尺寸:', gl.getParameter(gl.MAX_TEXTURE_SIZE))
@@ -267,9 +211,9 @@ window.addEventListener('DOMContentLoaded', () => {
         </p>
         
         <CodeBlock title="带错误处理的初始化函数" language="javascript" code={`/**
- * 初始化 WebGL 上下文
+ * 初始化 WebGL2 上下文
  * @param {HTMLCanvasElement} canvas - Canvas 元素
- * @returns {WebGLRenderingContext|null} WebGL 上下文，失败返回 null
+ * @returns {WebGL2RenderingContext|null} WebGL2 上下文，失败返回 null
  */
 function initWebGL(canvas) {
   // 检查 canvas 元素是否存在
@@ -278,19 +222,19 @@ function initWebGL(canvas) {
     return null
   }
   
-  // 尝试获取 WebGL 上下文
+  // 尝试获取 WebGL2 上下文
   let gl = null
   try {
-    gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl')
+    gl = canvas.getContext('webgl2')
   } catch (e) {
-    console.error('创建 WebGL 上下文时出错:', e)
+    console.error('创建 WebGL2 上下文时出错:', e)
     return null
   }
   
   // 检查是否成功获取上下文
   if (!gl) {
-    console.error('无法创建 WebGL 上下文。可能的原因：')
-    console.error('1. 浏览器不支持 WebGL')
+    console.error('无法创建 WebGL2 上下文。可能的原因：')
+    console.error('1. 浏览器不支持 WebGL2')
     console.error('2. GPU 驱动过旧')
     console.error('3. WebGL 被禁用')
     
@@ -308,11 +252,11 @@ function initWebGL(canvas) {
       z-index: 10000;
     \`
     errorDiv.innerHTML = \`
-      <h2>WebGL 不可用</h2>
-      <p>您的浏览器或设备不支持 WebGL。</p>
+      <h2>WebGL2 不可用</h2>
+      <p>您的浏览器或设备不支持 WebGL2。</p>
       <p>请尝试：</p>
       <ul>
-        <li>更新浏览器到最新版本</li>
+        <li>更新浏览器到最新版本（Chrome 56+, Firefox 51+, Safari 15.2+, Edge 79+）</li>
         <li>更新 GPU 驱动程序</li>
         <li>检查浏览器设置中是否禁用了 WebGL</li>
       </ul>
@@ -331,7 +275,7 @@ function initWebGL(canvas) {
   // 清除画布
   gl.clear(gl.COLOR_BUFFER_BIT)
   
-  console.log('WebGL 初始化成功！')
+  console.log('WebGL2 初始化成功！')
   return gl
 }
 
@@ -353,7 +297,7 @@ window.addEventListener('DOMContentLoaded', () => {
           下面是一个可以运行的示例。这个示例展示了如何创建 canvas 并获取 WebGL 上下文，然后清除画布显示背景色。
         </p>
         
-        <WebGLCanvas width={400} height={300} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
+        <WebGLCanvas width={400} height={300} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
           // 设置视口
           gl.viewport(0, 0, canvas.width, canvas.height)
           
@@ -363,7 +307,7 @@ window.addEventListener('DOMContentLoaded', () => {
           // 清除画布
           gl.clear(gl.COLOR_BUFFER_BIT)
           
-          // 在控制台输出 WebGL 信息
+          // 在控制台输出 WebGL2 信息
           console.log('WebGL 版本:', gl.getParameter(gl.VERSION))
           console.log('着色器语言版本:', gl.getParameter(gl.SHADING_LANGUAGE_VERSION))
           console.log('渲染器:', gl.getParameter(gl.RENDERER))
@@ -371,7 +315,7 @@ window.addEventListener('DOMContentLoaded', () => {
         }} />
         
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          上面的示例展示了最基本的 WebGL 初始化。虽然还没有绘制任何图形，但你已经成功创建了 WebGL 上下文并设置了背景色。
+          上面的示例展示了最基本的 WebGL2 初始化。虽然还没有绘制任何图形，但你已经成功创建了 WebGL2 上下文并设置了背景色。
         </p>
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           打开浏览器的开发者工具（F12），在控制台中可以看到 WebGL 的版本信息。
@@ -386,8 +330,8 @@ window.addEventListener('DOMContentLoaded', () => {
         
         <CodeBlock title="WebGL 上下文配置选项" language="javascript" code={`const canvas = document.getElementById('glCanvas')
 
-// 获取 WebGL 上下文时可以传入配置选项
-const gl = canvas.getContext('webgl', {
+// 获取 WebGL2 上下文时可以传入配置选项
+const gl = canvas.getContext('webgl2', {
   // alpha: 是否使用透明背景，默认 false
   alpha: false,
   
@@ -418,7 +362,7 @@ const gl = canvas.getContext('webgl', {
 })
 
 // 常用配置示例
-const gl = canvas.getContext('webgl', {
+const gl = canvas.getContext('webgl2', {
   alpha: false,           // 不透明背景
   depth: true,            // 启用深度测试
   antialias: true,        // 启用抗锯齿
@@ -443,18 +387,18 @@ const gl = canvas.getContext('webgl', {
         </p>
         
         <CodeBlock title="检查 WebGL 支持" language="javascript" code={`/**
- * 检查浏览器是否支持 WebGL
- * @returns {boolean} 是否支持 WebGL
+ * 检查浏览器是否支持 WebGL2
+ * @returns {boolean} 是否支持 WebGL2
  */
-function isWebGLSupported() {
+function isWebGL2Supported() {
   try {
     // 创建一个临时的 canvas 元素
     const canvas = document.createElement('canvas')
     
-    // 尝试获取 WebGL 上下文
-    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl')
+    // 尝试获取 WebGL2 上下文
+    const gl = canvas.getContext('webgl2')
     
-    // 如果成功获取上下文，说明支持 WebGL
+    // 如果成功获取上下文，说明支持 WebGL2
     return !!gl
   } catch (e) {
     return false
@@ -462,18 +406,18 @@ function isWebGLSupported() {
 }
 
 // 使用示例
-if (isWebGLSupported()) {
-  console.log('浏览器支持 WebGL！')
-  // 继续初始化 WebGL
+if (isWebGL2Supported()) {
+  console.log('浏览器支持 WebGL2！')
+  // 继续初始化 WebGL2
 } else {
-  console.error('浏览器不支持 WebGL')
+  console.error('浏览器不支持 WebGL2')
   // 显示错误信息或使用替代方案
 }
 
 // 或者更详细的检查
-function getWebGLInfo() {
+function getWebGL2Info() {
   const canvas = document.createElement('canvas')
-  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl')
+  const gl = canvas.getContext('webgl2')
   
   if (!gl) {
     return null
@@ -491,11 +435,11 @@ function getWebGLInfo() {
 }
 
 // 使用示例
-const info = getWebGLInfo()
+const info = getWebGL2Info()
 if (info) {
-  console.log('WebGL 信息:', info)
+  console.log('WebGL2 信息:', info)
 } else {
-  console.error('无法获取 WebGL 信息')
+  console.error('无法获取 WebGL2 信息')
 }`} />
       </section>
 
@@ -655,10 +599,10 @@ if (info) {
 // 1. 初始化
 function init() {
   const canvas = document.getElementById('glCanvas');
-  const gl = canvas.getContext('webgl');
+  const gl = canvas.getContext('webgl2');
   
   if (!gl) {
-    console.error('WebGL 不可用');
+    console.error('WebGL2 不可用');
     return;
   }
   
@@ -942,7 +886,7 @@ import fragmentShaderSource from './shaders/fragment.glsl';
 
 // TypeScript 现在知道这些是字符串类型
 function createShaderProgram(
-  gl: WebGLRenderingContext,
+  gl: WebGL2RenderingContext,
   vertexSource: string,
   fragmentSource: string
 ): WebGLProgram {
@@ -1021,7 +965,7 @@ async function loadShaderFile(url) {
 
 /**
  * 编译着色器
- * @param {WebGLRenderingContext} gl - WebGL 上下文
+ * @param {WebGL2RenderingContext} gl - WebGL2 上下文
  * @param {number} type - 着色器类型（gl.VERTEX_SHADER 或 gl.FRAGMENT_SHADER）
  * @param {string} source - 着色器源代码
  * @returns {WebGLShader} 编译后的着色器
@@ -1042,7 +986,7 @@ function compileShader(gl, type, source) {
 
 /**
  * 创建着色器程序
- * @param {WebGLRenderingContext} gl - WebGL 上下文
+ * @param {WebGL2RenderingContext} gl - WebGL2 上下文
  * @param {string} vertexSource - 顶点着色器源代码
  * @param {string} fragmentSource - 片段着色器源代码
  * @returns {WebGLProgram} 着色器程序
@@ -1073,7 +1017,7 @@ function createShaderProgram(gl, vertexSource, fragmentSource) {
 
 /**
  * 从文件加载并创建着色器程序
- * @param {WebGLRenderingContext} gl - WebGL 上下文
+ * @param {WebGL2RenderingContext} gl - WebGL2 上下文
  * @param {string} vertexUrl - 顶点着色器文件路径
  * @param {string} fragmentUrl - 片段着色器文件路径
  * @returns {Promise<WebGLProgram>} 着色器程序
@@ -1090,7 +1034,12 @@ async function loadShaderProgram(gl, vertexUrl, fragmentUrl) {
 // 使用示例
 async function init() {
   const canvas = document.getElementById('glCanvas');
-  const gl = canvas.getContext('webgl');
+  const gl = canvas.getContext('webgl2');
+  
+  if (!gl) {
+    console.error('WebGL2 不可用');
+    return;
+  }
   
   // 加载着色器程序
   const program = await loadShaderProgram(
@@ -1115,7 +1064,7 @@ async function init() {
         <ol className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
           <li><strong className="text-primary font-semibold">创建 HTML 文件</strong>：包含 canvas 元素</li>
           <li><strong className="text-primary font-semibold">获取 canvas 元素</strong>：通过 DOM API 获取</li>
-          <li><strong className="text-primary font-semibold">获取 WebGL 上下文</strong>：使用 <code>getContext('webgl')</code></li>
+          <li><strong className="text-primary font-semibold">获取 WebGL2 上下文</strong>：使用 <code>getContext('webgl2')</code></li>
           <li><strong className="text-primary font-semibold">错误处理</strong>：检查上下文是否成功创建</li>
           <li><strong className="text-primary font-semibold">基本设置</strong>：设置视口和清除颜色</li>
           <li><strong className="text-primary font-semibold">项目结构</strong>：组织代码和资源文件</li>

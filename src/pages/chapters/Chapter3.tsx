@@ -514,7 +514,7 @@ function render() {
   tx, ty, tz, 1  // 平移量
 ]`} language="javascript" />
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `attribute vec2 a_position;
 uniform mat4 u_matrix;
 
@@ -712,7 +712,7 @@ const rotation = rotationAroundAxis(axis, angle);`} language="javascript" />
           物体绕自身某个轴旋转（如门绕门轴旋转）、实现平滑的旋转动画等。
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `attribute vec2 a_position;
 uniform mat4 u_matrix;
 
@@ -779,7 +779,7 @@ void main() {
   0, 0, 0, 1
 ]`} language="javascript" />
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `attribute vec2 a_position;
 uniform mat4 u_matrix;
 
@@ -852,7 +852,7 @@ const translate = Matrix.translation(0.2, 0, 0)
 // 先应用 scale，再应用 rotate，最后应用 translate
 const matrix = Matrix.multiply(translate, Matrix.multiply(rotate, scale))`} language="javascript" />
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `attribute vec2 a_position;
 uniform mat4 u_matrix;
 

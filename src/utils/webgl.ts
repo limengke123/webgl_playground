@@ -1,22 +1,22 @@
 type Mat4 = number[]
 
 /**
- * 创建并初始化 WebGL 上下文
+ * 创建并初始化 WebGL2 上下文
  */
-export function initWebGL(canvas: HTMLCanvasElement): WebGLRenderingContext {
-  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl')
+export function initWebGL(canvas: HTMLCanvasElement): WebGL2RenderingContext {
+  const gl = canvas.getContext('webgl2')
   
   if (!gl) {
-    throw new Error('无法创建 WebGL 上下文')
+    throw new Error('无法创建 WebGL2 上下文。请确保浏览器支持 WebGL2。')
   }
   
-  return gl as WebGLRenderingContext
+  return gl
 }
 
 /**
  * 创建着色器
  */
-export function createShader(gl: WebGLRenderingContext, type: number, source: string): WebGLShader {
+export function createShader(gl: WebGL2RenderingContext, type: number, source: string): WebGLShader {
   if (!gl) {
     throw new Error('WebGL 上下文无效')
   }
@@ -46,7 +46,7 @@ export function createShader(gl: WebGLRenderingContext, type: number, source: st
  * 创建着色器程序
  */
 export function createProgram(
-  gl: WebGLRenderingContext,
+  gl: WebGL2RenderingContext,
   vertexShaderSource: string,
   fragmentShaderSource: string
 ): WebGLProgram {
@@ -77,7 +77,7 @@ export function createProgram(
  * 创建缓冲区
  */
 export function createBuffer(
-  gl: WebGLRenderingContext,
+  gl: WebGL2RenderingContext,
   data: number[],
   usage: number = gl.STATIC_DRAW
 ): WebGLBuffer | null {
@@ -91,7 +91,7 @@ export function createBuffer(
  * 创建索引缓冲区
  */
 export function createIndexBuffer(
-  gl: WebGLRenderingContext,
+  gl: WebGL2RenderingContext,
   data: number[],
   usage: number = gl.STATIC_DRAW
 ): WebGLBuffer | null {
@@ -102,27 +102,17 @@ export function createIndexBuffer(
 }
 
 /**
- * 检查 WebGL 上下文是否丢失
+ * 检查 WebGL2 上下文是否丢失
  */
-function isContextLost(gl: WebGLRenderingContext): boolean {
-  // WebGL 2.0 有 isContextLost 方法
-  if ('isContextLost' in gl && typeof (gl as any).isContextLost === 'function') {
-    return (gl as any).isContextLost()
-  }
-  // WebGL 1.0 需要通过尝试操作来检测
-  try {
-    gl.getParameter(gl.VERSION)
-    return false
-  } catch (e) {
-    return true
-  }
+function isContextLost(gl: WebGL2RenderingContext): boolean {
+  return gl.isContextLost()
 }
 
 /**
  * 设置属性指针
  */
 export function setAttribute(
-  gl: WebGLRenderingContext,
+  gl: WebGL2RenderingContext,
   program: WebGLProgram,
   name: string,
   size: number,
@@ -171,7 +161,7 @@ export function setAttribute(
 /**
  * 创建纹理
  */
-export function createTexture(gl: WebGLRenderingContext, image: TexImageSource): WebGLTexture | null {
+export function createTexture(gl: WebGL2RenderingContext, image: TexImageSource): WebGLTexture | null {
   const texture = gl.createTexture()
   gl.bindTexture(gl.TEXTURE_2D, texture)
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image)

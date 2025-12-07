@@ -317,7 +317,7 @@ void main() {
           </li>
         </ul>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `
             attribute vec3 a_position;
             uniform mat4 u_mvpMatrix;
@@ -512,7 +512,7 @@ void main() {
           <li>让物体看起来有立体感</li>
         </ul>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `
             attribute vec3 a_position;
             attribute vec3 a_normal;
@@ -870,7 +870,7 @@ void main() {
           下面是一个完整的 Phong 光照示例，展示旋转的立方体：
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `attribute vec3 a_position;
 attribute vec3 a_normal;
 uniform mat4 u_modelMatrix;

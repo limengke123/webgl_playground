@@ -50,9 +50,9 @@ export default function Chapter2() {
           <strong className="text-primary font-semibold">GLSL 版本</strong>：
         </p>
         <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li><strong>WebGL 1.0</strong>：使用 GLSL ES 1.00（基于 OpenGL ES 2.0）</li>
-          <li><strong>WebGL 2.0</strong>：使用 GLSL ES 3.00（基于 OpenGL ES 3.0）</li>
-          <li>本教程主要使用 GLSL ES 1.00（WebGL 1.0）</li>
+          <li><strong>WebGL2</strong>：使用 GLSL ES 3.00（基于 OpenGL ES 3.0）</li>
+          <li>本教程使用 GLSL ES 3.00（WebGL2）</li>
+          <li>GLSL ES 3.00 提供了更多功能，如统一缓冲区对象（UBO）、更多纹理格式等</li>
         </ul>
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           <strong className="text-primary font-semibold">为什么需要 GLSL？</strong>：
@@ -799,7 +799,7 @@ values[1] = 5.0;
 
 // 注意：
 // 1. 数组大小必须在编译时确定（不能使用变量）
-// 2. 数组索引必须是常量表达式（在 WebGL 1.0 中）
+// 2. 在 WebGL2（GLSL ES 3.00）中，可以使用变量索引（但有限制）
 // 3. 数组不能动态分配
 
 // 错误示例：
@@ -810,7 +810,7 @@ values[1] = 5.0;
 const int SIZE = 10;
 float values[SIZE];  // 正确！
 
-// 在 WebGL 2.0 中，可以使用变量索引（但有限制）`} />
+// 在 WebGL2 中，可以使用变量索引（但有限制）`} />
         
         <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">结构体</h3>
         <CodeBlock title="结构体示例" code={`// 定义结构体
@@ -931,7 +931,7 @@ void main() {
           下面是一个使用 GLSL 函数创建动画效果的示例：
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `attribute vec2 a_position;
 uniform mediump float u_time;
 
@@ -1000,7 +1000,7 @@ void main() {
           使用 smoothstep 函数创建平滑的径向渐变效果：
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `attribute vec2 a_position;
 attribute vec2 a_texCoord;
 varying vec2 v_texCoord;
@@ -1075,7 +1075,7 @@ void main() {
           使用 fract 函数创建棋盘格和其他重复图案：
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `attribute vec2 a_position;
 attribute vec2 a_texCoord;
 varying vec2 v_texCoord;

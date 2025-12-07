@@ -28,7 +28,7 @@ export default function Chapter1() {
         <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">什么是 WebGL？</h2>
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           WebGL（Web Graphics Library）是一个 JavaScript API，用于在浏览器中渲染交互式 2D 和 3D 图形。
-          它基于 OpenGL ES 2.0，允许你直接使用 GPU 进行图形渲染。WebGL 不需要插件，在现代浏览器中都有原生支持。
+          WebGL2 基于 OpenGL ES 3.0，允许你直接使用 GPU 进行图形渲染。WebGL 不需要插件，在现代浏览器中都有原生支持。
         </p>
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           WebGL 的核心优势：
@@ -110,7 +110,7 @@ export default function Chapter1() {
           让我们从最简单的例子开始：绘制一个三角形。这是 WebGL 的"Hello World"。
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
           const program = createProgram(gl, vertexShaderSource, fragmentShaderSource)
           const positions = [0, 0.5, -0.5, -0.5, 0.5, -0.5]
           const positionBuffer = createBuffer(gl, positions)
@@ -254,7 +254,7 @@ gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)  // 设置一次，所有片段�
         
         <h4 className="text-xl my-6 text-dark-text dark:text-dark-text text-light-text">为什么需要精度声明？</h4>
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          WebGL 基于 OpenGL ES 2.0，它要求片段着色器必须为 <code>float</code> 类型指定精度。如果不声明精度，片段着色器中的 <code>float</code> 类型将无法使用，会导致编译错误。
+          在 WebGL2（GLSL ES 3.00）中，虽然片段着色器中的 float 默认精度是 highp，但显式声明精度仍然是一个好习惯。使用 <code>precision mediump float;</code> 可以在性能和精度之间取得平衡，适合大多数应用场景。
         </p>
         
         <h4 className="text-xl my-6 text-dark-text dark:text-dark-text text-light-text">精度级别</h4>
@@ -343,7 +343,7 @@ lowp float simpleValue;          // 这个变量使用低精度`} />
           现在让我们为每个顶点添加不同的颜色，看看 WebGL 如何插值颜色。
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `
             attribute vec2 a_position;
             attribute vec3 a_color;
@@ -451,7 +451,7 @@ gl.drawArrays(gl.TRIANGLES, 0, 3)`} />
           矩形由两个三角形组成。我们可以使用索引缓冲区来避免重复顶点。
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `
             attribute vec2 a_position;
             uniform vec4 u_color;
@@ -530,7 +530,7 @@ gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)`} />
           圆形可以通过将圆周分成多个三角形来近似。三角形越多，圆形越平滑。
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `
             attribute vec2 a_position;
             uniform vec4 u_color;
@@ -616,7 +616,7 @@ function createCircleVertices(segments: number, radius: number) {
           星形是另一个有趣的例子，展示了如何通过数学计算生成复杂形状。
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `
             attribute vec2 a_position;
             uniform vec4 u_color;
@@ -745,7 +745,7 @@ gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0)`} />
           <li>在后续章节中，我们会学习如何使用矩阵变换来将任意坐标转换到 NDC 空间</li>
         </ul>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `
             attribute vec2 a_position;
             uniform vec4 u_color;
@@ -822,7 +822,7 @@ gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0)`} />
           <li><strong className="text-primary font-semibold">gl.TRIANGLE_FAN</strong>：从第一个顶点出发的三角形扇</li>
         </ul>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `
             attribute vec2 a_position;
             uniform vec4 u_color;

@@ -273,7 +273,7 @@ export default function Playground() {
   const [isDark, setIsDark] = useState(false)
   const [canvasKey, setCanvasKey] = useState(0) // 用于强制重新创建 canvas
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const glRef = useRef<WebGLRenderingContext | null>(null)
+  const glRef = useRef<WebGL2RenderingContext | null>(null)
   const cleanupRef = useRef<(() => void) | null>(null)
   const animationFrameRef = useRef<number | null>(null)
 
@@ -356,26 +356,21 @@ export default function Playground() {
       return
     }
 
-    // 获取或创建 WebGL 上下文
-    let gl: WebGLRenderingContext | null = null
+    // 获取或创建 WebGL2 上下文
+    let gl: WebGL2RenderingContext | null = null
     try {
-      // 先尝试获取现有上下文
-      gl = canvas.getContext('webgl', {
+      gl = canvas.getContext('webgl2', {
         antialias: true,
         preserveDrawingBuffer: false,
-      }) as WebGLRenderingContext
+      })
       
       if (!gl) {
-        gl = canvas.getContext('experimental-webgl') as WebGLRenderingContext
-      }
-      
-      if (!gl) {
-        setError('无法创建 WebGL 上下文')
+        setError('无法创建 WebGL2 上下文。请确保浏览器支持 WebGL2。')
         setIsRunning(false)
         return
       }
-    } catch (e) {
-      setError(`创建 WebGL 上下文失败: ${e instanceof Error ? e.message : String(e)}`)
+      } catch (e) {
+      setError(`创建 WebGL2 上下文失败: ${e instanceof Error ? e.message : String(e)}`)
       setIsRunning(false)
       return
     }
@@ -404,15 +399,10 @@ export default function Playground() {
       const checkContextLost = (): boolean => {
         if (!isContextValid) return true
         try {
-          // WebGL 2.0 有 isContextLost 方法
-          if ('isContextLost' in gl && typeof (gl as any).isContextLost === 'function') {
-            if ((gl as any).isContextLost()) {
-              isContextValid = false
-              return true
-            }
-          } else {
-            // WebGL 1.0 需要通过尝试操作来检测
-            gl.getParameter(gl.VERSION)
+          // WebGL2 有 isContextLost 方法
+          if (gl.isContextLost()) {
+            isContextValid = false
+            return true
           }
           return false
         } catch (e) {

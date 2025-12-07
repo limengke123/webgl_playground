@@ -640,7 +640,7 @@ vec4 color = texture2D(u_texture, repeatedUV);`} />
           下面展示了不同包装模式的效果：
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `attribute vec2 a_position;
 attribute vec2 a_texCoord;
 varying vec2 v_texCoord;
@@ -738,7 +738,7 @@ void main() {
         </ul>
         
         <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">示例 1：基础波形纹理</h3>
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `attribute vec2 a_position;
 attribute vec2 a_texCoord;
 varying vec2 v_texCoord;
@@ -809,7 +809,7 @@ void main() {
           使用噪声函数创建自然纹理：
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `attribute vec2 a_position;
 attribute vec2 a_texCoord;
 varying vec2 v_texCoord;
@@ -892,7 +892,7 @@ void main() {
         }} />
         
         <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">示例 3：径向渐变纹理</h3>
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
+        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
           const vertexShader = `attribute vec2 a_position;
 attribute vec2 a_texCoord;
 varying vec2 v_texCoord;
@@ -1342,7 +1342,7 @@ void main() {
         <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
           <li>立方体贴图的 6 个面必须具有相同的尺寸</li>
           <li>每个面的尺寸必须是 2 的幂</li>
-          <li>立方体贴图不支持 Mipmap（在 WebGL 1.0 中）</li>
+          <li>立方体贴图支持 Mipmap（WebGL2 中支持）</li>
           <li>采样方向向量不需要归一化（WebGL 会自动处理）</li>
           <li>立方体贴图的内存占用是单个 2D 纹理的 6 倍</li>
         </ul>

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 interface WebGLCanvasProps {
   width?: number
   height?: number
-  onInit?: (gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => void
+  onInit?: (gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => void
 }
 
 export default function WebGLCanvas({ width = 800, height = 600, onInit }: WebGLCanvasProps) {
@@ -45,21 +45,20 @@ export default function WebGLCanvas({ width = 800, height = 600, onInit }: WebGL
       cleanupRef.current = null
     }
 
-    let gl = null
+    let gl: WebGL2RenderingContext | null = null
     try {
-      // 尝试获取 WebGL 上下文
-      gl = canvas.getContext('webgl', {
-        // 可选：添加一些上下文属性
+      // 获取 WebGL2 上下文
+      gl = canvas.getContext('webgl2', {
         antialias: true,
         preserveDrawingBuffer: false,
-      }) || canvas.getContext('experimental-webgl')
+      })
     } catch (e) {
-      console.error('创建 WebGL 上下文时出错:', e)
+      console.error('创建 WebGL2 上下文时出错:', e)
       return
     }
 
     if (!gl) {
-      console.error('无法创建 WebGL 上下文。请确保浏览器支持 WebGL。')
+      console.error('无法创建 WebGL2 上下文。请确保浏览器支持 WebGL2。')
       return
     }
 
