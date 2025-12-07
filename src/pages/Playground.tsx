@@ -672,10 +672,12 @@ export default function Playground() {
             </button>
           </div>
           <div 
-            className="rounded-lg border border-dark-border dark:border-dark-border border-light-border overflow-hidden" 
+            className="rounded-lg border border-dark-border dark:border-dark-border border-light-border" 
             style={{ 
               height: '500px',
               backgroundColor: isDark ? 'rgba(21, 21, 32, 0.6)' : 'rgba(248, 249, 250, 0.8)',
+              position: 'relative',
+              overflow: 'hidden',
             }}
           >
             <CodeMirror
