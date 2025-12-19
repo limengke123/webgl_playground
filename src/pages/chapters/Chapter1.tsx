@@ -1,5 +1,6 @@
 import WebGLCanvas from '../../components/WebGLCanvas'
 import CodeBlock from '../../components/CodeBlock'
+import FlipCard from '../../components/FlipCard'
 import ChapterNavigation from '../../components/ChapterNavigation'
 import { createProgram, createBuffer, setAttribute } from '../../utils/webgl'
 
@@ -110,25 +111,30 @@ export default function Chapter1() {
           让我们从最简单的例子开始：绘制一个三角形。这是 WebGL 的"Hello World"。
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
-          const program = createProgram(gl, vertexShaderSource, fragmentShaderSource)
-          const positions = [0, 0.5, -0.5, -0.5, 0.5, -0.5]
-          const positionBuffer = createBuffer(gl, positions)
-          const colorLocation = gl.getUniformLocation(program, 'u_color')
-          
-          gl.viewport(0, 0, canvas.width, canvas.height)
-          gl.clearColor(0.1, 0.1, 0.1, 1.0)
-          
-          gl.clear(gl.COLOR_BUFFER_BIT)
-          gl.useProgram(program)
-          gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-          setAttribute(gl, program, 'a_position', 2)
-          gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
-          gl.drawArrays(gl.TRIANGLES, 0, 3)
-        }} />
-        
-        <CodeBlock title="顶点着色器" code={vertexShaderSource} />
-        <CodeBlock title="片段着色器" code={fragmentShaderSource} />
+        <FlipCard 
+          width={400} 
+          height={400} 
+          onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
+            const program = createProgram(gl, vertexShaderSource, fragmentShaderSource)
+            const positions = [0, 0.5, -0.5, -0.5, 0.5, -0.5]
+            const positionBuffer = createBuffer(gl, positions)
+            const colorLocation = gl.getUniformLocation(program, 'u_color')
+            
+            gl.viewport(0, 0, canvas.width, canvas.height)
+            gl.clearColor(0.1, 0.1, 0.1, 1.0)
+            
+            gl.clear(gl.COLOR_BUFFER_BIT)
+            gl.useProgram(program)
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+            setAttribute(gl, program, 'a_position', 2)
+            gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
+            gl.drawArrays(gl.TRIANGLES, 0, 3)
+          }}
+          codeBlocks={[
+            { title: '顶点着色器', code: vertexShaderSource },
+            { title: '片段着色器', code: fragmentShaderSource }
+          ]}
+        />
         
         <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">代码解析</h3>
         <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
@@ -343,67 +349,68 @@ lowp float simpleValue;          // 这个变量使用低精度`} />
           现在让我们为每个顶点添加不同的颜色，看看 WebGL 如何插值颜色。
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
-          const vertexShader = `
-            attribute vec2 a_position;
-            attribute vec3 a_color;
-            varying vec3 v_color;
+        <FlipCard 
+          width={400} 
+          height={400} 
+          onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
+            const vertexShader = `
+              attribute vec2 a_position;
+              attribute vec3 a_color;
+              varying vec3 v_color;
+              
+              void main() {
+                gl_Position = vec4(a_position, 0.0, 1.0);
+                v_color = a_color;
+              }
+            `
             
-            void main() {
-              gl_Position = vec4(a_position, 0.0, 1.0);
-              v_color = a_color;
-            }
-          `
-          
-          const fragmentShader = `
-            precision mediump float;
-            varying vec3 v_color;
+            const fragmentShader = `
+              precision mediump float;
+              varying vec3 v_color;
+              
+              void main() {
+                gl_FragColor = vec4(v_color, 1.0);
+              }
+            `
             
-            void main() {
-              gl_FragColor = vec4(v_color, 1.0);
-            }
-          `
-          
-          const program = createProgram(gl, vertexShader, fragmentShader)
-          
-          const positions = [0, 0.5, -0.5, -0.5, 0.5, -0.5]
-          const colors = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
-          
-          const positionBuffer = createBuffer(gl, positions)
-          const colorBuffer = createBuffer(gl, colors)
-          
-          gl.viewport(0, 0, canvas.width, canvas.height)
-          gl.clearColor(0.1, 0.1, 0.1, 1.0)
-          
-          gl.clear(gl.COLOR_BUFFER_BIT)
-          gl.useProgram(program)
-          
-          gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-          setAttribute(gl, program, 'a_position', 2)
-          
-          gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer)
-          setAttribute(gl, program, 'a_color', 3)
-          
-          gl.drawArrays(gl.TRIANGLES, 0, 3)
-        }} />
-        
-        <CodeBlock title="顶点着色器" code={`attribute vec2 a_position;
+            const program = createProgram(gl, vertexShader, fragmentShader)
+            
+            const positions = [0, 0.5, -0.5, -0.5, 0.5, -0.5]
+            const colors = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+            
+            const positionBuffer = createBuffer(gl, positions)
+            const colorBuffer = createBuffer(gl, colors)
+            
+            gl.viewport(0, 0, canvas.width, canvas.height)
+            gl.clearColor(0.1, 0.1, 0.1, 1.0)
+            
+            gl.clear(gl.COLOR_BUFFER_BIT)
+            gl.useProgram(program)
+            
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+            setAttribute(gl, program, 'a_position', 2)
+            
+            gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer)
+            setAttribute(gl, program, 'a_color', 3)
+            
+            gl.drawArrays(gl.TRIANGLES, 0, 3)
+          }}
+          codeBlocks={[
+            { title: '顶点着色器', code: `attribute vec2 a_position;
 attribute vec3 a_color;
 varying vec3 v_color;
 
 void main() {
   gl_Position = vec4(a_position, 0.0, 1.0);
   v_color = a_color;
-}`} />
-        
-        <CodeBlock title="片段着色器" code={`precision mediump float;
+}` },
+            { title: '片段着色器', code: `precision mediump float;
 varying vec3 v_color;
 
 void main() {
   gl_FragColor = vec4(v_color, 1.0);
-}`} />
-        
-        <CodeBlock title="JavaScript 代码" code={`// 顶点位置（3个顶点）
+}` },
+            { title: 'JavaScript 代码', code: `// 顶点位置（3个顶点）
 const positions = [0, 0.5, -0.5, -0.5, 0.5, -0.5]
 
 // 顶点颜色（RGB，每个顶点一个颜色）
@@ -427,7 +434,9 @@ gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer)
 setAttribute(gl, program, 'a_color', 3)
 
 // 绘制
-gl.drawArrays(gl.TRIANGLES, 0, 3)`} />
+gl.drawArrays(gl.TRIANGLES, 0, 3)`, language: 'javascript' }
+          ]}
+        />
         
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           注意观察三角形内部的颜色是如何平滑过渡的。这是因为 WebGL 在光栅化阶段会对顶点颜色进行插值。
@@ -451,59 +460,62 @@ gl.drawArrays(gl.TRIANGLES, 0, 3)`} />
           矩形由两个三角形组成。我们可以使用索引缓冲区来避免重复顶点。
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
-          const vertexShader = `
-            attribute vec2 a_position;
-            uniform vec4 u_color;
-            varying vec4 v_color;
+        <FlipCard 
+          width={400} 
+          height={400} 
+          onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
+            const vertexShader = `
+              attribute vec2 a_position;
+              uniform vec4 u_color;
+              varying vec4 v_color;
+              
+              void main() {
+                gl_Position = vec4(a_position, 0.0, 1.0);
+                v_color = u_color;
+              }
+            `
             
-            void main() {
-              gl_Position = vec4(a_position, 0.0, 1.0);
-              v_color = u_color;
-            }
-          `
-          
-          const fragmentShader = `
-            precision mediump float;
-            varying vec4 v_color;
+            const fragmentShader = `
+              precision mediump float;
+              varying vec4 v_color;
+              
+              void main() {
+                gl_FragColor = v_color;
+              }
+            `
             
-            void main() {
-              gl_FragColor = v_color;
-            }
-          `
-          
-          const program = createProgram(gl, vertexShader, fragmentShader)
-          
-          // 矩形的四个顶点
-          const positions = [
-            -0.5, -0.5,  // 左下
-             0.5, -0.5,  // 右下
-             0.5,  0.5,  // 右上
-            -0.5,  0.5   // 左上
-          ]
-          
-          // 索引：定义两个三角形
-          const indices = [0, 1, 2, 0, 2, 3]
-          
-          const positionBuffer = createBuffer(gl, positions)
-          const indexBuffer = gl.createBuffer()
-          gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
-          gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
-          
-          const colorLocation = gl.getUniformLocation(program, 'u_color')
-          
-          gl.viewport(0, 0, canvas.width, canvas.height)
-          gl.clearColor(0.1, 0.1, 0.1, 1.0)
-          
-          gl.clear(gl.COLOR_BUFFER_BIT)
-          gl.useProgram(program)
-          gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-          setAttribute(gl, program, 'a_position', 2)
-          gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
-          gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
-        }} />
-        
-        <CodeBlock title="使用索引缓冲区绘制矩形" code={`// 顶点数据（4个顶点）
+            const program = createProgram(gl, vertexShader, fragmentShader)
+            
+            // 矩形的四个顶点
+            const positions = [
+              -0.5, -0.5,  // 左下
+               0.5, -0.5,  // 右下
+               0.5,  0.5,  // 右上
+              -0.5,  0.5   // 左上
+            ]
+            
+            // 索引：定义两个三角形
+            const indices = [0, 1, 2, 0, 2, 3]
+            
+            const positionBuffer = createBuffer(gl, positions)
+            const indexBuffer = gl.createBuffer()
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
+            
+            const colorLocation = gl.getUniformLocation(program, 'u_color')
+            
+            gl.viewport(0, 0, canvas.width, canvas.height)
+            gl.clearColor(0.1, 0.1, 0.1, 1.0)
+            
+            gl.clear(gl.COLOR_BUFFER_BIT)
+            gl.useProgram(program)
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+            setAttribute(gl, program, 'a_position', 2)
+            gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
+            gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
+          }}
+          codeBlocks={[
+            { title: '使用索引缓冲区绘制矩形', code: `// 顶点数据（4个顶点）
 const positions = [
   -0.5, -0.5,  // 左下
    0.5, -0.5,  // 右下
@@ -523,72 +535,77 @@ gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
 gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
 
 // 使用 gl.drawElements 绘制
-gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)`} />
+gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)`, language: 'javascript' }
+          ]}
+        />
         
         <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">绘制圆形</h3>
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           圆形可以通过将圆周分成多个三角形来近似。三角形越多，圆形越平滑。
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
-          const vertexShader = `
-            attribute vec2 a_position;
-            uniform vec4 u_color;
-            varying vec4 v_color;
+        <FlipCard 
+          width={400} 
+          height={400} 
+          onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
+            const vertexShader = `
+              attribute vec2 a_position;
+              uniform vec4 u_color;
+              varying vec4 v_color;
+              
+              void main() {
+                gl_Position = vec4(a_position, 0.0, 1.0);
+                v_color = u_color;
+              }
+            `
             
-            void main() {
-              gl_Position = vec4(a_position, 0.0, 1.0);
-              v_color = u_color;
-            }
-          `
-          
-          const fragmentShader = `
-            precision mediump float;
-            varying vec4 v_color;
+            const fragmentShader = `
+              precision mediump float;
+              varying vec4 v_color;
+              
+              void main() {
+                gl_FragColor = v_color;
+              }
+            `
             
-            void main() {
-              gl_FragColor = v_color;
+            const program = createProgram(gl, vertexShader, fragmentShader)
+            
+            // 生成圆形顶点（32个三角形）
+            const segments = 32
+            const positions: number[] = [0, 0] // 中心点
+            const indices: number[] = []
+            
+            for (let i = 0; i <= segments; i++) {
+              const angle = (i / segments) * Math.PI * 2
+              positions.push(Math.cos(angle) * 0.5, Math.sin(angle) * 0.5)
             }
-          `
-          
-          const program = createProgram(gl, vertexShader, fragmentShader)
-          
-          // 生成圆形顶点（32个三角形）
-          const segments = 32
-          const positions: number[] = [0, 0] // 中心点
-          const indices: number[] = []
-          
-          for (let i = 0; i <= segments; i++) {
-            const angle = (i / segments) * Math.PI * 2
-            positions.push(Math.cos(angle) * 0.5, Math.sin(angle) * 0.5)
-          }
-          
-          // 生成索引
-          for (let i = 1; i <= segments; i++) {
-            indices.push(0, i, i + 1)
-          }
-          indices.push(0, segments + 1, 1) // 闭合圆形
-          
-          const positionBuffer = createBuffer(gl, positions)
-          const indexBuffer = gl.createBuffer()
-          gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
-          gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
-          
-          const colorLocation = gl.getUniformLocation(program, 'u_color')
-          
-          gl.viewport(0, 0, canvas.width, canvas.height)
-          gl.clearColor(0.1, 0.1, 0.1, 1.0)
-          
-          gl.clear(gl.COLOR_BUFFER_BIT)
-          gl.useProgram(program)
-          gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-          setAttribute(gl, program, 'a_position', 2)
-          gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
-          gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
-          gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0)
-        }} />
-        
-        <CodeBlock title="生成圆形顶点" code={`// 生成圆形顶点
+            
+            // 生成索引
+            for (let i = 1; i <= segments; i++) {
+              indices.push(0, i, i + 1)
+            }
+            indices.push(0, segments + 1, 1) // 闭合圆形
+            
+            const positionBuffer = createBuffer(gl, positions)
+            const indexBuffer = gl.createBuffer()
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
+            
+            const colorLocation = gl.getUniformLocation(program, 'u_color')
+            
+            gl.viewport(0, 0, canvas.width, canvas.height)
+            gl.clearColor(0.1, 0.1, 0.1, 1.0)
+            
+            gl.clear(gl.COLOR_BUFFER_BIT)
+            gl.useProgram(program)
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+            setAttribute(gl, program, 'a_position', 2)
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+            gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
+            gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0)
+          }}
+          codeBlocks={[
+            { title: '生成圆形顶点', code: `// 生成圆形顶点
 function createCircleVertices(segments: number, radius: number) {
   const positions: number[] = [0, 0] // 中心点
   const indices: number[] = []
@@ -609,83 +626,88 @@ function createCircleVertices(segments: number, radius: number) {
   indices.push(0, segments + 1, 1) // 闭合
   
   return { positions, indices }
-}`} />
+}`, language: 'typescript' }
+          ]}
+        />
         
         <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">绘制星形</h3>
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           星形是另一个有趣的例子，展示了如何通过数学计算生成复杂形状。
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
-          const vertexShader = `
-            attribute vec2 a_position;
-            uniform vec4 u_color;
-            varying vec4 v_color;
+        <FlipCard 
+          width={400} 
+          height={400} 
+          onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
+            const vertexShader = `
+              attribute vec2 a_position;
+              uniform vec4 u_color;
+              varying vec4 v_color;
+              
+              void main() {
+                gl_Position = vec4(a_position, 0.0, 1.0);
+                v_color = u_color;
+              }
+            `
             
-            void main() {
-              gl_Position = vec4(a_position, 0.0, 1.0);
-              v_color = u_color;
-            }
-          `
-          
-          const fragmentShader = `
-            precision mediump float;
-            varying vec4 v_color;
+            const fragmentShader = `
+              precision mediump float;
+              varying vec4 v_color;
+              
+              void main() {
+                gl_FragColor = v_color;
+              }
+            `
             
-            void main() {
-              gl_FragColor = v_color;
+            const program = createProgram(gl, vertexShader, fragmentShader)
+            
+            // 生成五角星顶点
+            const points = 5
+            const outerRadius = 0.5
+            const innerRadius = 0.25
+            const positions: number[] = [0, 0] // 中心点（索引0）
+            const indices: number[] = []
+            
+            // 生成外顶点和内顶点，交替排列
+            for (let i = 0; i < points * 2; i++) {
+              // 角度：从 -90度开始，每个顶点间隔 360/(points*2) 度
+              const angle = (i / (points * 2)) * Math.PI * 2 - Math.PI / 2
+              // 外顶点和内顶点交替
+              const radius = i % 2 === 0 ? outerRadius : innerRadius
+              positions.push(
+                Math.cos(angle) * radius,
+                Math.sin(angle) * radius
+              )
             }
-          `
-          
-          const program = createProgram(gl, vertexShader, fragmentShader)
-          
-          // 生成五角星顶点
-          const points = 5
-          const outerRadius = 0.5
-          const innerRadius = 0.25
-          const positions: number[] = [0, 0] // 中心点（索引0）
-          const indices: number[] = []
-          
-          // 生成外顶点和内顶点，交替排列
-          for (let i = 0; i < points * 2; i++) {
-            // 角度：从 -90度开始，每个顶点间隔 360/(points*2) 度
-            const angle = (i / (points * 2)) * Math.PI * 2 - Math.PI / 2
-            // 外顶点和内顶点交替
-            const radius = i % 2 === 0 ? outerRadius : innerRadius
-            positions.push(
-              Math.cos(angle) * radius,
-              Math.sin(angle) * radius
-            )
-          }
-          
-          // 生成三角形索引：从中心点出发，连接相邻的两个顶点
-          // 索引0是中心点，索引1-10是外顶点和内顶点
-          for (let i = 1; i < points * 2; i++) {
-            indices.push(0, i, i + 1)
-          }
-          // 闭合最后一个三角形：连接最后一个顶点和第一个顶点
-          indices.push(0, points * 2, 1)
-          
-          const positionBuffer = createBuffer(gl, positions)
-          const indexBuffer = gl.createBuffer()
-          gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
-          gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
-          
-          const colorLocation = gl.getUniformLocation(program, 'u_color')
-          
-          gl.viewport(0, 0, canvas.width, canvas.height)
-          gl.clearColor(0.1, 0.1, 0.1, 1.0)
-          
-          gl.clear(gl.COLOR_BUFFER_BIT)
-          gl.useProgram(program)
-          gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-          setAttribute(gl, program, 'a_position', 2)
-          gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
-          gl.uniform4f(colorLocation, 1.0, 0.8, 0.2, 1.0)
-          gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0)
-        }} />
-        
-        <CodeBlock title="生成五角星顶点" code={`// 生成五角星顶点
+            
+            // 生成三角形索引：从中心点出发，连接相邻的两个顶点
+            // 索引0是中心点，索引1-10是外顶点和内顶点
+            for (let i = 1; i < points * 2; i++) {
+              indices.push(0, i, i + 1)
+            }
+            // 闭合最后一个三角形：连接最后一个顶点和第一个顶点
+            indices.push(0, points * 2, 1)
+            
+            const positionBuffer = createBuffer(gl, positions)
+            const indexBuffer = gl.createBuffer()
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
+            
+            const colorLocation = gl.getUniformLocation(program, 'u_color')
+            
+            gl.viewport(0, 0, canvas.width, canvas.height)
+            gl.clearColor(0.1, 0.1, 0.1, 1.0)
+            
+            gl.clear(gl.COLOR_BUFFER_BIT)
+            gl.useProgram(program)
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+            setAttribute(gl, program, 'a_position', 2)
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+            gl.uniform4f(colorLocation, 1.0, 0.8, 0.2, 1.0)
+            gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0)
+          }}
+          codeBlocks={[
+            { title: '生成五角星顶点', code: `// 生成五角星顶点
 const points = 5
 const outerRadius = 0.5  // 外半径
 const innerRadius = 0.25 // 内半径
@@ -718,7 +740,9 @@ gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
 gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
 
 // 使用 gl.drawElements 绘制
-gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0)`} />
+gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0)`, language: 'javascript' }
+          ]}
+        />
         
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           这些示例展示了 WebGL 的基本绘制能力。通过组合多个三角形，我们可以创建任意复杂的形状。

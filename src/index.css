@@ -364,5 +364,24 @@
       background: linear-gradient(135deg, rgba(74, 158, 255, 0.6), rgba(138, 43, 226, 0.6));
     }
   }
+
+  /* Flip Card 3D 效果 */
+  .perspective-1000 {
+    perspective: 1000px;
+    perspective-origin: center center;
+  }
+
+  .transform-style-preserve-3d {
+    transform-style: preserve-3d;
+  }
+
+  .backface-hidden {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
 }
 
