@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import WebGLCanvas from '../../components/WebGLCanvas'
 import CodeBlock from '../../components/CodeBlock'
+import FlipCard from '../../components/FlipCard'
 import ChapterNavigation from '../../components/ChapterNavigation'
 import { createProgram, createBuffer, setAttribute, createTexture } from '../../utils/webgl'
 
@@ -640,8 +641,11 @@ vec4 color = texture2D(u_texture, repeatedUV);`} />
           下面展示了不同包装模式的效果：
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
-          const vertexShader = `attribute vec2 a_position;
+        <FlipCard 
+          width={400} 
+          height={400} 
+          onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
+            const vertexShader = `attribute vec2 a_position;
 attribute vec2 a_texCoord;
 varying vec2 v_texCoord;
 
@@ -649,8 +653,8 @@ void main() {
   gl_Position = vec4(a_position, 0.0, 1.0);
   v_texCoord = a_texCoord;
 }`
-          
-          const fragmentShader = `precision mediump float;
+            
+            const fragmentShader = `precision mediump float;
 varying vec2 v_texCoord;
 uniform float u_wrapMode;
 
@@ -671,54 +675,127 @@ void main() {
   vec3 color = vec3(checker * 0.8 + 0.2);
   gl_FragColor = vec4(color, 1.0);
 }`
-          
-          const program = createProgram(gl, vertexShader, fragmentShader)
-          const positions = [-1, -1, 1, -1, 1, 1, -1, 1]
-          const texCoords = [0, 0, 1, 0, 1, 1, 0, 1]
-          const indices = [0, 1, 2, 0, 2, 3]
-          
-          const positionBuffer = createBuffer(gl, positions)
-          const texCoordBuffer = createBuffer(gl, texCoords)
-          const indexBuffer = gl.createBuffer()
-          gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
-          gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
-          
-          const wrapModeLocation = gl.getUniformLocation(program, 'u_wrapMode')
-          const positionLocation = gl.getAttribLocation(program, 'a_position')
-          const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord')
-          
-          if (positionLocation === -1 || texCoordLocation === -1) {
-            console.error('属性未找到')
-            return
-          }
-          
-          gl.viewport(0, 0, canvas.width, canvas.height)
-          gl.clearColor(0.1, 0.1, 0.1, 1.0)
-          
-          let time = 0
-          const render = () => {
-            time += 0.01
-            const wrapMode = (Math.sin(time) + 1) / 2
             
-            gl.clear(gl.COLOR_BUFFER_BIT)
-            gl.useProgram(program)
+            const program = createProgram(gl, vertexShader, fragmentShader)
+            const positions = [-1, -1, 1, -1, 1, 1, -1, 1]
+            const texCoords = [0, 0, 1, 0, 1, 1, 0, 1]
+            const indices = [0, 1, 2, 0, 2, 3]
             
-            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-            gl.enableVertexAttribArray(positionLocation)
-            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
-            
-            gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer)
-            gl.enableVertexAttribArray(texCoordLocation)
-            gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0)
-            
+            const positionBuffer = createBuffer(gl, positions)
+            const texCoordBuffer = createBuffer(gl, texCoords)
+            const indexBuffer = gl.createBuffer()
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
-            gl.uniform1f(wrapModeLocation, wrapMode)
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
             
-            gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
-            requestAnimationFrame(render)
-          }
-          render()
-        }} />
+            const wrapModeLocation = gl.getUniformLocation(program, 'u_wrapMode')
+            const positionLocation = gl.getAttribLocation(program, 'a_position')
+            const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord')
+            
+            if (positionLocation === -1 || texCoordLocation === -1) {
+              console.error('属性未找到')
+              return
+            }
+            
+            gl.viewport(0, 0, canvas.width, canvas.height)
+            gl.clearColor(0.1, 0.1, 0.1, 1.0)
+            
+            let time = 0
+            const render = () => {
+              time += 0.01
+              const wrapMode = (Math.sin(time) + 1) / 2
+              
+              gl.clear(gl.COLOR_BUFFER_BIT)
+              gl.useProgram(program)
+              
+              gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+              gl.enableVertexAttribArray(positionLocation)
+              gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+              
+              gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer)
+              gl.enableVertexAttribArray(texCoordLocation)
+              gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0)
+              
+              gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+              gl.uniform1f(wrapModeLocation, wrapMode)
+              
+              gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
+              requestAnimationFrame(render)
+            }
+            render()
+          }}
+          codeBlocks={[
+            { title: '顶点着色器', code: `attribute vec2 a_position;
+attribute vec2 a_texCoord;
+varying vec2 v_texCoord;
+
+void main() {
+  gl_Position = vec4(a_position, 0.0, 1.0);
+  v_texCoord = a_texCoord;
+}` },
+            { title: '片段着色器', code: `precision mediump float;
+varying vec2 v_texCoord;
+uniform float u_wrapMode;
+
+void main() {
+  vec2 uv = v_texCoord * 3.0;
+  vec2 wrappedUV;
+  if (u_wrapMode < 0.33) {
+    wrappedUV = fract(uv);
+  } else if (u_wrapMode < 0.66) {
+    wrappedUV = clamp(uv, 0.0, 1.0);
+  } else {
+    vec2 f = fract(uv);
+    vec2 m = mod(floor(uv), 2.0);
+    wrappedUV = mix(f, 1.0 - f, m);
+  }
+  vec2 grid = floor(wrappedUV * 4.0);
+  float checker = mod(grid.x + grid.y, 2.0);
+  vec3 color = vec3(checker * 0.8 + 0.2);
+  gl_FragColor = vec4(color, 1.0);
+}` },
+            { title: 'JavaScript 代码', code: `const program = createProgram(gl, vertexShader, fragmentShader)
+const positions = [-1, -1, 1, -1, 1, 1, -1, 1]
+const texCoords = [0, 0, 1, 0, 1, 1, 0, 1]
+const indices = [0, 1, 2, 0, 2, 3]
+
+const positionBuffer = createBuffer(gl, positions)
+const texCoordBuffer = createBuffer(gl, texCoords)
+const indexBuffer = gl.createBuffer()
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
+
+const wrapModeLocation = gl.getUniformLocation(program, 'u_wrapMode')
+const positionLocation = gl.getAttribLocation(program, 'a_position')
+const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord')
+
+gl.viewport(0, 0, canvas.width, canvas.height)
+gl.clearColor(0.1, 0.1, 0.1, 1.0)
+
+let time = 0
+const render = () => {
+  time += 0.01
+  const wrapMode = (Math.sin(time) + 1) / 2
+  
+  gl.clear(gl.COLOR_BUFFER_BIT)
+  gl.useProgram(program)
+  
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+  gl.enableVertexAttribArray(positionLocation)
+  gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+  
+  gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer)
+  gl.enableVertexAttribArray(texCoordLocation)
+  gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0)
+  
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+  gl.uniform1f(wrapModeLocation, wrapMode)
+  
+  gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
+  requestAnimationFrame(render)
+}
+render()`, language: 'javascript' }
+          ]}
+        />
         
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           上面的示例展示了不同包装模式的效果。注意观察纹理在边界处的处理方式。
@@ -738,8 +815,11 @@ void main() {
         </ul>
         
         <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">示例 1：基础波形纹理</h3>
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
-          const vertexShader = `attribute vec2 a_position;
+        <FlipCard 
+          width={400} 
+          height={400} 
+          onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
+            const vertexShader = `attribute vec2 a_position;
 attribute vec2 a_texCoord;
 varying vec2 v_texCoord;
 
@@ -747,8 +827,8 @@ void main() {
   gl_Position = vec4(a_position, 0.0, 1.0);
   v_texCoord = a_texCoord;
 }`
-          
-          const fragmentShader = `precision mediump float;
+            
+            const fragmentShader = `precision mediump float;
 varying vec2 v_texCoord;
 uniform float u_time;
 
@@ -757,60 +837,122 @@ void main() {
   float pattern = sin(uv.x + u_time) * sin(uv.y + u_time);
   gl_FragColor = vec4(pattern * 0.5 + 0.5, pattern * 0.3 + 0.5, 1.0, 1.0);
 }`
-          
-          const program = createProgram(gl, vertexShader, fragmentShader)
-          const positions = [-1, -1, 1, -1, 1, 1, -1, 1]
-          const texCoords = [0, 0, 1, 0, 1, 1, 0, 1]
-          const indices = [0, 1, 2, 0, 2, 3]
-          
-          const positionBuffer = createBuffer(gl, positions)
-          const texCoordBuffer = createBuffer(gl, texCoords)
-          const indexBuffer = gl.createBuffer()
-          gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
-          gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
-          
-          const timeLocation = gl.getUniformLocation(program, 'u_time')
-          const positionLocation = gl.getAttribLocation(program, 'a_position')
-          const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord')
-          
-          if (positionLocation === -1 || texCoordLocation === -1) {
-            console.error('属性未找到')
-            return
-          }
-          
-          gl.viewport(0, 0, canvas.width, canvas.height)
-          gl.clearColor(0.1, 0.1, 0.1, 1.0)
-          
-          let time = 0
-          const render = () => {
-            time += 0.02
-            gl.clear(gl.COLOR_BUFFER_BIT)
-            gl.useProgram(program)
             
-            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-            gl.enableVertexAttribArray(positionLocation)
-            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+            const program = createProgram(gl, vertexShader, fragmentShader)
+            const positions = [-1, -1, 1, -1, 1, 1, -1, 1]
+            const texCoords = [0, 0, 1, 0, 1, 1, 0, 1]
+            const indices = [0, 1, 2, 0, 2, 3]
             
-            gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer)
-            gl.enableVertexAttribArray(texCoordLocation)
-            gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0)
-            
+            const positionBuffer = createBuffer(gl, positions)
+            const texCoordBuffer = createBuffer(gl, texCoords)
+            const indexBuffer = gl.createBuffer()
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
-            gl.uniform1f(timeLocation, time)
-            gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
             
-            requestAnimationFrame(render)
-          }
-          render()
-        }} />
+            const timeLocation = gl.getUniformLocation(program, 'u_time')
+            const positionLocation = gl.getAttribLocation(program, 'a_position')
+            const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord')
+            
+            if (positionLocation === -1 || texCoordLocation === -1) {
+              console.error('属性未找到')
+              return
+            }
+            
+            gl.viewport(0, 0, canvas.width, canvas.height)
+            gl.clearColor(0.1, 0.1, 0.1, 1.0)
+            
+            let time = 0
+            const render = () => {
+              time += 0.02
+              gl.clear(gl.COLOR_BUFFER_BIT)
+              gl.useProgram(program)
+              
+              gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+              gl.enableVertexAttribArray(positionLocation)
+              gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+              
+              gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer)
+              gl.enableVertexAttribArray(texCoordLocation)
+              gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0)
+              
+              gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+              gl.uniform1f(timeLocation, time)
+              gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
+              
+              requestAnimationFrame(render)
+            }
+            render()
+          }}
+          codeBlocks={[
+            { title: '顶点着色器', code: `attribute vec2 a_position;
+attribute vec2 a_texCoord;
+varying vec2 v_texCoord;
+
+void main() {
+  gl_Position = vec4(a_position, 0.0, 1.0);
+  v_texCoord = a_texCoord;
+}` },
+            { title: '片段着色器', code: `precision mediump float;
+varying vec2 v_texCoord;
+uniform float u_time;
+
+void main() {
+  vec2 uv = v_texCoord * 10.0;
+  float pattern = sin(uv.x + u_time) * sin(uv.y + u_time);
+  gl_FragColor = vec4(pattern * 0.5 + 0.5, pattern * 0.3 + 0.5, 1.0, 1.0);
+}` },
+            { title: 'JavaScript 代码', code: `const program = createProgram(gl, vertexShader, fragmentShader)
+const positions = [-1, -1, 1, -1, 1, 1, -1, 1]
+const texCoords = [0, 0, 1, 0, 1, 1, 0, 1]
+const indices = [0, 1, 2, 0, 2, 3]
+
+const positionBuffer = createBuffer(gl, positions)
+const texCoordBuffer = createBuffer(gl, texCoords)
+const indexBuffer = gl.createBuffer()
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
+
+const timeLocation = gl.getUniformLocation(program, 'u_time')
+const positionLocation = gl.getAttribLocation(program, 'a_position')
+const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord')
+
+gl.viewport(0, 0, canvas.width, canvas.height)
+gl.clearColor(0.1, 0.1, 0.1, 1.0)
+
+let time = 0
+const render = () => {
+  time += 0.02
+  gl.clear(gl.COLOR_BUFFER_BIT)
+  gl.useProgram(program)
+  
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+  gl.enableVertexAttribArray(positionLocation)
+  gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+  
+  gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer)
+  gl.enableVertexAttribArray(texCoordLocation)
+  gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0)
+  
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+  gl.uniform1f(timeLocation, time)
+  gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
+  
+  requestAnimationFrame(render)
+}
+render()`, language: 'javascript' }
+          ]}
+        />
         
         <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">示例 2：噪声纹理</h3>
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           使用噪声函数创建自然纹理：
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
-          const vertexShader = `attribute vec2 a_position;
+        <FlipCard 
+          width={400} 
+          height={400} 
+          onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
+            const vertexShader = `attribute vec2 a_position;
 attribute vec2 a_texCoord;
 varying vec2 v_texCoord;
 
@@ -818,8 +960,8 @@ void main() {
   gl_Position = vec4(a_position, 0.0, 1.0);
   v_texCoord = a_texCoord;
 }`
-          
-          const fragmentShader = `precision mediump float;
+            
+            const fragmentShader = `precision mediump float;
 varying vec2 v_texCoord;
 uniform float u_time;
 
@@ -844,56 +986,134 @@ void main() {
   vec3 color = vec3(n * 0.5 + 0.5);
   gl_FragColor = vec4(color, 1.0);
 }`
-          
-          const program = createProgram(gl, vertexShader, fragmentShader)
-          const positions = [-1, -1, 1, -1, 1, 1, -1, 1]
-          const texCoords = [0, 0, 1, 0, 1, 1, 0, 1]
-          const indices = [0, 1, 2, 0, 2, 3]
-          
-          const positionBuffer = createBuffer(gl, positions)
-          const texCoordBuffer = createBuffer(gl, texCoords)
-          const indexBuffer = gl.createBuffer()
-          gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
-          gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
-          
-          const timeLocation = gl.getUniformLocation(program, 'u_time')
-          const positionLocation = gl.getAttribLocation(program, 'a_position')
-          const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord')
-          
-          if (positionLocation === -1 || texCoordLocation === -1) {
-            console.error('属性未找到')
-            return
-          }
-          
-          gl.viewport(0, 0, canvas.width, canvas.height)
-          gl.clearColor(0.1, 0.1, 0.1, 1.0)
-          
-          let time = 0
-          const render = () => {
-            time += 0.02
-            gl.clear(gl.COLOR_BUFFER_BIT)
-            gl.useProgram(program)
             
-            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-            gl.enableVertexAttribArray(positionLocation)
-            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+            const program = createProgram(gl, vertexShader, fragmentShader)
+            const positions = [-1, -1, 1, -1, 1, 1, -1, 1]
+            const texCoords = [0, 0, 1, 0, 1, 1, 0, 1]
+            const indices = [0, 1, 2, 0, 2, 3]
             
-            gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer)
-            gl.enableVertexAttribArray(texCoordLocation)
-            gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0)
-            
+            const positionBuffer = createBuffer(gl, positions)
+            const texCoordBuffer = createBuffer(gl, texCoords)
+            const indexBuffer = gl.createBuffer()
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
-            gl.uniform1f(timeLocation, time)
-            gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
             
-            requestAnimationFrame(render)
-          }
-          render()
-        }} />
+            const timeLocation = gl.getUniformLocation(program, 'u_time')
+            const positionLocation = gl.getAttribLocation(program, 'a_position')
+            const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord')
+            
+            if (positionLocation === -1 || texCoordLocation === -1) {
+              console.error('属性未找到')
+              return
+            }
+            
+            gl.viewport(0, 0, canvas.width, canvas.height)
+            gl.clearColor(0.1, 0.1, 0.1, 1.0)
+            
+            let time = 0
+            const render = () => {
+              time += 0.02
+              gl.clear(gl.COLOR_BUFFER_BIT)
+              gl.useProgram(program)
+              
+              gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+              gl.enableVertexAttribArray(positionLocation)
+              gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+              
+              gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer)
+              gl.enableVertexAttribArray(texCoordLocation)
+              gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0)
+              
+              gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+              gl.uniform1f(timeLocation, time)
+              gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
+              
+              requestAnimationFrame(render)
+            }
+            render()
+          }}
+          codeBlocks={[
+            { title: '顶点着色器', code: `attribute vec2 a_position;
+attribute vec2 a_texCoord;
+varying vec2 v_texCoord;
+
+void main() {
+  gl_Position = vec4(a_position, 0.0, 1.0);
+  v_texCoord = a_texCoord;
+}` },
+            { title: '片段着色器', code: `precision mediump float;
+varying vec2 v_texCoord;
+uniform float u_time;
+
+float random(vec2 st) {
+  return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
+}
+
+float noise(vec2 st) {
+  vec2 i = floor(st);
+  vec2 f = fract(st);
+  float a = random(i);
+  float b = random(i + vec2(1.0, 0.0));
+  float c = random(i + vec2(0.0, 1.0));
+  float d = random(i + vec2(1.0, 1.0));
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+}
+
+void main() {
+  vec2 uv = v_texCoord * 8.0;
+  float n = noise(uv + u_time * 0.5);
+  vec3 color = vec3(n * 0.5 + 0.5);
+  gl_FragColor = vec4(color, 1.0);
+}` },
+            { title: 'JavaScript 代码', code: `const program = createProgram(gl, vertexShader, fragmentShader)
+const positions = [-1, -1, 1, -1, 1, 1, -1, 1]
+const texCoords = [0, 0, 1, 0, 1, 1, 0, 1]
+const indices = [0, 1, 2, 0, 2, 3]
+
+const positionBuffer = createBuffer(gl, positions)
+const texCoordBuffer = createBuffer(gl, texCoords)
+const indexBuffer = gl.createBuffer()
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
+
+const timeLocation = gl.getUniformLocation(program, 'u_time')
+const positionLocation = gl.getAttribLocation(program, 'a_position')
+const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord')
+
+gl.viewport(0, 0, canvas.width, canvas.height)
+gl.clearColor(0.1, 0.1, 0.1, 1.0)
+
+let time = 0
+const render = () => {
+  time += 0.02
+  gl.clear(gl.COLOR_BUFFER_BIT)
+  gl.useProgram(program)
+  
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+  gl.enableVertexAttribArray(positionLocation)
+  gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+  
+  gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer)
+  gl.enableVertexAttribArray(texCoordLocation)
+  gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0)
+  
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+  gl.uniform1f(timeLocation, time)
+  gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
+  
+  requestAnimationFrame(render)
+}
+render()`, language: 'javascript' }
+          ]}
+        />
         
         <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">示例 3：径向渐变纹理</h3>
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
-          const vertexShader = `attribute vec2 a_position;
+        <FlipCard 
+          width={400} 
+          height={400} 
+          onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
+            const vertexShader = `attribute vec2 a_position;
 attribute vec2 a_texCoord;
 varying vec2 v_texCoord;
 
@@ -901,8 +1121,8 @@ void main() {
   gl_Position = vec4(a_position, 0.0, 1.0);
   v_texCoord = a_texCoord;
 }`
-          
-          const fragmentShader = `precision mediump float;
+            
+            const fragmentShader = `precision mediump float;
 varying vec2 v_texCoord;
 uniform float u_time;
 
@@ -916,52 +1136,116 @@ void main() {
   vec3 color = vec3(gradient * pattern, gradient * 0.5, gradient);
   gl_FragColor = vec4(color, 1.0);
 }`
-          
-          const program = createProgram(gl, vertexShader, fragmentShader)
-          const positions = [-1, -1, 1, -1, 1, 1, -1, 1]
-          const texCoords = [0, 0, 1, 0, 1, 1, 0, 1]
-          const indices = [0, 1, 2, 0, 2, 3]
-          
-          const positionBuffer = createBuffer(gl, positions)
-          const texCoordBuffer = createBuffer(gl, texCoords)
-          const indexBuffer = gl.createBuffer()
-          gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
-          gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
-          
-          const timeLocation = gl.getUniformLocation(program, 'u_time')
-          const positionLocation = gl.getAttribLocation(program, 'a_position')
-          const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord')
-          
-          if (positionLocation === -1 || texCoordLocation === -1) {
-            console.error('属性未找到')
-            return
-          }
-          
-          gl.viewport(0, 0, canvas.width, canvas.height)
-          gl.clearColor(0.1, 0.1, 0.1, 1.0)
-          
-          let time = 0
-          const render = () => {
-            time += 0.02
-            gl.clear(gl.COLOR_BUFFER_BIT)
-            gl.useProgram(program)
             
-            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-            gl.enableVertexAttribArray(positionLocation)
-            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+            const program = createProgram(gl, vertexShader, fragmentShader)
+            const positions = [-1, -1, 1, -1, 1, 1, -1, 1]
+            const texCoords = [0, 0, 1, 0, 1, 1, 0, 1]
+            const indices = [0, 1, 2, 0, 2, 3]
             
-            gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer)
-            gl.enableVertexAttribArray(texCoordLocation)
-            gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0)
-            
+            const positionBuffer = createBuffer(gl, positions)
+            const texCoordBuffer = createBuffer(gl, texCoords)
+            const indexBuffer = gl.createBuffer()
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
-            gl.uniform1f(timeLocation, time)
-            gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
             
-            requestAnimationFrame(render)
-          }
-          render()
-        }} />
+            const timeLocation = gl.getUniformLocation(program, 'u_time')
+            const positionLocation = gl.getAttribLocation(program, 'a_position')
+            const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord')
+            
+            if (positionLocation === -1 || texCoordLocation === -1) {
+              console.error('属性未找到')
+              return
+            }
+            
+            gl.viewport(0, 0, canvas.width, canvas.height)
+            gl.clearColor(0.1, 0.1, 0.1, 1.0)
+            
+            let time = 0
+            const render = () => {
+              time += 0.02
+              gl.clear(gl.COLOR_BUFFER_BIT)
+              gl.useProgram(program)
+              
+              gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+              gl.enableVertexAttribArray(positionLocation)
+              gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+              
+              gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer)
+              gl.enableVertexAttribArray(texCoordLocation)
+              gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0)
+              
+              gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+              gl.uniform1f(timeLocation, time)
+              gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
+              
+              requestAnimationFrame(render)
+            }
+            render()
+          }}
+          codeBlocks={[
+            { title: '顶点着色器', code: `attribute vec2 a_position;
+attribute vec2 a_texCoord;
+varying vec2 v_texCoord;
+
+void main() {
+  gl_Position = vec4(a_position, 0.0, 1.0);
+  v_texCoord = a_texCoord;
+}` },
+            { title: '片段着色器', code: `precision mediump float;
+varying vec2 v_texCoord;
+uniform float u_time;
+
+void main() {
+  vec2 center = vec2(0.5);
+  float dist = distance(v_texCoord, center);
+  float gradient = smoothstep(0.7, 0.0, dist);
+  vec2 dir = v_texCoord - center;
+  float angle = atan(dir.y, dir.x) + u_time;
+  float pattern = sin(angle * 8.0) * 0.3 + 0.7;
+  vec3 color = vec3(gradient * pattern, gradient * 0.5, gradient);
+  gl_FragColor = vec4(color, 1.0);
+}` },
+            { title: 'JavaScript 代码', code: `const program = createProgram(gl, vertexShader, fragmentShader)
+const positions = [-1, -1, 1, -1, 1, 1, -1, 1]
+const texCoords = [0, 0, 1, 0, 1, 1, 0, 1]
+const indices = [0, 1, 2, 0, 2, 3]
+
+const positionBuffer = createBuffer(gl, positions)
+const texCoordBuffer = createBuffer(gl, texCoords)
+const indexBuffer = gl.createBuffer()
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
+
+const timeLocation = gl.getUniformLocation(program, 'u_time')
+const positionLocation = gl.getAttribLocation(program, 'a_position')
+const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord')
+
+gl.viewport(0, 0, canvas.width, canvas.height)
+gl.clearColor(0.1, 0.1, 0.1, 1.0)
+
+let time = 0
+const render = () => {
+  time += 0.02
+  gl.clear(gl.COLOR_BUFFER_BIT)
+  gl.useProgram(program)
+  
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+  gl.enableVertexAttribArray(positionLocation)
+  gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+  
+  gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer)
+  gl.enableVertexAttribArray(texCoordLocation)
+  gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0)
+  
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+  gl.uniform1f(timeLocation, time)
+  gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
+  
+  requestAnimationFrame(render)
+}
+render()`, language: 'javascript' }
+          ]}
+        />
         
         <CodeBlock title="程序化纹理技巧" code={`// 1. 使用 fract 创建重复图案
 vec2 repeatedUV = fract(v_texCoord * 5.0);

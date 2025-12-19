@@ -1,5 +1,6 @@
 import WebGLCanvas from '../../components/WebGLCanvas'
 import CodeBlock from '../../components/CodeBlock'
+import FlipCard from '../../components/FlipCard'
 import ChapterNavigation from '../../components/ChapterNavigation'
 import { createProgram, createBuffer, setAttribute, Matrix, createIndexBuffer } from '../../utils/webgl'
 
@@ -153,81 +154,151 @@ gl.depthMask(true);  // 恢复深度写入`} language="javascript" />
           下面展示了透明度的效果：
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
-          const vertexShader = `
-            attribute vec3 a_position;
-            uniform mat4 u_mvpMatrix;
+        <FlipCard 
+          width={400} 
+          height={400} 
+          onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
+            const vertexShader = `
+              attribute vec3 a_position;
+              uniform mat4 u_mvpMatrix;
+              
+              void main() {
+                gl_Position = u_mvpMatrix * vec4(a_position, 1.0);
+              }
+            `
             
-            void main() {
-              gl_Position = u_mvpMatrix * vec4(a_position, 1.0);
-            }
-          `
-          
-          const fragmentShader = `
-            precision mediump float;
-            uniform vec4 u_color;
+            const fragmentShader = `
+              precision mediump float;
+              uniform vec4 u_color;
+              
+              void main() {
+                gl_FragColor = u_color;
+              }
+            `
             
-            void main() {
-              gl_FragColor = u_color;
-            }
-          `
-          
-          const program = createProgram(gl, vertexShader, fragmentShader)
-          
-          // 创建多个重叠的透明矩形
-          const positions: number[] = []
-          const indices: number[] = []
-          const colors = [
-            [1.0, 0.0, 0.0, 0.5],  // 红色，50% 透明度
-            [0.0, 1.0, 0.0, 0.5],  // 绿色，50% 透明度
-            [0.0, 0.0, 1.0, 0.5],  // 蓝色，50% 透明度
-          ]
-          
-          for (let i = 0; i < 3; i++) {
-            const offset = i * 0.3 - 0.3
-            const rectPositions = [
-              -0.3 + offset, -0.3, 0,  0.3 + offset, -0.3, 0,
-               0.3 + offset,  0.3, 0, -0.3 + offset,  0.3, 0,
+            const program = createProgram(gl, vertexShader, fragmentShader)
+            
+            // 创建多个重叠的透明矩形
+            const positions: number[] = []
+            const indices: number[] = []
+            const colors = [
+              [1.0, 0.0, 0.0, 0.5],  // 红色，50% 透明度
+              [0.0, 1.0, 0.0, 0.5],  // 绿色，50% 透明度
+              [0.0, 0.0, 1.0, 0.5],  // 蓝色，50% 透明度
             ]
-            positions.push(...rectPositions)
             
-            const base = i * 4
-            indices.push(base, base + 1, base + 2, base, base + 2, base + 3)
-          }
-          
-          const positionBuffer = createBuffer(gl, positions)
-          const indexBuffer = createIndexBuffer(gl, indices)
-          
-          const mvpMatrixLocation = gl.getUniformLocation(program, 'u_mvpMatrix')
-          const colorLocation = gl.getUniformLocation(program, 'u_color')
-          
-          gl.viewport(0, 0, canvas.width, canvas.height)
-          gl.enable(gl.DEPTH_TEST)
-          gl.enable(gl.BLEND)
-          gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-          gl.clearColor(0.1, 0.1, 0.1, 1.0)
-          
-          const aspect = canvas.width / canvas.height
-          const projectionMatrix = Matrix.perspective(Math.PI / 4, aspect, 0.1, 100)
-          const viewMatrix = Matrix.lookAt(0, 0, 2, 0, 0, 0, 0, 1, 0)
-          const modelMatrix = Matrix.identity()
-          const mvpMatrix = Matrix.multiply(projectionMatrix, Matrix.multiply(viewMatrix, modelMatrix))
-          
-          gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-          gl.useProgram(program)
-          
-          gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-          setAttribute(gl, program, 'a_position', 3)
-          gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
-          
-          gl.uniformMatrix4fv(mvpMatrixLocation, false, mvpMatrix)
-          
-          // 从后往前绘制（重要！）
-          for (let i = 2; i >= 0; i--) {
-            gl.uniform4f(colorLocation, colors[i][0], colors[i][1], colors[i][2], colors[i][3])
-            gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, i * 6 * 2)
-          }
-        }} />
+            for (let i = 0; i < 3; i++) {
+              const offset = i * 0.3 - 0.3
+              const rectPositions = [
+                -0.3 + offset, -0.3, 0,  0.3 + offset, -0.3, 0,
+                 0.3 + offset,  0.3, 0, -0.3 + offset,  0.3, 0,
+              ]
+              positions.push(...rectPositions)
+              
+              const base = i * 4
+              indices.push(base, base + 1, base + 2, base, base + 2, base + 3)
+            }
+            
+            const positionBuffer = createBuffer(gl, positions)
+            const indexBuffer = createIndexBuffer(gl, indices)
+            
+            const mvpMatrixLocation = gl.getUniformLocation(program, 'u_mvpMatrix')
+            const colorLocation = gl.getUniformLocation(program, 'u_color')
+            
+            gl.viewport(0, 0, canvas.width, canvas.height)
+            gl.enable(gl.DEPTH_TEST)
+            gl.enable(gl.BLEND)
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+            gl.clearColor(0.1, 0.1, 0.1, 1.0)
+            
+            const aspect = canvas.width / canvas.height
+            const projectionMatrix = Matrix.perspective(Math.PI / 4, aspect, 0.1, 100)
+            const viewMatrix = Matrix.lookAt(0, 0, 2, 0, 0, 0, 0, 1, 0)
+            const modelMatrix = Matrix.identity()
+            const mvpMatrix = Matrix.multiply(projectionMatrix, Matrix.multiply(viewMatrix, modelMatrix))
+            
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+            gl.useProgram(program)
+            
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+            setAttribute(gl, program, 'a_position', 3)
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+            
+            gl.uniformMatrix4fv(mvpMatrixLocation, false, mvpMatrix)
+            
+            // 从后往前绘制（重要！）
+            for (let i = 2; i >= 0; i--) {
+              gl.uniform4f(colorLocation, colors[i][0], colors[i][1], colors[i][2], colors[i][3])
+              gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, i * 6 * 2)
+            }
+          }}
+          codeBlocks={[
+            { title: '顶点着色器', code: `attribute vec3 a_position;
+uniform mat4 u_mvpMatrix;
+
+void main() {
+  gl_Position = u_mvpMatrix * vec4(a_position, 1.0);
+}` },
+            { title: '片段着色器', code: `precision mediump float;
+uniform vec4 u_color;
+
+void main() {
+  gl_FragColor = u_color;
+}` },
+            { title: 'JavaScript 代码', code: `const program = createProgram(gl, vertexShader, fragmentShader)
+
+// 创建多个重叠的透明矩形
+const positions = []
+const indices = []
+const colors = [
+  [1.0, 0.0, 0.0, 0.5],  // 红色，50% 透明度
+  [0.0, 1.0, 0.0, 0.5],  // 绿色，50% 透明度
+  [0.0, 0.0, 1.0, 0.5],  // 蓝色，50% 透明度
+]
+
+for (let i = 0; i < 3; i++) {
+  const offset = i * 0.3 - 0.3
+  const rectPositions = [
+    -0.3 + offset, -0.3, 0,  0.3 + offset, -0.3, 0,
+     0.3 + offset,  0.3, 0, -0.3 + offset,  0.3, 0,
+  ]
+  positions.push(...rectPositions)
+  
+  const base = i * 4
+  indices.push(base, base + 1, base + 2, base, base + 2, base + 3)
+}
+
+const positionBuffer = createBuffer(gl, positions)
+const indexBuffer = createIndexBuffer(gl, indices)
+
+gl.viewport(0, 0, canvas.width, canvas.height)
+gl.enable(gl.DEPTH_TEST)
+gl.enable(gl.BLEND)
+gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+gl.clearColor(0.1, 0.1, 0.1, 1.0)
+
+const aspect = canvas.width / canvas.height
+const projectionMatrix = Matrix.perspective(Math.PI / 4, aspect, 0.1, 100)
+const viewMatrix = Matrix.lookAt(0, 0, 2, 0, 0, 0, 0, 1, 0)
+const modelMatrix = Matrix.identity()
+const mvpMatrix = Matrix.multiply(projectionMatrix, Matrix.multiply(viewMatrix, modelMatrix))
+
+gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+gl.useProgram(program)
+
+gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+setAttribute(gl, program, 'a_position', 3)
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+
+gl.uniformMatrix4fv(mvpMatrixLocation, false, mvpMatrix)
+
+// 从后往前绘制（重要！）
+for (let i = 2; i >= 0; i--) {
+  gl.uniform4f(colorLocation, colors[i][0], colors[i][1], colors[i][2], colors[i][3])
+  gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, i * 6 * 2)
+}`, language: 'javascript' }
+          ]}
+        />
         
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           <strong className="text-primary font-semibold">重要提示</strong>：绘制透明物体时，需要从后往前绘制，才能得到正确的混合效果。

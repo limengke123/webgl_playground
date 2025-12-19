@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import WebGLCanvas from '../../components/WebGLCanvas'
 import CodeBlock from '../../components/CodeBlock'
+import FlipCard from '../../components/FlipCard'
 import ChapterNavigation from '../../components/ChapterNavigation'
 import { createProgram, createBuffer, Matrix, createIndexBuffer } from '../../utils/webgl'
 
@@ -226,81 +227,153 @@ const viewMatrix4 = Matrix.lookAt(
   0, 1, 0
 );`} language="javascript" />
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
-          const vertexShader = `attribute vec3 a_position;
+        <FlipCard 
+          width={400} 
+          height={400} 
+          onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
+            const vertexShader = `attribute vec3 a_position;
 uniform mat4 u_viewMatrix;
 uniform mat4 u_projectionMatrix;
 
 void main() {
   gl_Position = u_projectionMatrix * u_viewMatrix * vec4(a_position, 1.0);
 }`
-          
-          const fragmentShader = `precision mediump float;
+            
+            const fragmentShader = `precision mediump float;
 uniform vec4 u_color;
 
 void main() {
   gl_FragColor = u_color;
 }`
-          
-          const program = createProgram(gl, vertexShader, fragmentShader)
-          
-          // 创建一个立方体的顶点（简化版，只显示前面）
-          const positions = [
-            -0.5, -0.5, -0.5,
-             0.5, -0.5, -0.5,
-             0.5,  0.5, -0.5,
-            -0.5,  0.5, -0.5,
-          ]
-          
-          const indices = [0, 1, 2, 0, 2, 3]
-          
-          const positionBuffer = createBuffer(gl, positions)
-          const indexBuffer = createIndexBuffer(gl, indices)
-          
-          const viewMatrixLocation = gl.getUniformLocation(program, 'u_viewMatrix')
-          const projectionMatrixLocation = gl.getUniformLocation(program, 'u_projectionMatrix')
-          const colorLocation = gl.getUniformLocation(program, 'u_color')
-          const positionLocation = gl.getAttribLocation(program, 'a_position')
-          
-          if (positionLocation === -1) {
-            console.error('属性 a_position 未找到')
-            return
-          }
-          
-          gl.viewport(0, 0, canvas.width, canvas.height)
-          gl.enable(gl.DEPTH_TEST)
-          gl.clearColor(0.1, 0.1, 0.1, 1.0)
-          
-          const aspect = canvas.width / canvas.height
-          const projectionMatrix = Matrix.perspective(Math.PI / 4, aspect, 0.1, 100)
-          
-          let time = 0
-          const render = () => {
-            time += 0.01
-            // 相机绕 Y 轴旋转
-            const radius = 3
-            const eyeX = Math.sin(time) * radius
-            const eyeZ = Math.cos(time) * radius
-            const viewMatrix = Matrix.lookAt(eyeX, 1, eyeZ, 0, 0, 0, 0, 1, 0)
             
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-            gl.useProgram(program)
+            const program = createProgram(gl, vertexShader, fragmentShader)
             
-            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-            gl.enableVertexAttribArray(positionLocation)
-            gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0)
+            // 创建一个立方体的顶点（简化版，只显示前面）
+            const positions = [
+              -0.5, -0.5, -0.5,
+               0.5, -0.5, -0.5,
+               0.5,  0.5, -0.5,
+              -0.5,  0.5, -0.5,
+            ]
             
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+            const indices = [0, 1, 2, 0, 2, 3]
             
-            gl.uniformMatrix4fv(viewMatrixLocation, false, viewMatrix)
-            gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix)
-            gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
+            const positionBuffer = createBuffer(gl, positions)
+            const indexBuffer = createIndexBuffer(gl, indices)
             
-            gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
-            requestAnimationFrame(render)
-          }
-          render()
-        }} />
+            const viewMatrixLocation = gl.getUniformLocation(program, 'u_viewMatrix')
+            const projectionMatrixLocation = gl.getUniformLocation(program, 'u_projectionMatrix')
+            const colorLocation = gl.getUniformLocation(program, 'u_color')
+            const positionLocation = gl.getAttribLocation(program, 'a_position')
+            
+            if (positionLocation === -1) {
+              console.error('属性 a_position 未找到')
+              return
+            }
+            
+            gl.viewport(0, 0, canvas.width, canvas.height)
+            gl.enable(gl.DEPTH_TEST)
+            gl.clearColor(0.1, 0.1, 0.1, 1.0)
+            
+            const aspect = canvas.width / canvas.height
+            const projectionMatrix = Matrix.perspective(Math.PI / 4, aspect, 0.1, 100)
+            
+            let time = 0
+            const render = () => {
+              time += 0.01
+              // 相机绕 Y 轴旋转
+              const radius = 3
+              const eyeX = Math.sin(time) * radius
+              const eyeZ = Math.cos(time) * radius
+              const viewMatrix = Matrix.lookAt(eyeX, 1, eyeZ, 0, 0, 0, 0, 1, 0)
+              
+              gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+              gl.useProgram(program)
+              
+              gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+              gl.enableVertexAttribArray(positionLocation)
+              gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0)
+              
+              gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+              
+              gl.uniformMatrix4fv(viewMatrixLocation, false, viewMatrix)
+              gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix)
+              gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
+              
+              gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
+              requestAnimationFrame(render)
+            }
+            render()
+          }}
+          codeBlocks={[
+            { title: '顶点着色器', code: `attribute vec3 a_position;
+uniform mat4 u_viewMatrix;
+uniform mat4 u_projectionMatrix;
+
+void main() {
+  gl_Position = u_projectionMatrix * u_viewMatrix * vec4(a_position, 1.0);
+}` },
+            { title: '片段着色器', code: `precision mediump float;
+uniform vec4 u_color;
+
+void main() {
+  gl_FragColor = u_color;
+}` },
+            { title: 'JavaScript 代码', code: `const program = createProgram(gl, vertexShader, fragmentShader)
+
+// 创建一个立方体的顶点（简化版，只显示前面）
+const positions = [
+  -0.5, -0.5, -0.5,
+   0.5, -0.5, -0.5,
+   0.5,  0.5, -0.5,
+  -0.5,  0.5, -0.5,
+]
+
+const indices = [0, 1, 2, 0, 2, 3]
+
+const positionBuffer = createBuffer(gl, positions)
+const indexBuffer = createIndexBuffer(gl, indices)
+
+const viewMatrixLocation = gl.getUniformLocation(program, 'u_viewMatrix')
+const projectionMatrixLocation = gl.getUniformLocation(program, 'u_projectionMatrix')
+const colorLocation = gl.getUniformLocation(program, 'u_color')
+const positionLocation = gl.getAttribLocation(program, 'a_position')
+
+gl.viewport(0, 0, canvas.width, canvas.height)
+gl.enable(gl.DEPTH_TEST)
+gl.clearColor(0.1, 0.1, 0.1, 1.0)
+
+const aspect = canvas.width / canvas.height
+const projectionMatrix = Matrix.perspective(Math.PI / 4, aspect, 0.1, 100)
+
+let time = 0
+const render = () => {
+  time += 0.01
+  // 相机绕 Y 轴旋转
+  const radius = 3
+  const eyeX = Math.sin(time) * radius
+  const eyeZ = Math.cos(time) * radius
+  const viewMatrix = Matrix.lookAt(eyeX, 1, eyeZ, 0, 0, 0, 0, 1, 0)
+  
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+  gl.useProgram(program)
+  
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+  gl.enableVertexAttribArray(positionLocation)
+  gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0)
+  
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+  
+  gl.uniformMatrix4fv(viewMatrixLocation, false, viewMatrix)
+  gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix)
+  gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
+  
+  gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
+  requestAnimationFrame(render)
+}
+render()`, language: 'javascript' }
+          ]}
+        />
         
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           上面的示例展示了相机绕场景旋转的效果。注意观察视角的变化。
@@ -569,8 +642,11 @@ function create2DProjection(canvas) {
           下面展示了两种投影方式的区别：
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
-          const vertexShader = `attribute vec3 a_position;
+        <FlipCard 
+          width={400} 
+          height={400} 
+          onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
+            const vertexShader = `attribute vec3 a_position;
 uniform mat4 u_modelMatrix;
 uniform mat4 u_viewMatrix;
 uniform mat4 u_projectionMatrix;
@@ -579,111 +655,170 @@ void main() {
   mat4 mvp = u_projectionMatrix * u_viewMatrix * u_modelMatrix;
   gl_Position = mvp * vec4(a_position, 1.0);
 }`
-          
-          const fragmentShader = `precision mediump float;
+            
+            const fragmentShader = `precision mediump float;
 uniform vec4 u_color;
 
 void main() {
   gl_FragColor = u_color;
 }`
-          
-          const program = createProgram(gl, vertexShader, fragmentShader)
-          
-          // 创建多个立方体（前后排列）
-          const positions: number[] = []
-          const indices: number[] = []
-          const colors: number[] = []
-          
-          // 生成 3 个立方体，沿 Z 轴排列
-          for (let i = 0; i < 3; i++) {
-            const z = i * -1.5
-            const base = i * 24
             
-            // 立方体顶点
-            const cubePositions = [
-              -0.3, -0.3, z + 0.3,  0.3, -0.3, z + 0.3,  0.3,  0.3, z + 0.3,  -0.3,  0.3, z + 0.3,
-              -0.3, -0.3, z - 0.3,  -0.3,  0.3, z - 0.3,  0.3,  0.3, z - 0.3,  0.3, -0.3, z - 0.3,
-              -0.3,  0.3, z - 0.3,  -0.3,  0.3, z + 0.3,  0.3,  0.3, z + 0.3,  0.3,  0.3, z - 0.3,
-              -0.3, -0.3, z - 0.3,  0.3, -0.3, z - 0.3,  0.3, -0.3, z + 0.3,  -0.3, -0.3, z + 0.3,
-               0.3, -0.3, z - 0.3,  0.3,  0.3, z - 0.3,  0.3,  0.3, z + 0.3,  0.3, -0.3, z + 0.3,
-              -0.3, -0.3, z - 0.3,  -0.3, -0.3, z + 0.3,  -0.3,  0.3, z + 0.3,  -0.3,  0.3, z - 0.3,
-            ]
+            const program = createProgram(gl, vertexShader, fragmentShader)
             
-            positions.push(...cubePositions)
+            // 创建多个立方体（前后排列）
+            const positions: number[] = []
+            const indices: number[] = []
+            const colors: number[] = []
             
-            // 立方体索引
-            const cubeIndices = [
-              base + 0, base + 1, base + 2, base + 0, base + 2, base + 3,
-              base + 4, base + 5, base + 6, base + 4, base + 6, base + 7,
-              base + 8, base + 9, base + 10, base + 8, base + 10, base + 11,
-              base + 12, base + 13, base + 14, base + 12, base + 14, base + 15,
-              base + 16, base + 17, base + 18, base + 16, base + 18, base + 19,
-              base + 20, base + 21, base + 22, base + 20, base + 22, base + 23,
-            ]
-            
-            indices.push(...cubeIndices)
-          }
-          
-          const positionBuffer = createBuffer(gl, positions)
-          const indexBuffer = createIndexBuffer(gl, indices)
-          
-          const modelMatrixLocation = gl.getUniformLocation(program, 'u_modelMatrix')
-          const viewMatrixLocation = gl.getUniformLocation(program, 'u_viewMatrix')
-          const projectionMatrixLocation = gl.getUniformLocation(program, 'u_projectionMatrix')
-          const colorLocation = gl.getUniformLocation(program, 'u_color')
-          const positionLocation = gl.getAttribLocation(program, 'a_position')
-          
-          if (positionLocation === -1) {
-            console.error('属性 a_position 未找到')
-            return
-          }
-          
-          gl.viewport(0, 0, canvas.width, canvas.height)
-          gl.enable(gl.DEPTH_TEST)
-          gl.clearColor(0.1, 0.1, 0.1, 1.0)
-          
-          const aspect = canvas.width / canvas.height
-          const viewMatrix = Matrix.lookAt(0, 0, 3, 0, 0, 0, 0, 1, 0)
-          const modelMatrix = Matrix.identity()
-          
-          let time = 0
-          const render = () => {
-            time += 0.01
-            
-            // 切换投影模式
-            const usePerspective = (Math.sin(time) + 1) / 2 > 0.5
-            const projectionMatrix = usePerspective
-              ? Matrix.perspective(Math.PI / 4, aspect, 0.1, 100)
-              : Matrix.ortho(-2, 2, -2, 2, 0.1, 100)
-            
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-            gl.useProgram(program)
-            
-            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-            gl.enableVertexAttribArray(positionLocation)
-            gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0)
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
-            
-            gl.uniformMatrix4fv(modelMatrixLocation, false, modelMatrix)
-            gl.uniformMatrix4fv(viewMatrixLocation, false, viewMatrix)
-            gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix)
-            
-            // 绘制三个立方体，使用不同颜色
-            const cubeColors = [
-              [1.0, 0.2, 0.2, 1.0],  // 红色（最近）
-              [0.2, 1.0, 0.2, 1.0],  // 绿色（中间）
-              [0.2, 0.2, 1.0, 1.0]   // 蓝色（最远）
-            ]
-            
+            // 生成 3 个立方体，沿 Z 轴排列
             for (let i = 0; i < 3; i++) {
-              gl.uniform4f(colorLocation, cubeColors[i][0], cubeColors[i][1], cubeColors[i][2], cubeColors[i][3])
-              gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, i * 36 * 2)
+              const z = i * -1.5
+              const base = i * 24
+              
+              // 立方体顶点
+              const cubePositions = [
+                -0.3, -0.3, z + 0.3,  0.3, -0.3, z + 0.3,  0.3,  0.3, z + 0.3,  -0.3,  0.3, z + 0.3,
+                -0.3, -0.3, z - 0.3,  -0.3,  0.3, z - 0.3,  0.3,  0.3, z - 0.3,  0.3, -0.3, z - 0.3,
+                -0.3,  0.3, z - 0.3,  -0.3,  0.3, z + 0.3,  0.3,  0.3, z + 0.3,  0.3,  0.3, z - 0.3,
+                -0.3, -0.3, z - 0.3,  0.3, -0.3, z - 0.3,  0.3, -0.3, z + 0.3,  -0.3, -0.3, z + 0.3,
+                 0.3, -0.3, z - 0.3,  0.3,  0.3, z - 0.3,  0.3,  0.3, z + 0.3,  0.3, -0.3, z + 0.3,
+                -0.3, -0.3, z - 0.3,  -0.3, -0.3, z + 0.3,  -0.3,  0.3, z + 0.3,  -0.3,  0.3, z - 0.3,
+              ]
+              
+              positions.push(...cubePositions)
+              
+              // 立方体索引
+              const cubeIndices = [
+                base + 0, base + 1, base + 2, base + 0, base + 2, base + 3,
+                base + 4, base + 5, base + 6, base + 4, base + 6, base + 7,
+                base + 8, base + 9, base + 10, base + 8, base + 10, base + 11,
+                base + 12, base + 13, base + 14, base + 12, base + 14, base + 15,
+                base + 16, base + 17, base + 18, base + 16, base + 18, base + 19,
+                base + 20, base + 21, base + 22, base + 20, base + 22, base + 23,
+              ]
+              
+              indices.push(...cubeIndices)
             }
             
-            requestAnimationFrame(render)
-          }
-          render()
-        }} />
+            const positionBuffer = createBuffer(gl, positions)
+            const indexBuffer = createIndexBuffer(gl, indices)
+            
+            const modelMatrixLocation = gl.getUniformLocation(program, 'u_modelMatrix')
+            const viewMatrixLocation = gl.getUniformLocation(program, 'u_viewMatrix')
+            const projectionMatrixLocation = gl.getUniformLocation(program, 'u_projectionMatrix')
+            const colorLocation = gl.getUniformLocation(program, 'u_color')
+            const positionLocation = gl.getAttribLocation(program, 'a_position')
+            
+            if (positionLocation === -1) {
+              console.error('属性 a_position 未找到')
+              return
+            }
+            
+            gl.viewport(0, 0, canvas.width, canvas.height)
+            gl.enable(gl.DEPTH_TEST)
+            gl.clearColor(0.1, 0.1, 0.1, 1.0)
+            
+            const aspect = canvas.width / canvas.height
+            const viewMatrix = Matrix.lookAt(0, 0, 3, 0, 0, 0, 0, 1, 0)
+            const modelMatrix = Matrix.identity()
+            
+            let time = 0
+            const render = () => {
+              time += 0.01
+              
+              // 切换投影模式
+              const usePerspective = (Math.sin(time) + 1) / 2 > 0.5
+              const projectionMatrix = usePerspective
+                ? Matrix.perspective(Math.PI / 4, aspect, 0.1, 100)
+                : Matrix.ortho(-2, 2, -2, 2, 0.1, 100)
+              
+              gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+              gl.useProgram(program)
+              
+              gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+              gl.enableVertexAttribArray(positionLocation)
+              gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0)
+              gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+              
+              gl.uniformMatrix4fv(modelMatrixLocation, false, modelMatrix)
+              gl.uniformMatrix4fv(viewMatrixLocation, false, viewMatrix)
+              gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix)
+              
+              // 绘制三个立方体，使用不同颜色
+              const cubeColors = [
+                [1.0, 0.2, 0.2, 1.0],  // 红色（最近）
+                [0.2, 1.0, 0.2, 1.0],  // 绿色（中间）
+                [0.2, 0.2, 1.0, 1.0]   // 蓝色（最远）
+              ]
+              
+              for (let i = 0; i < 3; i++) {
+                gl.uniform4f(colorLocation, cubeColors[i][0], cubeColors[i][1], cubeColors[i][2], cubeColors[i][3])
+                gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, i * 36 * 2)
+              }
+              
+              requestAnimationFrame(render)
+            }
+            render()
+          }}
+          codeBlocks={[
+            { title: '顶点着色器', code: `attribute vec3 a_position;
+uniform mat4 u_modelMatrix;
+uniform mat4 u_viewMatrix;
+uniform mat4 u_projectionMatrix;
+
+void main() {
+  mat4 mvp = u_projectionMatrix * u_viewMatrix * u_modelMatrix;
+  gl_Position = mvp * vec4(a_position, 1.0);
+}` },
+            { title: '片段着色器', code: `precision mediump float;
+uniform vec4 u_color;
+
+void main() {
+  gl_FragColor = u_color;
+}` },
+            { title: 'JavaScript 代码', code: `const program = createProgram(gl, vertexShader, fragmentShader)
+
+// 创建多个立方体（前后排列）
+const positions = []
+const indices = []
+
+// 生成 3 个立方体，沿 Z 轴排列
+for (let i = 0; i < 3; i++) {
+  const z = i * -1.5
+  const base = i * 24
+  
+  // 立方体顶点和索引...
+  // (完整代码见demo)
+}
+
+const positionBuffer = createBuffer(gl, positions)
+const indexBuffer = createIndexBuffer(gl, indices)
+
+const aspect = canvas.width / canvas.height
+const viewMatrix = Matrix.lookAt(0, 0, 3, 0, 0, 0, 0, 1, 0)
+const modelMatrix = Matrix.identity()
+
+let time = 0
+const render = () => {
+  time += 0.01
+  
+  // 切换投影模式
+  const usePerspective = (Math.sin(time) + 1) / 2 > 0.5
+  const projectionMatrix = usePerspective
+    ? Matrix.perspective(Math.PI / 4, aspect, 0.1, 100)
+    : Matrix.ortho(-2, 2, -2, 2, 0.1, 100)
+  
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+  gl.useProgram(program)
+  
+  // 设置缓冲区和uniform...
+  // 绘制三个立方体
+  
+  requestAnimationFrame(render)
+}
+render()`, language: 'javascript' }
+          ]}
+        />
         
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           注意观察：在透视投影中，远处的立方体看起来更小；在正交投影中，所有立方体保持相同大小。
@@ -714,8 +849,11 @@ void main() {
           下面是一个完整的示例，展示如何使用模型矩阵、视图矩阵和投影矩阵：
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
-          const vertexShader = `attribute vec3 a_position;
+        <FlipCard 
+          width={400} 
+          height={400} 
+          onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
+            const vertexShader = `attribute vec3 a_position;
 uniform mat4 u_modelMatrix;
 uniform mat4 u_viewMatrix;
 uniform mat4 u_projectionMatrix;
@@ -724,89 +862,147 @@ void main() {
   mat4 mvp = u_projectionMatrix * u_viewMatrix * u_modelMatrix;
   gl_Position = mvp * vec4(a_position, 1.0);
 }`
-          
-          const fragmentShader = `precision mediump float;
+            
+            const fragmentShader = `precision mediump float;
 uniform vec4 u_color;
 
 void main() {
   gl_FragColor = u_color;
 }`
-          
-          const program = createProgram(gl, vertexShader, fragmentShader)
-          
-          // 立方体顶点
-          const positions = [
-            // 前面
-            -0.5, -0.5,  0.5,  0.5, -0.5,  0.5,  0.5,  0.5,  0.5,  -0.5,  0.5,  0.5,
-            // 后面
-            -0.5, -0.5, -0.5,  -0.5,  0.5, -0.5,  0.5,  0.5, -0.5,  0.5, -0.5, -0.5,
-            // 上面
-            -0.5,  0.5, -0.5,  -0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5, -0.5,
-            // 下面
-            -0.5, -0.5, -0.5,  0.5, -0.5, -0.5,  0.5, -0.5,  0.5,  -0.5, -0.5,  0.5,
-            // 右面
-             0.5, -0.5, -0.5,  0.5,  0.5, -0.5,  0.5,  0.5,  0.5,  0.5, -0.5,  0.5,
-            // 左面
-            -0.5, -0.5, -0.5,  -0.5, -0.5,  0.5,  -0.5,  0.5,  0.5,  -0.5,  0.5, -0.5,
-          ]
-          
-          const indices = [
-            0,  1,  2,   0,  2,  3,    // 前面
-            4,  5,  6,   4,  6,  7,    // 后面
-            8,  9,  10,  8,  10, 11,   // 上面
-            12, 13, 14,  12, 14, 15,   // 下面
-            16, 17, 18,  16, 18, 19,   // 右面
-            20, 21, 22,  20, 22, 23,   // 左面
-          ]
-          
-          const positionBuffer = createBuffer(gl, positions)
-          const indexBuffer = createIndexBuffer(gl, indices)
-          
-          const modelMatrixLocation = gl.getUniformLocation(program, 'u_modelMatrix')
-          const viewMatrixLocation = gl.getUniformLocation(program, 'u_viewMatrix')
-          const projectionMatrixLocation = gl.getUniformLocation(program, 'u_projectionMatrix')
-          const colorLocation = gl.getUniformLocation(program, 'u_color')
-          const positionLocation = gl.getAttribLocation(program, 'a_position')
-          
-          if (positionLocation === -1) {
-            console.error('属性 a_position 未找到')
-            return
-          }
-          
-          gl.viewport(0, 0, canvas.width, canvas.height)
-          gl.enable(gl.DEPTH_TEST)
-          gl.clearColor(0.1, 0.1, 0.1, 1.0)
-          
-          const aspect = canvas.width / canvas.height
-          const projectionMatrix = Matrix.perspective(Math.PI / 4, aspect, 0.1, 100)
-          const viewMatrix = Matrix.lookAt(0, 0, 3, 0, 0, 0, 0, 1, 0)
-          
-          let angle = 0
-          const render = () => {
-            angle += 0.02
             
-            // 模型矩阵：旋转立方体
-            const modelMatrix = Matrix.rotationY(angle)
+            const program = createProgram(gl, vertexShader, fragmentShader)
             
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-            gl.useProgram(program)
+            // 立方体顶点
+            const positions = [
+              // 前面
+              -0.5, -0.5,  0.5,  0.5, -0.5,  0.5,  0.5,  0.5,  0.5,  -0.5,  0.5,  0.5,
+              // 后面
+              -0.5, -0.5, -0.5,  -0.5,  0.5, -0.5,  0.5,  0.5, -0.5,  0.5, -0.5, -0.5,
+              // 上面
+              -0.5,  0.5, -0.5,  -0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5, -0.5,
+              // 下面
+              -0.5, -0.5, -0.5,  0.5, -0.5, -0.5,  0.5, -0.5,  0.5,  -0.5, -0.5,  0.5,
+              // 右面
+               0.5, -0.5, -0.5,  0.5,  0.5, -0.5,  0.5,  0.5,  0.5,  0.5, -0.5,  0.5,
+              // 左面
+              -0.5, -0.5, -0.5,  -0.5, -0.5,  0.5,  -0.5,  0.5,  0.5,  -0.5,  0.5, -0.5,
+            ]
             
-            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-            gl.enableVertexAttribArray(positionLocation)
-            gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0)
+            const indices = [
+              0,  1,  2,   0,  2,  3,    // 前面
+              4,  5,  6,   4,  6,  7,    // 后面
+              8,  9,  10,  8,  10, 11,   // 上面
+              12, 13, 14,  12, 14, 15,   // 下面
+              16, 17, 18,  16, 18, 19,   // 右面
+              20, 21, 22,  20, 22, 23,   // 左面
+            ]
             
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+            const positionBuffer = createBuffer(gl, positions)
+            const indexBuffer = createIndexBuffer(gl, indices)
             
-            gl.uniformMatrix4fv(modelMatrixLocation, false, modelMatrix)
-            gl.uniformMatrix4fv(viewMatrixLocation, false, viewMatrix)
-            gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix)
-            gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
+            const modelMatrixLocation = gl.getUniformLocation(program, 'u_modelMatrix')
+            const viewMatrixLocation = gl.getUniformLocation(program, 'u_viewMatrix')
+            const projectionMatrixLocation = gl.getUniformLocation(program, 'u_projectionMatrix')
+            const colorLocation = gl.getUniformLocation(program, 'u_color')
+            const positionLocation = gl.getAttribLocation(program, 'a_position')
             
-            gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0)
-            requestAnimationFrame(render)
-          }
-          render()
-        }} />
+            if (positionLocation === -1) {
+              console.error('属性 a_position 未找到')
+              return
+            }
+            
+            gl.viewport(0, 0, canvas.width, canvas.height)
+            gl.enable(gl.DEPTH_TEST)
+            gl.clearColor(0.1, 0.1, 0.1, 1.0)
+            
+            const aspect = canvas.width / canvas.height
+            const projectionMatrix = Matrix.perspective(Math.PI / 4, aspect, 0.1, 100)
+            const viewMatrix = Matrix.lookAt(0, 0, 3, 0, 0, 0, 0, 1, 0)
+            
+            let angle = 0
+            const render = () => {
+              angle += 0.02
+              
+              // 模型矩阵：旋转立方体
+              const modelMatrix = Matrix.rotationY(angle)
+              
+              gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+              gl.useProgram(program)
+              
+              gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+              gl.enableVertexAttribArray(positionLocation)
+              gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0)
+              
+              gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+              
+              gl.uniformMatrix4fv(modelMatrixLocation, false, modelMatrix)
+              gl.uniformMatrix4fv(viewMatrixLocation, false, viewMatrix)
+              gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix)
+              gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
+              
+              gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0)
+              requestAnimationFrame(render)
+            }
+            render()
+          }}
+          codeBlocks={[
+            { title: '顶点着色器', code: `attribute vec3 a_position;
+uniform mat4 u_modelMatrix;
+uniform mat4 u_viewMatrix;
+uniform mat4 u_projectionMatrix;
+
+void main() {
+  mat4 mvp = u_projectionMatrix * u_viewMatrix * u_modelMatrix;
+  gl_Position = mvp * vec4(a_position, 1.0);
+}` },
+            { title: '片段着色器', code: `precision mediump float;
+uniform vec4 u_color;
+
+void main() {
+  gl_FragColor = u_color;
+}` },
+            { title: 'JavaScript 代码', code: `const program = createProgram(gl, vertexShader, fragmentShader)
+
+// 立方体顶点
+const positions = [
+  // 前面、后面、上面、下面、右面、左面
+  // (完整顶点数据见demo)
+]
+
+const indices = [
+  // 6个面的索引
+  // (完整索引数据见demo)
+]
+
+const positionBuffer = createBuffer(gl, positions)
+const indexBuffer = createIndexBuffer(gl, indices)
+
+const aspect = canvas.width / canvas.height
+const projectionMatrix = Matrix.perspective(Math.PI / 4, aspect, 0.1, 100)
+const viewMatrix = Matrix.lookAt(0, 0, 3, 0, 0, 0, 0, 1, 0)
+
+let angle = 0
+const render = () => {
+  angle += 0.02
+  
+  // 模型矩阵：旋转立方体
+  const modelMatrix = Matrix.rotationY(angle)
+  
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+  gl.useProgram(program)
+  
+  // 设置缓冲区和uniform
+  gl.uniformMatrix4fv(modelMatrixLocation, false, modelMatrix)
+  gl.uniformMatrix4fv(viewMatrixLocation, false, viewMatrix)
+  gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix)
+  gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
+  
+  gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0)
+  requestAnimationFrame(render)
+}
+render()`, language: 'javascript' }
+          ]}
+        />
         
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           这个示例展示了完整的 MVP 矩阵变换：立方体绕 Y 轴旋转（模型矩阵），相机固定观察（视图矩阵），使用透视投影（投影矩阵）。
@@ -1220,122 +1416,211 @@ function animate() {
           下面是一个可以用鼠标控制的轨道相机示例：
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
-          const vertexShader = `attribute vec3 a_position;
+        <FlipCard 
+          width={400} 
+          height={400} 
+          onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
+            const vertexShader = `attribute vec3 a_position;
 uniform mat4 u_mvpMatrix;
 
 void main() {
   gl_Position = u_mvpMatrix * vec4(a_position, 1.0);
 }`
-          
-          const fragmentShader = `precision mediump float;
+            
+            const fragmentShader = `precision mediump float;
 uniform vec4 u_color;
 
 void main() {
   gl_FragColor = u_color;
 }`
-          
-          const program = createProgram(gl, vertexShader, fragmentShader)
-          
-          // 立方体顶点
-          const positions = [
-            -0.5, -0.5,  0.5,  0.5, -0.5,  0.5,  0.5,  0.5,  0.5,  -0.5,  0.5,  0.5,
-            -0.5, -0.5, -0.5,  -0.5,  0.5, -0.5,  0.5,  0.5, -0.5,  0.5, -0.5, -0.5,
-            -0.5,  0.5, -0.5,  -0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5, -0.5,
-            -0.5, -0.5, -0.5,  0.5, -0.5, -0.5,  0.5, -0.5,  0.5,  -0.5, -0.5,  0.5,
-             0.5, -0.5, -0.5,  0.5,  0.5, -0.5,  0.5,  0.5,  0.5,  0.5, -0.5,  0.5,
-            -0.5, -0.5, -0.5,  -0.5, -0.5,  0.5,  -0.5,  0.5,  0.5,  -0.5,  0.5, -0.5,
-          ]
-          
-          const indices = [
-            0,  1,  2,   0,  2,  3,   4,  5,  6,   4,  6,  7,
-            8,  9,  10,  8,  10, 11,  12, 13, 14,  12, 14, 15,
-            16, 17, 18,  16, 18, 19,  20, 21, 22,  20, 22, 23,
-          ]
-          
-          const positionBuffer = createBuffer(gl, positions)
-          const indexBuffer = createIndexBuffer(gl, indices)
-          
-          const mvpMatrixLocation = gl.getUniformLocation(program, 'u_mvpMatrix')
-          const colorLocation = gl.getUniformLocation(program, 'u_color')
-          const positionLocation = gl.getAttribLocation(program, 'a_position')
-          
-          if (positionLocation === -1) {
-            console.error('属性 a_position 未找到')
-            return
-          }
-          
-          gl.viewport(0, 0, canvas.width, canvas.height)
-          gl.enable(gl.DEPTH_TEST)
-          gl.clearColor(0.1, 0.1, 0.1, 1.0)
-          
-          const aspect = canvas.width / canvas.height
-          const projectionMatrix = Matrix.perspective(Math.PI / 4, aspect, 0.1, 100)
-          
-          // 轨道相机参数
-          let radius = 3
-          let theta = 0
-          let phi = Math.PI / 4
-          let isDragging = false
-          let lastX = 0
-          let lastY = 0
-          
-          // 鼠标事件
-          canvas.addEventListener('mousedown', (e) => {
-            isDragging = true
-            lastX = e.clientX
-            lastY = e.clientY
-          })
-          
-          canvas.addEventListener('mousemove', (e) => {
-            if (isDragging) {
-              const deltaX = e.clientX - lastX
-              const deltaY = e.clientY - lastY
-              
-              theta += deltaX * 0.01
-              phi = Math.max(0.1, Math.min(Math.PI - 0.1, phi + deltaY * 0.01))
-              
+            
+            const program = createProgram(gl, vertexShader, fragmentShader)
+            
+            // 立方体顶点
+            const positions = [
+              -0.5, -0.5,  0.5,  0.5, -0.5,  0.5,  0.5,  0.5,  0.5,  -0.5,  0.5,  0.5,
+              -0.5, -0.5, -0.5,  -0.5,  0.5, -0.5,  0.5,  0.5, -0.5,  0.5, -0.5, -0.5,
+              -0.5,  0.5, -0.5,  -0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5, -0.5,
+              -0.5, -0.5, -0.5,  0.5, -0.5, -0.5,  0.5, -0.5,  0.5,  -0.5, -0.5,  0.5,
+               0.5, -0.5, -0.5,  0.5,  0.5, -0.5,  0.5,  0.5,  0.5,  0.5, -0.5,  0.5,
+              -0.5, -0.5, -0.5,  -0.5, -0.5,  0.5,  -0.5,  0.5,  0.5,  -0.5,  0.5, -0.5,
+            ]
+            
+            const indices = [
+              0,  1,  2,   0,  2,  3,   4,  5,  6,   4,  6,  7,
+              8,  9,  10,  8,  10, 11,  12, 13, 14,  12, 14, 15,
+              16, 17, 18,  16, 18, 19,  20, 21, 22,  20, 22, 23,
+            ]
+            
+            const positionBuffer = createBuffer(gl, positions)
+            const indexBuffer = createIndexBuffer(gl, indices)
+            
+            const mvpMatrixLocation = gl.getUniformLocation(program, 'u_mvpMatrix')
+            const colorLocation = gl.getUniformLocation(program, 'u_color')
+            const positionLocation = gl.getAttribLocation(program, 'a_position')
+            
+            if (positionLocation === -1) {
+              console.error('属性 a_position 未找到')
+              return
+            }
+            
+            gl.viewport(0, 0, canvas.width, canvas.height)
+            gl.enable(gl.DEPTH_TEST)
+            gl.clearColor(0.1, 0.1, 0.1, 1.0)
+            
+            const aspect = canvas.width / canvas.height
+            const projectionMatrix = Matrix.perspective(Math.PI / 4, aspect, 0.1, 100)
+            
+            // 轨道相机参数
+            let radius = 3
+            let theta = 0
+            let phi = Math.PI / 4
+            let isDragging = false
+            let lastX = 0
+            let lastY = 0
+            
+            // 鼠标事件
+            canvas.addEventListener('mousedown', (e) => {
+              isDragging = true
               lastX = e.clientX
               lastY = e.clientY
+            })
+            
+            canvas.addEventListener('mousemove', (e) => {
+              if (isDragging) {
+                const deltaX = e.clientX - lastX
+                const deltaY = e.clientY - lastY
+                
+                theta += deltaX * 0.01
+                phi = Math.max(0.1, Math.min(Math.PI - 0.1, phi + deltaY * 0.01))
+                
+                lastX = e.clientX
+                lastY = e.clientY
+              }
+            })
+            
+            canvas.addEventListener('mouseup', () => {
+              isDragging = false
+            })
+            
+            canvas.addEventListener('wheel', (e) => {
+              e.preventDefault()
+              radius += e.deltaY * 0.01
+              radius = Math.max(1, Math.min(10, radius))
+            })
+            
+            const render = () => {
+              // 计算相机位置
+              const eyeX = radius * Math.sin(phi) * Math.cos(theta)
+              const eyeY = radius * Math.cos(phi)
+              const eyeZ = radius * Math.sin(phi) * Math.sin(theta)
+              
+              const viewMatrix = Matrix.lookAt(eyeX, eyeY, eyeZ, 0, 0, 0, 0, 1, 0)
+              const modelMatrix = Matrix.identity()
+              const mvpMatrix = Matrix.multiply(projectionMatrix, Matrix.multiply(viewMatrix, modelMatrix))
+              
+              gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+              gl.useProgram(program)
+              
+              gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+              gl.enableVertexAttribArray(positionLocation)
+              gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0)
+              gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+              
+              gl.uniformMatrix4fv(mvpMatrixLocation, false, mvpMatrix)
+              gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
+              
+              gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0)
+              requestAnimationFrame(render)
             }
-          })
-          
-          canvas.addEventListener('mouseup', () => {
-            isDragging = false
-          })
-          
-          canvas.addEventListener('wheel', (e) => {
-            e.preventDefault()
-            radius += e.deltaY * 0.01
-            radius = Math.max(1, Math.min(10, radius))
-          })
-          
-          const render = () => {
-            // 计算相机位置
-            const eyeX = radius * Math.sin(phi) * Math.cos(theta)
-            const eyeY = radius * Math.cos(phi)
-            const eyeZ = radius * Math.sin(phi) * Math.sin(theta)
-            
-            const viewMatrix = Matrix.lookAt(eyeX, eyeY, eyeZ, 0, 0, 0, 0, 1, 0)
-            const modelMatrix = Matrix.identity()
-            const mvpMatrix = Matrix.multiply(projectionMatrix, Matrix.multiply(viewMatrix, modelMatrix))
-            
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-            gl.useProgram(program)
-            
-            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-            gl.enableVertexAttribArray(positionLocation)
-            gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0)
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
-            
-            gl.uniformMatrix4fv(mvpMatrixLocation, false, mvpMatrix)
-            gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
-            
-            gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0)
-            requestAnimationFrame(render)
-          }
-          render()
-        }} />
+            render()
+          }}
+          codeBlocks={[
+            { title: '顶点着色器', code: `attribute vec3 a_position;
+uniform mat4 u_mvpMatrix;
+
+void main() {
+  gl_Position = u_mvpMatrix * vec4(a_position, 1.0);
+}` },
+            { title: '片段着色器', code: `precision mediump float;
+uniform vec4 u_color;
+
+void main() {
+  gl_FragColor = u_color;
+}` },
+            { title: 'JavaScript 代码', code: `const program = createProgram(gl, vertexShader, fragmentShader)
+
+// 立方体顶点和索引
+const positions = [/* ... */]
+const indices = [/* ... */]
+
+const positionBuffer = createBuffer(gl, positions)
+const indexBuffer = createIndexBuffer(gl, indices)
+
+const aspect = canvas.width / canvas.height
+const projectionMatrix = Matrix.perspective(Math.PI / 4, aspect, 0.1, 100)
+
+// 轨道相机参数
+let radius = 3
+let theta = 0
+let phi = Math.PI / 4
+let isDragging = false
+let lastX = 0
+let lastY = 0
+
+// 鼠标事件处理
+canvas.addEventListener('mousedown', (e) => {
+  isDragging = true
+  lastX = e.clientX
+  lastY = e.clientY
+})
+
+canvas.addEventListener('mousemove', (e) => {
+  if (isDragging) {
+    const deltaX = e.clientX - lastX
+    const deltaY = e.clientY - lastY
+    
+    theta += deltaX * 0.01
+    phi = Math.max(0.1, Math.min(Math.PI - 0.1, phi + deltaY * 0.01))
+    
+    lastX = e.clientX
+    lastY = e.clientY
+  }
+})
+
+canvas.addEventListener('mouseup', () => {
+  isDragging = false
+})
+
+canvas.addEventListener('wheel', (e) => {
+  e.preventDefault()
+  radius += e.deltaY * 0.01
+  radius = Math.max(1, Math.min(10, radius))
+})
+
+const render = () => {
+  // 计算相机位置
+  const eyeX = radius * Math.sin(phi) * Math.cos(theta)
+  const eyeY = radius * Math.cos(phi)
+  const eyeZ = radius * Math.sin(phi) * Math.sin(theta)
+  
+  const viewMatrix = Matrix.lookAt(eyeX, eyeY, eyeZ, 0, 0, 0, 0, 1, 0)
+  const modelMatrix = Matrix.identity()
+  const mvpMatrix = Matrix.multiply(projectionMatrix, Matrix.multiply(viewMatrix, modelMatrix))
+  
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+  gl.useProgram(program)
+  
+  // 设置缓冲区和uniform
+  gl.uniformMatrix4fv(mvpMatrixLocation, false, mvpMatrix)
+  gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
+  
+  gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0)
+  requestAnimationFrame(render)
+}
+render()`, language: 'javascript' }
+          ]}
+        />
         
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           尝试用鼠标拖动来旋转相机，用滚轮来缩放。这是轨道相机的典型交互方式。

@@ -769,62 +769,116 @@ gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0)`, language: 
           <li>在后续章节中，我们会学习如何使用矩阵变换来将任意坐标转换到 NDC 空间</li>
         </ul>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
-          const vertexShader = `
-            attribute vec2 a_position;
-            uniform vec4 u_color;
-            varying vec4 v_color;
+        <FlipCard 
+          width={400} 
+          height={400} 
+          onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
+            const vertexShader = `
+              attribute vec2 a_position;
+              uniform vec4 u_color;
+              varying vec4 v_color;
+              
+              void main() {
+                gl_Position = vec4(a_position, 0.0, 1.0);
+                v_color = u_color;
+              }
+            `
             
-            void main() {
-              gl_Position = vec4(a_position, 0.0, 1.0);
-              v_color = u_color;
-            }
-          `
-          
-          const fragmentShader = `
-            precision mediump float;
-            varying vec4 v_color;
+            const fragmentShader = `
+              precision mediump float;
+              varying vec4 v_color;
+              
+              void main() {
+                gl_FragColor = v_color;
+              }
+            `
             
-            void main() {
-              gl_FragColor = v_color;
-            }
-          `
-          
-          const program = createProgram(gl, vertexShader, fragmentShader)
-          
-          // 绘制坐标轴
-          const positions = [
-            // X 轴（红色）
-            -1, 0, 1, 0,
-            // Y 轴（绿色）
-            0, -1, 0, 1,
-            // 原点标记
-            -0.02, -0.02, 0.02, -0.02, 0.02, 0.02, -0.02, 0.02
-          ]
-          
-          const positionBuffer = createBuffer(gl, positions)
-          const colorLocation = gl.getUniformLocation(program, 'u_color')
-          
-          gl.viewport(0, 0, canvas.width, canvas.height)
-          gl.clearColor(0.1, 0.1, 0.1, 1.0)
-          
-          gl.clear(gl.COLOR_BUFFER_BIT)
-          gl.useProgram(program)
-          gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-          setAttribute(gl, program, 'a_position', 2)
-          
-          // 绘制 X 轴
-          gl.uniform4f(colorLocation, 1.0, 0.0, 0.0, 1.0)
-          gl.drawArrays(gl.LINES, 0, 2)
-          
-          // 绘制 Y 轴
-          gl.uniform4f(colorLocation, 0.0, 1.0, 0.0, 1.0)
-          gl.drawArrays(gl.LINES, 2, 2)
-          
-          // 绘制原点
-          gl.uniform4f(colorLocation, 1.0, 1.0, 1.0, 1.0)
-          gl.drawArrays(gl.TRIANGLE_FAN, 4, 4)
-        }} />
+            const program = createProgram(gl, vertexShader, fragmentShader)
+            
+            // 绘制坐标轴
+            const positions = [
+              // X 轴（红色）
+              -1, 0, 1, 0,
+              // Y 轴（绿色）
+              0, -1, 0, 1,
+              // 原点标记
+              -0.02, -0.02, 0.02, -0.02, 0.02, 0.02, -0.02, 0.02
+            ]
+            
+            const positionBuffer = createBuffer(gl, positions)
+            const colorLocation = gl.getUniformLocation(program, 'u_color')
+            
+            gl.viewport(0, 0, canvas.width, canvas.height)
+            gl.clearColor(0.1, 0.1, 0.1, 1.0)
+            
+            gl.clear(gl.COLOR_BUFFER_BIT)
+            gl.useProgram(program)
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+            setAttribute(gl, program, 'a_position', 2)
+            
+            // 绘制 X 轴
+            gl.uniform4f(colorLocation, 1.0, 0.0, 0.0, 1.0)
+            gl.drawArrays(gl.LINES, 0, 2)
+            
+            // 绘制 Y 轴
+            gl.uniform4f(colorLocation, 0.0, 1.0, 0.0, 1.0)
+            gl.drawArrays(gl.LINES, 2, 2)
+            
+            // 绘制原点
+            gl.uniform4f(colorLocation, 1.0, 1.0, 1.0, 1.0)
+            gl.drawArrays(gl.TRIANGLE_FAN, 4, 4)
+          }}
+          codeBlocks={[
+            { title: '顶点着色器', code: `attribute vec2 a_position;
+uniform vec4 u_color;
+varying vec4 v_color;
+
+void main() {
+  gl_Position = vec4(a_position, 0.0, 1.0);
+  v_color = u_color;
+}` },
+            { title: '片段着色器', code: `precision mediump float;
+varying vec4 v_color;
+
+void main() {
+  gl_FragColor = v_color;
+}` },
+            { title: 'JavaScript 代码', code: `const program = createProgram(gl, vertexShader, fragmentShader)
+
+// 绘制坐标轴
+const positions = [
+  // X 轴（红色）
+  -1, 0, 1, 0,
+  // Y 轴（绿色）
+  0, -1, 0, 1,
+  // 原点标记
+  -0.02, -0.02, 0.02, -0.02, 0.02, 0.02, -0.02, 0.02
+]
+
+const positionBuffer = createBuffer(gl, positions)
+const colorLocation = gl.getUniformLocation(program, 'u_color')
+
+gl.viewport(0, 0, canvas.width, canvas.height)
+gl.clearColor(0.1, 0.1, 0.1, 1.0)
+
+gl.clear(gl.COLOR_BUFFER_BIT)
+gl.useProgram(program)
+gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+setAttribute(gl, program, 'a_position', 2)
+
+// 绘制 X 轴
+gl.uniform4f(colorLocation, 1.0, 0.0, 0.0, 1.0)
+gl.drawArrays(gl.LINES, 0, 2)
+
+// 绘制 Y 轴
+gl.uniform4f(colorLocation, 0.0, 1.0, 0.0, 1.0)
+gl.drawArrays(gl.LINES, 2, 2)
+
+// 绘制原点
+gl.uniform4f(colorLocation, 1.0, 1.0, 1.0, 1.0)
+gl.drawArrays(gl.TRIANGLE_FAN, 4, 4)`, language: 'javascript' }
+          ]}
+        />
         
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           上面的示例展示了 WebGL 的坐标系统。红色线是 X 轴，绿色线是 Y 轴，白色方块标记原点。
@@ -846,59 +900,110 @@ gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0)`, language: 
           <li><strong className="text-primary font-semibold">gl.TRIANGLE_FAN</strong>：从第一个顶点出发的三角形扇</li>
         </ul>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
-          const vertexShader = `
-            attribute vec2 a_position;
-            uniform vec4 u_color;
-            varying vec4 v_color;
+        <FlipCard 
+          width={400} 
+          height={400} 
+          onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
+            const vertexShader = `
+              attribute vec2 a_position;
+              uniform vec4 u_color;
+              varying vec4 v_color;
+              
+              void main() {
+                gl_Position = vec4(a_position, 0.0, 1.0);
+                v_color = u_color;
+              }
+            `
             
-            void main() {
-              gl_Position = vec4(a_position, 0.0, 1.0);
-              v_color = u_color;
-            }
-          `
-          
-          const fragmentShader = `
-            precision mediump float;
-            varying vec4 v_color;
+            const fragmentShader = `
+              precision mediump float;
+              varying vec4 v_color;
+              
+              void main() {
+                gl_FragColor = v_color;
+              }
+            `
             
-            void main() {
-              gl_FragColor = v_color;
-            }
-          `
-          
-          const program = createProgram(gl, vertexShader, fragmentShader)
-          
-          // 示例顶点
-          const positions = [
-            -0.8, 0.5, -0.4, 0.5, 0, 0.5, 0.4, 0.5, 0.8, 0.5,
-            -0.8, 0, -0.4, 0, 0, 0, 0.4, 0, 0.8, 0,
-            -0.8, -0.5, -0.4, -0.5, 0, -0.5, 0.4, -0.5, 0.8, -0.5
-          ]
-          
-          const positionBuffer = createBuffer(gl, positions)
-          const colorLocation = gl.getUniformLocation(program, 'u_color')
-          
-          gl.viewport(0, 0, canvas.width, canvas.height)
-          gl.clearColor(0.1, 0.1, 0.1, 1.0)
-          gl.clear(gl.COLOR_BUFFER_BIT)
-          gl.useProgram(program)
-          gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-          setAttribute(gl, program, 'a_position', 2)
-          
-          // 绘制不同模式
-          const modes = [
-            { mode: gl.POINTS, color: [1, 0, 0, 1], y: 0.5, label: 'POINTS' },
-            { mode: gl.LINES, color: [0, 1, 0, 1], y: 0, label: 'LINES' },
-            { mode: gl.TRIANGLES, color: [0, 0.5, 1, 1], y: -0.5, label: 'TRIANGLES' }
-          ]
-          
-          modes.forEach(({ mode, color, y }) => {
-            const offset = y === 0.5 ? 0 : y === 0 ? 5 : 10
-            gl.uniform4f(colorLocation, color[0], color[1], color[2], color[3])
-            gl.drawArrays(mode, offset, 5)
-          })
-        }} />
+            const program = createProgram(gl, vertexShader, fragmentShader)
+            
+            // 示例顶点
+            const positions = [
+              -0.8, 0.5, -0.4, 0.5, 0, 0.5, 0.4, 0.5, 0.8, 0.5,
+              -0.8, 0, -0.4, 0, 0, 0, 0.4, 0, 0.8, 0,
+              -0.8, -0.5, -0.4, -0.5, 0, -0.5, 0.4, -0.5, 0.8, -0.5
+            ]
+            
+            const positionBuffer = createBuffer(gl, positions)
+            const colorLocation = gl.getUniformLocation(program, 'u_color')
+            
+            gl.viewport(0, 0, canvas.width, canvas.height)
+            gl.clearColor(0.1, 0.1, 0.1, 1.0)
+            gl.clear(gl.COLOR_BUFFER_BIT)
+            gl.useProgram(program)
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+            setAttribute(gl, program, 'a_position', 2)
+            
+            // 绘制不同模式
+            const modes = [
+              { mode: gl.POINTS, color: [1, 0, 0, 1], y: 0.5, label: 'POINTS' },
+              { mode: gl.LINES, color: [0, 1, 0, 1], y: 0, label: 'LINES' },
+              { mode: gl.TRIANGLES, color: [0, 0.5, 1, 1], y: -0.5, label: 'TRIANGLES' }
+            ]
+            
+            modes.forEach(({ mode, color, y }) => {
+              const offset = y === 0.5 ? 0 : y === 0 ? 5 : 10
+              gl.uniform4f(colorLocation, color[0], color[1], color[2], color[3])
+              gl.drawArrays(mode, offset, 5)
+            })
+          }}
+          codeBlocks={[
+            { title: '顶点着色器', code: `attribute vec2 a_position;
+uniform vec4 u_color;
+varying vec4 v_color;
+
+void main() {
+  gl_Position = vec4(a_position, 0.0, 1.0);
+  v_color = u_color;
+}` },
+            { title: '片段着色器', code: `precision mediump float;
+varying vec4 v_color;
+
+void main() {
+  gl_FragColor = v_color;
+}` },
+            { title: 'JavaScript 代码', code: `const program = createProgram(gl, vertexShader, fragmentShader)
+
+// 示例顶点
+const positions = [
+  -0.8, 0.5, -0.4, 0.5, 0, 0.5, 0.4, 0.5, 0.8, 0.5,
+  -0.8, 0, -0.4, 0, 0, 0, 0.4, 0, 0.8, 0,
+  -0.8, -0.5, -0.4, -0.5, 0, -0.5, 0.4, -0.5, 0.8, -0.5
+]
+
+const positionBuffer = createBuffer(gl, positions)
+const colorLocation = gl.getUniformLocation(program, 'u_color')
+
+gl.viewport(0, 0, canvas.width, canvas.height)
+gl.clearColor(0.1, 0.1, 0.1, 1.0)
+gl.clear(gl.COLOR_BUFFER_BIT)
+gl.useProgram(program)
+gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+setAttribute(gl, program, 'a_position', 2)
+
+// 绘制不同模式
+const modes = [
+  { mode: gl.POINTS, color: [1, 0, 0, 1], y: 0.5 },
+  { mode: gl.LINES, color: [0, 1, 0, 1], y: 0 },
+  { mode: gl.TRIANGLES, color: [0, 0.5, 1, 1], y: -0.5 }
+]
+
+modes.forEach(({ mode, color, y }) => {
+  const offset = y === 0.5 ? 0 : y === 0 ? 5 : 10
+  gl.uniform4f(colorLocation, color[0], color[1], color[2], color[3])
+  gl.drawArrays(mode, offset, 5)
+})`, language: 'javascript' }
+          ]}
+        />
         
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           上面的示例展示了三种不同的绘制模式。选择合适的模式可以优化性能并简化代码。

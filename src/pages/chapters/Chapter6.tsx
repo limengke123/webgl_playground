@@ -1,5 +1,6 @@
 import WebGLCanvas from '../../components/WebGLCanvas'
 import CodeBlock from '../../components/CodeBlock'
+import FlipCard from '../../components/FlipCard'
 import ChapterNavigation from '../../components/ChapterNavigation'
 import { createProgram, createBuffer, setAttribute, Matrix, createIndexBuffer } from '../../utils/webgl'
 
@@ -317,64 +318,110 @@ void main() {
           </li>
         </ul>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
-          const vertexShader = `
-            attribute vec3 a_position;
-            uniform mat4 u_mvpMatrix;
+        <FlipCard 
+          width={400} 
+          height={400} 
+          onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
+            const vertexShader = `
+              attribute vec3 a_position;
+              uniform mat4 u_mvpMatrix;
+              
+              void main() {
+                gl_Position = u_mvpMatrix * vec4(a_position, 1.0);
+              }
+            `
             
-            void main() {
-              gl_Position = u_mvpMatrix * vec4(a_position, 1.0);
-            }
-          `
-          
-          const fragmentShader = `
-            precision mediump float;
-            uniform vec3 u_ambientColor;
-            uniform vec3 u_materialColor;
+            const fragmentShader = `
+              precision mediump float;
+              uniform vec3 u_ambientColor;
+              uniform vec3 u_materialColor;
+              
+              void main() {
+                vec3 ambient = u_ambientColor * u_materialColor;
+                gl_FragColor = vec4(ambient, 1.0);
+              }
+            `
             
-            void main() {
-              vec3 ambient = u_ambientColor * u_materialColor;
-              gl_FragColor = vec4(ambient, 1.0);
-            }
-          `
-          
-          const program = createProgram(gl, vertexShader, fragmentShader)
-          
-          const positions = [
-            -0.5, -0.5, 0,  0.5, -0.5, 0,  0.5, 0.5, 0,  -0.5, 0.5, 0,
-          ]
-          const indices = [0, 1, 2, 0, 2, 3]
-          
-          const positionBuffer = createBuffer(gl, positions)
-          const indexBuffer = createIndexBuffer(gl, indices)
-          
-          const mvpMatrixLocation = gl.getUniformLocation(program, 'u_mvpMatrix')
-          const ambientColorLocation = gl.getUniformLocation(program, 'u_ambientColor')
-          const materialColorLocation = gl.getUniformLocation(program, 'u_materialColor')
-          
-          gl.viewport(0, 0, canvas.width, canvas.height)
-          gl.enable(gl.DEPTH_TEST)
-          gl.clearColor(0.1, 0.1, 0.1, 1.0)
-          
-          const aspect = canvas.width / canvas.height
-          const projectionMatrix = Matrix.perspective(Math.PI / 4, aspect, 0.1, 100)
-          const viewMatrix = Matrix.lookAt(0, 0, 2, 0, 0, 0, 0, 1, 0)
-          const modelMatrix = Matrix.identity()
-          const mvpMatrix = Matrix.multiply(projectionMatrix, Matrix.multiply(viewMatrix, modelMatrix))
-          
-          gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-          gl.useProgram(program)
-          
-          gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-          setAttribute(gl, program, 'a_position', 3)
-          gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
-          
-          gl.uniformMatrix4fv(mvpMatrixLocation, false, mvpMatrix)
-          gl.uniform3f(ambientColorLocation, 0.3, 0.3, 0.3)
-          gl.uniform3f(materialColorLocation, 0.2, 0.6, 1.0)
-          
-          gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
-        }} />
+            const program = createProgram(gl, vertexShader, fragmentShader)
+            
+            const positions = [
+              -0.5, -0.5, 0,  0.5, -0.5, 0,  0.5, 0.5, 0,  -0.5, 0.5, 0,
+            ]
+            const indices = [0, 1, 2, 0, 2, 3]
+            
+            const positionBuffer = createBuffer(gl, positions)
+            const indexBuffer = createIndexBuffer(gl, indices)
+            
+            const mvpMatrixLocation = gl.getUniformLocation(program, 'u_mvpMatrix')
+            const ambientColorLocation = gl.getUniformLocation(program, 'u_ambientColor')
+            const materialColorLocation = gl.getUniformLocation(program, 'u_materialColor')
+            
+            gl.viewport(0, 0, canvas.width, canvas.height)
+            gl.enable(gl.DEPTH_TEST)
+            gl.clearColor(0.1, 0.1, 0.1, 1.0)
+            
+            const aspect = canvas.width / canvas.height
+            const projectionMatrix = Matrix.perspective(Math.PI / 4, aspect, 0.1, 100)
+            const viewMatrix = Matrix.lookAt(0, 0, 2, 0, 0, 0, 0, 1, 0)
+            const modelMatrix = Matrix.identity()
+            const mvpMatrix = Matrix.multiply(projectionMatrix, Matrix.multiply(viewMatrix, modelMatrix))
+            
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+            gl.useProgram(program)
+            
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+            setAttribute(gl, program, 'a_position', 3)
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+            
+            gl.uniformMatrix4fv(mvpMatrixLocation, false, mvpMatrix)
+            gl.uniform3f(ambientColorLocation, 0.3, 0.3, 0.3)
+            gl.uniform3f(materialColorLocation, 0.2, 0.6, 1.0)
+            
+            gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
+          }}
+          codeBlocks={[
+            { title: '顶点着色器', code: `attribute vec3 a_position;
+uniform mat4 u_mvpMatrix;
+
+void main() {
+  gl_Position = u_mvpMatrix * vec4(a_position, 1.0);
+}` },
+            { title: '片段着色器', code: `precision mediump float;
+uniform vec3 u_ambientColor;
+uniform vec3 u_materialColor;
+
+void main() {
+  vec3 ambient = u_ambientColor * u_materialColor;
+  gl_FragColor = vec4(ambient, 1.0);
+}` },
+            { title: 'JavaScript 代码', code: `const program = createProgram(gl, vertexShader, fragmentShader)
+
+const positions = [-0.5, -0.5, 0,  0.5, -0.5, 0,  0.5, 0.5, 0,  -0.5, 0.5, 0]
+const indices = [0, 1, 2, 0, 2, 3]
+
+const positionBuffer = createBuffer(gl, positions)
+const indexBuffer = createIndexBuffer(gl, indices)
+
+const aspect = canvas.width / canvas.height
+const projectionMatrix = Matrix.perspective(Math.PI / 4, aspect, 0.1, 100)
+const viewMatrix = Matrix.lookAt(0, 0, 2, 0, 0, 0, 0, 1, 0)
+const modelMatrix = Matrix.identity()
+const mvpMatrix = Matrix.multiply(projectionMatrix, Matrix.multiply(viewMatrix, modelMatrix))
+
+gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+gl.useProgram(program)
+
+gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+setAttribute(gl, program, 'a_position', 3)
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+
+gl.uniformMatrix4fv(mvpMatrixLocation, false, mvpMatrix)
+gl.uniform3f(ambientColorLocation, 0.3, 0.3, 0.3)
+gl.uniform3f(materialColorLocation, 0.2, 0.6, 1.0)
+
+gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)`, language: 'javascript' }
+          ]}
+        />
       </section>
 
       <section className="mb-12">
@@ -512,105 +559,172 @@ void main() {
           <li>让物体看起来有立体感</li>
         </ul>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
-          const vertexShader = `
-            attribute vec3 a_position;
-            attribute vec3 a_normal;
-            uniform mat4 u_mvpMatrix;
-            uniform mat4 u_normalMatrix;
-            varying vec3 v_normal;
-            
-            void main() {
-              gl_Position = u_mvpMatrix * vec4(a_position, 1.0);
-              v_normal = normalize((u_normalMatrix * vec4(a_normal, 0.0)).xyz);
-            }
-          `
-          
-          const fragmentShader = `
-            precision mediump float;
-            uniform vec3 u_lightDirection;
-            uniform vec3 u_lightColor;
-            uniform vec3 u_materialColor;
-            varying vec3 v_normal;
-            
-            void main() {
-              vec3 normal = normalize(v_normal);
-              vec3 lightDir = normalize(-u_lightDirection);
+        <FlipCard 
+          width={400} 
+          height={400} 
+          onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
+            const vertexShader = `
+              attribute vec3 a_position;
+              attribute vec3 a_normal;
+              uniform mat4 u_mvpMatrix;
+              uniform mat4 u_normalMatrix;
+              varying vec3 v_normal;
               
-              float diff = max(dot(normal, lightDir), 0.0);
-              vec3 diffuse = diff * u_lightColor * u_materialColor;
+              void main() {
+                gl_Position = u_mvpMatrix * vec4(a_position, 1.0);
+                v_normal = normalize((u_normalMatrix * vec4(a_normal, 0.0)).xyz);
+              }
+            `
+            
+            const fragmentShader = `
+              precision mediump float;
+              uniform vec3 u_lightDirection;
+              uniform vec3 u_lightColor;
+              uniform vec3 u_materialColor;
+              varying vec3 v_normal;
               
-              gl_FragColor = vec4(diffuse, 1.0);
-            }
-          `
-          
-          const program = createProgram(gl, vertexShader, fragmentShader)
-          
-          // 立方体顶点和法线
-          const positions = [
-            -0.5, -0.5,  0.5,  0.5, -0.5,  0.5,  0.5,  0.5,  0.5,  -0.5,  0.5,  0.5,
-            -0.5, -0.5, -0.5,  -0.5,  0.5, -0.5,  0.5,  0.5, -0.5,  0.5, -0.5, -0.5,
-            -0.5,  0.5, -0.5,  -0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5, -0.5,
-            -0.5, -0.5, -0.5,  0.5, -0.5, -0.5,  0.5, -0.5,  0.5,  -0.5, -0.5,  0.5,
-             0.5, -0.5, -0.5,  0.5,  0.5, -0.5,  0.5,  0.5,  0.5,  0.5, -0.5,  0.5,
-            -0.5, -0.5, -0.5,  -0.5, -0.5,  0.5,  -0.5,  0.5,  0.5,  -0.5,  0.5, -0.5,
-          ]
-          
-          const normals = [
-            0, 0, 1,  0, 0, 1,  0, 0, 1,  0, 0, 1,
-            0, 0, -1,  0, 0, -1,  0, 0, -1,  0, 0, -1,
-            0, 1, 0,  0, 1, 0,  0, 1, 0,  0, 1, 0,
-            0, -1, 0,  0, -1, 0,  0, -1, 0,  0, -1, 0,
-            1, 0, 0,  1, 0, 0,  1, 0, 0,  1, 0, 0,
-            -1, 0, 0,  -1, 0, 0,  -1, 0, 0,  -1, 0, 0,
-          ]
-          
-          const indices = [
-            0,  1,  2,   0,  2,  3,   4,  5,  6,   4,  6,  7,
-            8,  9,  10,  8,  10, 11,  12, 13, 14,  12, 14, 15,
-            16, 17, 18,  16, 18, 19,  20, 21, 22,  20, 22, 23,
-          ]
-          
-          const positionBuffer = createBuffer(gl, positions)
-          const normalBuffer = createBuffer(gl, normals)
-          const indexBuffer = createIndexBuffer(gl, indices)
-          
-          const mvpMatrixLocation = gl.getUniformLocation(program, 'u_mvpMatrix')
-          const normalMatrixLocation = gl.getUniformLocation(program, 'u_normalMatrix')
-          const lightDirectionLocation = gl.getUniformLocation(program, 'u_lightDirection')
-          const lightColorLocation = gl.getUniformLocation(program, 'u_lightColor')
-          const materialColorLocation = gl.getUniformLocation(program, 'u_materialColor')
-          
-          gl.viewport(0, 0, canvas.width, canvas.height)
-          gl.enable(gl.DEPTH_TEST)
-          gl.clearColor(0.1, 0.1, 0.1, 1.0)
-          
-          const aspect = canvas.width / canvas.height
-          const projectionMatrix = Matrix.perspective(Math.PI / 4, aspect, 0.1, 100)
-          const viewMatrix = Matrix.lookAt(2, 2, 2, 0, 0, 0, 0, 1, 0)
-          const modelMatrix = Matrix.identity()
-          const mvpMatrix = Matrix.multiply(projectionMatrix, Matrix.multiply(viewMatrix, modelMatrix))
-          const normalMatrix = viewMatrix  // 简化：假设模型矩阵是单位矩阵
-          
-          gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-          gl.useProgram(program)
-          
-          gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-          setAttribute(gl, program, 'a_position', 3)
-          
-          gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer)
-          setAttribute(gl, program, 'a_normal', 3)
-          
-          gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
-          
-          gl.uniformMatrix4fv(mvpMatrixLocation, false, mvpMatrix)
-          gl.uniformMatrix4fv(normalMatrixLocation, false, normalMatrix)
-          gl.uniform3f(lightDirectionLocation, 1, 1, 1)
-          gl.uniform3f(lightColorLocation, 1, 1, 1)
-          gl.uniform3f(materialColorLocation, 0.2, 0.6, 1.0)
-          
-          gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0)
-        }} />
+              void main() {
+                vec3 normal = normalize(v_normal);
+                vec3 lightDir = normalize(-u_lightDirection);
+                
+                float diff = max(dot(normal, lightDir), 0.0);
+                vec3 diffuse = diff * u_lightColor * u_materialColor;
+                
+                gl_FragColor = vec4(diffuse, 1.0);
+              }
+            `
+            
+            const program = createProgram(gl, vertexShader, fragmentShader)
+            
+            // 立方体顶点和法线
+            const positions = [
+              -0.5, -0.5,  0.5,  0.5, -0.5,  0.5,  0.5,  0.5,  0.5,  -0.5,  0.5,  0.5,
+              -0.5, -0.5, -0.5,  -0.5,  0.5, -0.5,  0.5,  0.5, -0.5,  0.5, -0.5, -0.5,
+              -0.5,  0.5, -0.5,  -0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5, -0.5,
+              -0.5, -0.5, -0.5,  0.5, -0.5, -0.5,  0.5, -0.5,  0.5,  -0.5, -0.5,  0.5,
+               0.5, -0.5, -0.5,  0.5,  0.5, -0.5,  0.5,  0.5,  0.5,  0.5, -0.5,  0.5,
+              -0.5, -0.5, -0.5,  -0.5, -0.5,  0.5,  -0.5,  0.5,  0.5,  -0.5,  0.5, -0.5,
+            ]
+            
+            const normals = [
+              0, 0, 1,  0, 0, 1,  0, 0, 1,  0, 0, 1,
+              0, 0, -1,  0, 0, -1,  0, 0, -1,  0, 0, -1,
+              0, 1, 0,  0, 1, 0,  0, 1, 0,  0, 1, 0,
+              0, -1, 0,  0, -1, 0,  0, -1, 0,  0, -1, 0,
+              1, 0, 0,  1, 0, 0,  1, 0, 0,  1, 0, 0,
+              -1, 0, 0,  -1, 0, 0,  -1, 0, 0,  -1, 0, 0,
+            ]
+            
+            const indices = [
+              0,  1,  2,   0,  2,  3,   4,  5,  6,   4,  6,  7,
+              8,  9,  10,  8,  10, 11,  12, 13, 14,  12, 14, 15,
+              16, 17, 18,  16, 18, 19,  20, 21, 22,  20, 22, 23,
+            ]
+            
+            const positionBuffer = createBuffer(gl, positions)
+            const normalBuffer = createBuffer(gl, normals)
+            const indexBuffer = createIndexBuffer(gl, indices)
+            
+            const mvpMatrixLocation = gl.getUniformLocation(program, 'u_mvpMatrix')
+            const normalMatrixLocation = gl.getUniformLocation(program, 'u_normalMatrix')
+            const lightDirectionLocation = gl.getUniformLocation(program, 'u_lightDirection')
+            const lightColorLocation = gl.getUniformLocation(program, 'u_lightColor')
+            const materialColorLocation = gl.getUniformLocation(program, 'u_materialColor')
+            
+            gl.viewport(0, 0, canvas.width, canvas.height)
+            gl.enable(gl.DEPTH_TEST)
+            gl.clearColor(0.1, 0.1, 0.1, 1.0)
+            
+            const aspect = canvas.width / canvas.height
+            const projectionMatrix = Matrix.perspective(Math.PI / 4, aspect, 0.1, 100)
+            const viewMatrix = Matrix.lookAt(2, 2, 2, 0, 0, 0, 0, 1, 0)
+            const modelMatrix = Matrix.identity()
+            const mvpMatrix = Matrix.multiply(projectionMatrix, Matrix.multiply(viewMatrix, modelMatrix))
+            const normalMatrix = viewMatrix  // 简化：假设模型矩阵是单位矩阵
+            
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+            gl.useProgram(program)
+            
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+            setAttribute(gl, program, 'a_position', 3)
+            
+            gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer)
+            setAttribute(gl, program, 'a_normal', 3)
+            
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+            
+            gl.uniformMatrix4fv(mvpMatrixLocation, false, mvpMatrix)
+            gl.uniformMatrix4fv(normalMatrixLocation, false, normalMatrix)
+            gl.uniform3f(lightDirectionLocation, 1, 1, 1)
+            gl.uniform3f(lightColorLocation, 1, 1, 1)
+            gl.uniform3f(materialColorLocation, 0.2, 0.6, 1.0)
+            
+            gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0)
+          }}
+          codeBlocks={[
+            { title: '顶点着色器', code: `attribute vec3 a_position;
+attribute vec3 a_normal;
+uniform mat4 u_mvpMatrix;
+uniform mat4 u_normalMatrix;
+varying vec3 v_normal;
+
+void main() {
+  gl_Position = u_mvpMatrix * vec4(a_position, 1.0);
+  v_normal = normalize((u_normalMatrix * vec4(a_normal, 0.0)).xyz);
+}` },
+            { title: '片段着色器', code: `precision mediump float;
+uniform vec3 u_lightDirection;
+uniform vec3 u_lightColor;
+uniform vec3 u_materialColor;
+varying vec3 v_normal;
+
+void main() {
+  vec3 normal = normalize(v_normal);
+  vec3 lightDir = normalize(-u_lightDirection);
+  
+  float diff = max(dot(normal, lightDir), 0.0);
+  vec3 diffuse = diff * u_lightColor * u_materialColor;
+  
+  gl_FragColor = vec4(diffuse, 1.0);
+}` },
+            { title: 'JavaScript 代码', code: `const program = createProgram(gl, vertexShader, fragmentShader)
+
+// 立方体顶点和法线
+const positions = [/* 立方体顶点数据 */]
+const normals = [/* 立方体法线数据 */]
+const indices = [/* 立方体索引数据 */]
+
+const positionBuffer = createBuffer(gl, positions)
+const normalBuffer = createBuffer(gl, normals)
+const indexBuffer = createIndexBuffer(gl, indices)
+
+const aspect = canvas.width / canvas.height
+const projectionMatrix = Matrix.perspective(Math.PI / 4, aspect, 0.1, 100)
+const viewMatrix = Matrix.lookAt(2, 2, 2, 0, 0, 0, 0, 1, 0)
+const modelMatrix = Matrix.identity()
+const mvpMatrix = Matrix.multiply(projectionMatrix, Matrix.multiply(viewMatrix, modelMatrix))
+const normalMatrix = viewMatrix
+
+gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+gl.useProgram(program)
+
+gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+setAttribute(gl, program, 'a_position', 3)
+
+gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer)
+setAttribute(gl, program, 'a_normal', 3)
+
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+
+gl.uniformMatrix4fv(mvpMatrixLocation, false, mvpMatrix)
+gl.uniformMatrix4fv(normalMatrixLocation, false, normalMatrix)
+gl.uniform3f(lightDirectionLocation, 1, 1, 1)
+gl.uniform3f(lightColorLocation, 1, 1, 1)
+gl.uniform3f(materialColorLocation, 0.2, 0.6, 1.0)
+
+gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0)`, language: 'javascript' }
+          ]}
+        />
       </section>
 
       <section className="mb-12">
@@ -870,8 +984,11 @@ void main() {
           下面是一个完整的 Phong 光照示例，展示旋转的立方体：
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
-          const vertexShader = `attribute vec3 a_position;
+        <FlipCard 
+          width={400} 
+          height={400} 
+          onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
+            const vertexShader = `attribute vec3 a_position;
 attribute vec3 a_normal;
 uniform mat4 u_modelMatrix;
 uniform mat4 u_viewMatrix;
@@ -887,8 +1004,8 @@ void main() {
   v_normal = normalize((u_normalMatrix * vec4(a_normal, 0.0)).xyz);
   v_position = viewPos.xyz;
 }`
-          
-          const fragmentShader = `precision mediump float;
+            
+            const fragmentShader = `precision mediump float;
 uniform vec3 u_ambientColor;
 uniform vec3 u_lightDirection;
 uniform vec3 u_lightColor;
@@ -910,106 +1027,191 @@ void main() {
   vec3 result = ambient + diffuse + specular;
   gl_FragColor = vec4(result, 1.0);
 }`
-          
-          const program = createProgram(gl, vertexShader, fragmentShader)
-          
-          // 立方体顶点和法线
-          const positions = [
-            -0.5, -0.5,  0.5,  0.5, -0.5,  0.5,  0.5,  0.5,  0.5,  -0.5,  0.5,  0.5,
-            -0.5, -0.5, -0.5,  -0.5,  0.5, -0.5,  0.5,  0.5, -0.5,  0.5, -0.5, -0.5,
-            -0.5,  0.5, -0.5,  -0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5, -0.5,
-            -0.5, -0.5, -0.5,  0.5, -0.5, -0.5,  0.5, -0.5,  0.5,  -0.5, -0.5,  0.5,
-             0.5, -0.5, -0.5,  0.5,  0.5, -0.5,  0.5,  0.5,  0.5,  0.5, -0.5,  0.5,
-            -0.5, -0.5, -0.5,  -0.5, -0.5,  0.5,  -0.5,  0.5,  0.5,  -0.5,  0.5, -0.5,
-          ]
-          
-          const normals = [
-            0, 0, 1,  0, 0, 1,  0, 0, 1,  0, 0, 1,
-            0, 0, -1,  0, 0, -1,  0, 0, -1,  0, 0, -1,
-            0, 1, 0,  0, 1, 0,  0, 1, 0,  0, 1, 0,
-            0, -1, 0,  0, -1, 0,  0, -1, 0,  0, -1, 0,
-            1, 0, 0,  1, 0, 0,  1, 0, 0,  1, 0, 0,
-            -1, 0, 0,  -1, 0, 0,  -1, 0, 0,  -1, 0, 0,
-          ]
-          
-          const indices = [
-            0,  1,  2,   0,  2,  3,   4,  5,  6,   4,  6,  7,
-            8,  9,  10,  8,  10, 11,  12, 13, 14,  12, 14, 15,
-            16, 17, 18,  16, 18, 19,  20, 21, 22,  20, 22, 23,
-          ]
-          
-          const positionBuffer = createBuffer(gl, positions)
-          const normalBuffer = createBuffer(gl, normals)
-          const indexBuffer = createIndexBuffer(gl, indices)
-          
-          const modelMatrixLocation = gl.getUniformLocation(program, 'u_modelMatrix')
-          const viewMatrixLocation = gl.getUniformLocation(program, 'u_viewMatrix')
-          const projectionMatrixLocation = gl.getUniformLocation(program, 'u_projectionMatrix')
-          const normalMatrixLocation = gl.getUniformLocation(program, 'u_normalMatrix')
-          const ambientColorLocation = gl.getUniformLocation(program, 'u_ambientColor')
-          const lightDirectionLocation = gl.getUniformLocation(program, 'u_lightDirection')
-          const lightColorLocation = gl.getUniformLocation(program, 'u_lightColor')
-          const materialColorLocation = gl.getUniformLocation(program, 'u_materialColor')
-          const shininessLocation = gl.getUniformLocation(program, 'u_shininess')
-          
-          const positionLocation = gl.getAttribLocation(program, 'a_position')
-          const normalLocation = gl.getAttribLocation(program, 'a_normal')
-          
-          if (positionLocation === -1 || normalLocation === -1) {
-            console.error('属性未找到')
-            return
-          }
-          
-          gl.viewport(0, 0, canvas.width, canvas.height)
-          gl.enable(gl.DEPTH_TEST)
-          gl.clearColor(0.1, 0.1, 0.1, 1.0)
-          
-          const aspect = canvas.width / canvas.height
-          const projectionMatrix = Matrix.perspective(Math.PI / 4, aspect, 0.1, 100)
-          const viewMatrix = Matrix.lookAt(2, 2, 2, 0, 0, 0, 0, 1, 0)
-          
-          let angle = 0
-          const render = () => {
-            angle += 0.02
             
-            // 模型矩阵：旋转立方体
-            const modelMatrix = Matrix.multiply(
-              Matrix.rotationY(angle),
-              Matrix.rotationX(angle * 0.5)
-            )
+            const program = createProgram(gl, vertexShader, fragmentShader)
             
-            // 法线矩阵（简化：假设没有缩放）
-            const normalMatrix = viewMatrix
+            // 立方体顶点和法线
+            const positions = [
+              -0.5, -0.5,  0.5,  0.5, -0.5,  0.5,  0.5,  0.5,  0.5,  -0.5,  0.5,  0.5,
+              -0.5, -0.5, -0.5,  -0.5,  0.5, -0.5,  0.5,  0.5, -0.5,  0.5, -0.5, -0.5,
+              -0.5,  0.5, -0.5,  -0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5,  0.5, -0.5,
+              -0.5, -0.5, -0.5,  0.5, -0.5, -0.5,  0.5, -0.5,  0.5,  -0.5, -0.5,  0.5,
+               0.5, -0.5, -0.5,  0.5,  0.5, -0.5,  0.5,  0.5,  0.5,  0.5, -0.5,  0.5,
+              -0.5, -0.5, -0.5,  -0.5, -0.5,  0.5,  -0.5,  0.5,  0.5,  -0.5,  0.5, -0.5,
+            ]
             
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-            gl.useProgram(program)
+            const normals = [
+              0, 0, 1,  0, 0, 1,  0, 0, 1,  0, 0, 1,
+              0, 0, -1,  0, 0, -1,  0, 0, -1,  0, 0, -1,
+              0, 1, 0,  0, 1, 0,  0, 1, 0,  0, 1, 0,
+              0, -1, 0,  0, -1, 0,  0, -1, 0,  0, -1, 0,
+              1, 0, 0,  1, 0, 0,  1, 0, 0,  1, 0, 0,
+              -1, 0, 0,  -1, 0, 0,  -1, 0, 0,  -1, 0, 0,
+            ]
             
-            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-            gl.enableVertexAttribArray(positionLocation)
-            gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0)
+            const indices = [
+              0,  1,  2,   0,  2,  3,   4,  5,  6,   4,  6,  7,
+              8,  9,  10,  8,  10, 11,  12, 13, 14,  12, 14, 15,
+              16, 17, 18,  16, 18, 19,  20, 21, 22,  20, 22, 23,
+            ]
             
-            gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer)
-            gl.enableVertexAttribArray(normalLocation)
-            gl.vertexAttribPointer(normalLocation, 3, gl.FLOAT, false, 0, 0)
+            const positionBuffer = createBuffer(gl, positions)
+            const normalBuffer = createBuffer(gl, normals)
+            const indexBuffer = createIndexBuffer(gl, indices)
             
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+            const modelMatrixLocation = gl.getUniformLocation(program, 'u_modelMatrix')
+            const viewMatrixLocation = gl.getUniformLocation(program, 'u_viewMatrix')
+            const projectionMatrixLocation = gl.getUniformLocation(program, 'u_projectionMatrix')
+            const normalMatrixLocation = gl.getUniformLocation(program, 'u_normalMatrix')
+            const ambientColorLocation = gl.getUniformLocation(program, 'u_ambientColor')
+            const lightDirectionLocation = gl.getUniformLocation(program, 'u_lightDirection')
+            const lightColorLocation = gl.getUniformLocation(program, 'u_lightColor')
+            const materialColorLocation = gl.getUniformLocation(program, 'u_materialColor')
+            const shininessLocation = gl.getUniformLocation(program, 'u_shininess')
             
-            gl.uniformMatrix4fv(modelMatrixLocation, false, modelMatrix)
-            gl.uniformMatrix4fv(viewMatrixLocation, false, viewMatrix)
-            gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix)
-            gl.uniformMatrix4fv(normalMatrixLocation, false, normalMatrix)
+            const positionLocation = gl.getAttribLocation(program, 'a_position')
+            const normalLocation = gl.getAttribLocation(program, 'a_normal')
             
-            gl.uniform3f(ambientColorLocation, 0.2, 0.2, 0.2)
-            gl.uniform3f(lightDirectionLocation, 1, 1, 1)
-            gl.uniform3f(lightColorLocation, 1, 1, 1)
-            gl.uniform3f(materialColorLocation, 0.2, 0.6, 1.0)
-            gl.uniform1f(shininessLocation, 32.0)
+            if (positionLocation === -1 || normalLocation === -1) {
+              console.error('属性未找到')
+              return
+            }
             
-            gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0)
-            requestAnimationFrame(render)
-          }
-          render()
-        }} />
+            gl.viewport(0, 0, canvas.width, canvas.height)
+            gl.enable(gl.DEPTH_TEST)
+            gl.clearColor(0.1, 0.1, 0.1, 1.0)
+            
+            const aspect = canvas.width / canvas.height
+            const projectionMatrix = Matrix.perspective(Math.PI / 4, aspect, 0.1, 100)
+            const viewMatrix = Matrix.lookAt(2, 2, 2, 0, 0, 0, 0, 1, 0)
+            
+            let angle = 0
+            const render = () => {
+              angle += 0.02
+              
+              // 模型矩阵：旋转立方体
+              const modelMatrix = Matrix.multiply(
+                Matrix.rotationY(angle),
+                Matrix.rotationX(angle * 0.5)
+              )
+              
+              // 法线矩阵（简化：假设没有缩放）
+              const normalMatrix = viewMatrix
+              
+              gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+              gl.useProgram(program)
+              
+              gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+              gl.enableVertexAttribArray(positionLocation)
+              gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0)
+              
+              gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer)
+              gl.enableVertexAttribArray(normalLocation)
+              gl.vertexAttribPointer(normalLocation, 3, gl.FLOAT, false, 0, 0)
+              
+              gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+              
+              gl.uniformMatrix4fv(modelMatrixLocation, false, modelMatrix)
+              gl.uniformMatrix4fv(viewMatrixLocation, false, viewMatrix)
+              gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix)
+              gl.uniformMatrix4fv(normalMatrixLocation, false, normalMatrix)
+              
+              gl.uniform3f(ambientColorLocation, 0.2, 0.2, 0.2)
+              gl.uniform3f(lightDirectionLocation, 1, 1, 1)
+              gl.uniform3f(lightColorLocation, 1, 1, 1)
+              gl.uniform3f(materialColorLocation, 0.2, 0.6, 1.0)
+              gl.uniform1f(shininessLocation, 32.0)
+              
+              gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0)
+              requestAnimationFrame(render)
+            }
+            render()
+          }}
+          codeBlocks={[
+            { title: '顶点着色器', code: `attribute vec3 a_position;
+attribute vec3 a_normal;
+uniform mat4 u_modelMatrix;
+uniform mat4 u_viewMatrix;
+uniform mat4 u_projectionMatrix;
+uniform mat4 u_normalMatrix;
+varying vec3 v_normal;
+varying vec3 v_position;
+
+void main() {
+  vec4 worldPos = u_modelMatrix * vec4(a_position, 1.0);
+  vec4 viewPos = u_viewMatrix * worldPos;
+  gl_Position = u_projectionMatrix * viewPos;
+  v_normal = normalize((u_normalMatrix * vec4(a_normal, 0.0)).xyz);
+  v_position = viewPos.xyz;
+}` },
+            { title: '片段着色器', code: `precision mediump float;
+uniform vec3 u_ambientColor;
+uniform vec3 u_lightDirection;
+uniform vec3 u_lightColor;
+uniform vec3 u_materialColor;
+uniform float u_shininess;
+varying vec3 v_normal;
+varying vec3 v_position;
+
+void main() {
+  vec3 normal = normalize(v_normal);
+  vec3 lightDir = normalize(-u_lightDirection);
+  vec3 ambient = u_ambientColor * u_materialColor;
+  float diff = max(dot(normal, lightDir), 0.0);
+  vec3 diffuse = diff * u_lightColor * u_materialColor;
+  vec3 viewDir = normalize(-v_position);
+  vec3 reflectDir = reflect(-lightDir, normal);
+  float spec = pow(max(dot(viewDir, reflectDir), 0.0), u_shininess);
+  vec3 specular = spec * u_lightColor;
+  vec3 result = ambient + diffuse + specular;
+  gl_FragColor = vec4(result, 1.0);
+}` },
+            { title: 'JavaScript 代码', code: `const program = createProgram(gl, vertexShader, fragmentShader)
+
+// 立方体顶点和法线
+const positions = [/* 立方体顶点数据 */]
+const normals = [/* 立方体法线数据 */]
+const indices = [/* 立方体索引数据 */]
+
+const positionBuffer = createBuffer(gl, positions)
+const normalBuffer = createBuffer(gl, normals)
+const indexBuffer = createIndexBuffer(gl, indices)
+
+const aspect = canvas.width / canvas.height
+const projectionMatrix = Matrix.perspective(Math.PI / 4, aspect, 0.1, 100)
+const viewMatrix = Matrix.lookAt(2, 2, 2, 0, 0, 0, 0, 1, 0)
+
+let angle = 0
+const render = () => {
+  angle += 0.02
+  
+  const modelMatrix = Matrix.multiply(
+    Matrix.rotationY(angle),
+    Matrix.rotationX(angle * 0.5)
+  )
+  const normalMatrix = viewMatrix
+  
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+  gl.useProgram(program)
+  
+  // 设置缓冲区和uniform
+  gl.uniformMatrix4fv(modelMatrixLocation, false, modelMatrix)
+  gl.uniformMatrix4fv(viewMatrixLocation, false, viewMatrix)
+  gl.uniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix)
+  gl.uniformMatrix4fv(normalMatrixLocation, false, normalMatrix)
+  
+  gl.uniform3f(ambientColorLocation, 0.2, 0.2, 0.2)
+  gl.uniform3f(lightDirectionLocation, 1, 1, 1)
+  gl.uniform3f(lightColorLocation, 1, 1, 1)
+  gl.uniform3f(materialColorLocation, 0.2, 0.6, 1.0)
+  gl.uniform1f(shininessLocation, 32.0)
+  
+  gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0)
+  requestAnimationFrame(render)
+}
+render()`, language: 'javascript' }
+          ]}
+        />
         
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           注意观察立方体表面的高光效果。高光的位置会随着立方体的旋转而改变，这是因为高光取决于视角和光线方向。

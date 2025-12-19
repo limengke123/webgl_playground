@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import WebGLCanvas from '../../components/WebGLCanvas'
 import CodeBlock from '../../components/CodeBlock'
+import FlipCard from '../../components/FlipCard'
 import ChapterNavigation from '../../components/ChapterNavigation'
 import { createProgram, createBuffer, Matrix } from '../../utils/webgl'
 
@@ -514,57 +515,105 @@ function render() {
   tx, ty, tz, 1  // 平移量
 ]`} language="javascript" />
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
-          const vertexShader = `attribute vec2 a_position;
+        <FlipCard 
+          width={400} 
+          height={400} 
+          onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
+            const vertexShader = `attribute vec2 a_position;
 uniform mat4 u_matrix;
 
 void main() {
   gl_Position = u_matrix * vec4(a_position, 0.0, 1.0);
 }`
-          
-          const fragmentShader = `precision mediump float;
+            
+            const fragmentShader = `precision mediump float;
 uniform vec4 u_color;
 
 void main() {
   gl_FragColor = u_color;
 }`
-          
-          const program = createProgram(gl, vertexShader, fragmentShader)
-          const positions = [0, 0.3, -0.3, -0.3, 0.3, -0.3]
-          const positionBuffer = createBuffer(gl, positions)
-          
-          const matrixLocation = gl.getUniformLocation(program, 'u_matrix')
-          const colorLocation = gl.getUniformLocation(program, 'u_color')
-          const positionLocation = gl.getAttribLocation(program, 'a_position')
-          
-          if (positionLocation === -1) {
-            console.error('属性 a_position 未找到')
-            return
-          }
-          
-          gl.viewport(0, 0, canvas.width, canvas.height)
-          gl.clearColor(0.1, 0.1, 0.1, 1.0)
-          
-          let time = 0
-          const render = () => {
-            time += 0.01
-            const tx = Math.sin(time) * 0.3
-            const translation = Matrix.translation(tx, 0, 0)
             
-            gl.clear(gl.COLOR_BUFFER_BIT)
-            gl.useProgram(program)
-            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-            gl.enableVertexAttribArray(positionLocation)
-            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+            const program = createProgram(gl, vertexShader, fragmentShader)
+            const positions = [0, 0.3, -0.3, -0.3, 0.3, -0.3]
+            const positionBuffer = createBuffer(gl, positions)
             
-            gl.uniformMatrix4fv(matrixLocation, false, translation)
-            gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
-            gl.drawArrays(gl.TRIANGLES, 0, 3)
+            const matrixLocation = gl.getUniformLocation(program, 'u_matrix')
+            const colorLocation = gl.getUniformLocation(program, 'u_color')
+            const positionLocation = gl.getAttribLocation(program, 'a_position')
             
-            requestAnimationFrame(render)
-          }
-          render()
-        }} />
+            if (positionLocation === -1) {
+              console.error('属性 a_position 未找到')
+              return
+            }
+            
+            gl.viewport(0, 0, canvas.width, canvas.height)
+            gl.clearColor(0.1, 0.1, 0.1, 1.0)
+            
+            let time = 0
+            const render = () => {
+              time += 0.01
+              const tx = Math.sin(time) * 0.3
+              const translation = Matrix.translation(tx, 0, 0)
+              
+              gl.clear(gl.COLOR_BUFFER_BIT)
+              gl.useProgram(program)
+              gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+              gl.enableVertexAttribArray(positionLocation)
+              gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+              
+              gl.uniformMatrix4fv(matrixLocation, false, translation)
+              gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
+              gl.drawArrays(gl.TRIANGLES, 0, 3)
+              
+              requestAnimationFrame(render)
+            }
+            render()
+          }}
+          codeBlocks={[
+            { title: '顶点着色器', code: `attribute vec2 a_position;
+uniform mat4 u_matrix;
+
+void main() {
+  gl_Position = u_matrix * vec4(a_position, 0.0, 1.0);
+}` },
+            { title: '片段着色器', code: `precision mediump float;
+uniform vec4 u_color;
+
+void main() {
+  gl_FragColor = u_color;
+}` },
+            { title: 'JavaScript 代码', code: `const program = createProgram(gl, vertexShader, fragmentShader)
+const positions = [0, 0.3, -0.3, -0.3, 0.3, -0.3]
+const positionBuffer = createBuffer(gl, positions)
+
+const matrixLocation = gl.getUniformLocation(program, 'u_matrix')
+const colorLocation = gl.getUniformLocation(program, 'u_color')
+const positionLocation = gl.getAttribLocation(program, 'a_position')
+
+gl.viewport(0, 0, canvas.width, canvas.height)
+gl.clearColor(0.1, 0.1, 0.1, 1.0)
+
+let time = 0
+const render = () => {
+  time += 0.01
+  const tx = Math.sin(time) * 0.3
+  const translation = Matrix.translation(tx, 0, 0)
+  
+  gl.clear(gl.COLOR_BUFFER_BIT)
+  gl.useProgram(program)
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+  gl.enableVertexAttribArray(positionLocation)
+  gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+  
+  gl.uniformMatrix4fv(matrixLocation, false, translation)
+  gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
+  gl.drawArrays(gl.TRIANGLES, 0, 3)
+  
+  requestAnimationFrame(render)
+}
+render()`, language: 'javascript' }
+          ]}
+        />
         
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">上面的示例展示了三角形在 X 轴上的平移动画。</p>
       </section>
@@ -712,56 +761,103 @@ const rotation = rotationAroundAxis(axis, angle);`} language="javascript" />
           物体绕自身某个轴旋转（如门绕门轴旋转）、实现平滑的旋转动画等。
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
-          const vertexShader = `attribute vec2 a_position;
+        <FlipCard 
+          width={400} 
+          height={400} 
+          onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
+            const vertexShader = `attribute vec2 a_position;
 uniform mat4 u_matrix;
 
 void main() {
   gl_Position = u_matrix * vec4(a_position, 0.0, 1.0);
 }`
-          
-          const fragmentShader = `precision mediump float;
+            
+            const fragmentShader = `precision mediump float;
 uniform vec4 u_color;
 
 void main() {
   gl_FragColor = u_color;
 }`
-          
-          const program = createProgram(gl, vertexShader, fragmentShader)
-          const positions = [0, 0.3, -0.3, -0.3, 0.3, -0.3]
-          const positionBuffer = createBuffer(gl, positions)
-          
-          const matrixLocation = gl.getUniformLocation(program, 'u_matrix')
-          const colorLocation = gl.getUniformLocation(program, 'u_color')
-          const positionLocation = gl.getAttribLocation(program, 'a_position')
-          
-          if (positionLocation === -1) {
-            console.error('属性 a_position 未找到')
-            return
-          }
-          
-          gl.viewport(0, 0, canvas.width, canvas.height)
-          gl.clearColor(0.1, 0.1, 0.1, 1.0)
-          
-          let angle = 0
-          const render = () => {
-            angle += 0.02
-            const rotation = Matrix.rotationZ(angle)
             
-            gl.clear(gl.COLOR_BUFFER_BIT)
-            gl.useProgram(program)
-            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-            gl.enableVertexAttribArray(positionLocation)
-            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+            const program = createProgram(gl, vertexShader, fragmentShader)
+            const positions = [0, 0.3, -0.3, -0.3, 0.3, -0.3]
+            const positionBuffer = createBuffer(gl, positions)
             
-            gl.uniformMatrix4fv(matrixLocation, false, rotation)
-            gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
-            gl.drawArrays(gl.TRIANGLES, 0, 3)
+            const matrixLocation = gl.getUniformLocation(program, 'u_matrix')
+            const colorLocation = gl.getUniformLocation(program, 'u_color')
+            const positionLocation = gl.getAttribLocation(program, 'a_position')
             
-            requestAnimationFrame(render)
-          }
-          render()
-        }} />
+            if (positionLocation === -1) {
+              console.error('属性 a_position 未找到')
+              return
+            }
+            
+            gl.viewport(0, 0, canvas.width, canvas.height)
+            gl.clearColor(0.1, 0.1, 0.1, 1.0)
+            
+            let angle = 0
+            const render = () => {
+              angle += 0.02
+              const rotation = Matrix.rotationZ(angle)
+              
+              gl.clear(gl.COLOR_BUFFER_BIT)
+              gl.useProgram(program)
+              gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+              gl.enableVertexAttribArray(positionLocation)
+              gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+              
+              gl.uniformMatrix4fv(matrixLocation, false, rotation)
+              gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
+              gl.drawArrays(gl.TRIANGLES, 0, 3)
+              
+              requestAnimationFrame(render)
+            }
+            render()
+          }}
+          codeBlocks={[
+            { title: '顶点着色器', code: `attribute vec2 a_position;
+uniform mat4 u_matrix;
+
+void main() {
+  gl_Position = u_matrix * vec4(a_position, 0.0, 1.0);
+}` },
+            { title: '片段着色器', code: `precision mediump float;
+uniform vec4 u_color;
+
+void main() {
+  gl_FragColor = u_color;
+}` },
+            { title: 'JavaScript 代码', code: `const program = createProgram(gl, vertexShader, fragmentShader)
+const positions = [0, 0.3, -0.3, -0.3, 0.3, -0.3]
+const positionBuffer = createBuffer(gl, positions)
+
+const matrixLocation = gl.getUniformLocation(program, 'u_matrix')
+const colorLocation = gl.getUniformLocation(program, 'u_color')
+const positionLocation = gl.getAttribLocation(program, 'a_position')
+
+gl.viewport(0, 0, canvas.width, canvas.height)
+gl.clearColor(0.1, 0.1, 0.1, 1.0)
+
+let angle = 0
+const render = () => {
+  angle += 0.02
+  const rotation = Matrix.rotationZ(angle)
+  
+  gl.clear(gl.COLOR_BUFFER_BIT)
+  gl.useProgram(program)
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+  gl.enableVertexAttribArray(positionLocation)
+  gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+  
+  gl.uniformMatrix4fv(matrixLocation, false, rotation)
+  gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
+  gl.drawArrays(gl.TRIANGLES, 0, 3)
+  
+  requestAnimationFrame(render)
+}
+render()`, language: 'javascript' }
+          ]}
+        />
         
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">上面的示例展示了三角形绕 Z 轴的旋转动画。</p>
       </section>
@@ -779,57 +875,105 @@ void main() {
   0, 0, 0, 1
 ]`} language="javascript" />
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
-          const vertexShader = `attribute vec2 a_position;
+        <FlipCard 
+          width={400} 
+          height={400} 
+          onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
+            const vertexShader = `attribute vec2 a_position;
 uniform mat4 u_matrix;
 
 void main() {
   gl_Position = u_matrix * vec4(a_position, 0.0, 1.0);
 }`
-          
-          const fragmentShader = `precision mediump float;
+            
+            const fragmentShader = `precision mediump float;
 uniform vec4 u_color;
 
 void main() {
   gl_FragColor = u_color;
 }`
-          
-          const program = createProgram(gl, vertexShader, fragmentShader)
-          const positions = [0, 0.3, -0.3, -0.3, 0.3, -0.3]
-          const positionBuffer = createBuffer(gl, positions)
-          
-          const matrixLocation = gl.getUniformLocation(program, 'u_matrix')
-          const colorLocation = gl.getUniformLocation(program, 'u_color')
-          const positionLocation = gl.getAttribLocation(program, 'a_position')
-          
-          if (positionLocation === -1) {
-            console.error('属性 a_position 未找到')
-            return
-          }
-          
-          gl.viewport(0, 0, canvas.width, canvas.height)
-          gl.clearColor(0.1, 0.1, 0.1, 1.0)
-          
-          let time = 0
-          const render = () => {
-            time += 0.02
-            const scale = 0.5 + Math.sin(time) * 0.3
-            const scaling = Matrix.scaling(scale, scale, 1)
             
-            gl.clear(gl.COLOR_BUFFER_BIT)
-            gl.useProgram(program)
-            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-            gl.enableVertexAttribArray(positionLocation)
-            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+            const program = createProgram(gl, vertexShader, fragmentShader)
+            const positions = [0, 0.3, -0.3, -0.3, 0.3, -0.3]
+            const positionBuffer = createBuffer(gl, positions)
             
-            gl.uniformMatrix4fv(matrixLocation, false, scaling)
-            gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
-            gl.drawArrays(gl.TRIANGLES, 0, 3)
+            const matrixLocation = gl.getUniformLocation(program, 'u_matrix')
+            const colorLocation = gl.getUniformLocation(program, 'u_color')
+            const positionLocation = gl.getAttribLocation(program, 'a_position')
             
-            requestAnimationFrame(render)
-          }
-          render()
-        }} />
+            if (positionLocation === -1) {
+              console.error('属性 a_position 未找到')
+              return
+            }
+            
+            gl.viewport(0, 0, canvas.width, canvas.height)
+            gl.clearColor(0.1, 0.1, 0.1, 1.0)
+            
+            let time = 0
+            const render = () => {
+              time += 0.02
+              const scale = 0.5 + Math.sin(time) * 0.3
+              const scaling = Matrix.scaling(scale, scale, 1)
+              
+              gl.clear(gl.COLOR_BUFFER_BIT)
+              gl.useProgram(program)
+              gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+              gl.enableVertexAttribArray(positionLocation)
+              gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+              
+              gl.uniformMatrix4fv(matrixLocation, false, scaling)
+              gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
+              gl.drawArrays(gl.TRIANGLES, 0, 3)
+              
+              requestAnimationFrame(render)
+            }
+            render()
+          }}
+          codeBlocks={[
+            { title: '顶点着色器', code: `attribute vec2 a_position;
+uniform mat4 u_matrix;
+
+void main() {
+  gl_Position = u_matrix * vec4(a_position, 0.0, 1.0);
+}` },
+            { title: '片段着色器', code: `precision mediump float;
+uniform vec4 u_color;
+
+void main() {
+  gl_FragColor = u_color;
+}` },
+            { title: 'JavaScript 代码', code: `const program = createProgram(gl, vertexShader, fragmentShader)
+const positions = [0, 0.3, -0.3, -0.3, 0.3, -0.3]
+const positionBuffer = createBuffer(gl, positions)
+
+const matrixLocation = gl.getUniformLocation(program, 'u_matrix')
+const colorLocation = gl.getUniformLocation(program, 'u_color')
+const positionLocation = gl.getAttribLocation(program, 'a_position')
+
+gl.viewport(0, 0, canvas.width, canvas.height)
+gl.clearColor(0.1, 0.1, 0.1, 1.0)
+
+let time = 0
+const render = () => {
+  time += 0.02
+  const scale = 0.5 + Math.sin(time) * 0.3
+  const scaling = Matrix.scaling(scale, scale, 1)
+  
+  gl.clear(gl.COLOR_BUFFER_BIT)
+  gl.useProgram(program)
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+  gl.enableVertexAttribArray(positionLocation)
+  gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+  
+  gl.uniformMatrix4fv(matrixLocation, false, scaling)
+  gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
+  gl.drawArrays(gl.TRIANGLES, 0, 3)
+  
+  requestAnimationFrame(render)
+}
+render()`, language: 'javascript' }
+          ]}
+        />
         
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">上面的示例展示了三角形的缩放动画。</p>
       </section>
@@ -852,59 +996,109 @@ const translate = Matrix.translation(0.2, 0, 0)
 // 先应用 scale，再应用 rotate，最后应用 translate
 const matrix = Matrix.multiply(translate, Matrix.multiply(rotate, scale))`} language="javascript" />
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
-          const vertexShader = `attribute vec2 a_position;
+        <FlipCard 
+          width={400} 
+          height={400} 
+          onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
+            const vertexShader = `attribute vec2 a_position;
 uniform mat4 u_matrix;
 
 void main() {
   gl_Position = u_matrix * vec4(a_position, 0.0, 1.0);
 }`
-          
-          const fragmentShader = `precision mediump float;
+            
+            const fragmentShader = `precision mediump float;
 uniform vec4 u_color;
 
 void main() {
   gl_FragColor = u_color;
 }`
-          
-          const program = createProgram(gl, vertexShader, fragmentShader)
-          const positions = [0, 0.3, -0.3, -0.3, 0.3, -0.3]
-          const positionBuffer = createBuffer(gl, positions)
-          
-          const matrixLocation = gl.getUniformLocation(program, 'u_matrix')
-          const colorLocation = gl.getUniformLocation(program, 'u_color')
-          const positionLocation = gl.getAttribLocation(program, 'a_position')
-          
-          if (positionLocation === -1) {
-            console.error('属性 a_position 未找到')
-            return
-          }
-          
-          gl.viewport(0, 0, canvas.width, canvas.height)
-          gl.clearColor(0.1, 0.1, 0.1, 1.0)
-          
-          let angle = 0
-          const render = () => {
-            angle += 0.02
-            const scale = Matrix.scaling(0.5, 0.5, 1)
-            const rotate = Matrix.rotationZ(angle)
-            const translate = Matrix.translation(0.2, 0, 0)
-            const matrix = Matrix.multiply(translate, Matrix.multiply(rotate, scale))
             
-            gl.clear(gl.COLOR_BUFFER_BIT)
-            gl.useProgram(program)
-            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-            gl.enableVertexAttribArray(positionLocation)
-            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+            const program = createProgram(gl, vertexShader, fragmentShader)
+            const positions = [0, 0.3, -0.3, -0.3, 0.3, -0.3]
+            const positionBuffer = createBuffer(gl, positions)
             
-            gl.uniformMatrix4fv(matrixLocation, false, matrix)
-            gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
-            gl.drawArrays(gl.TRIANGLES, 0, 3)
+            const matrixLocation = gl.getUniformLocation(program, 'u_matrix')
+            const colorLocation = gl.getUniformLocation(program, 'u_color')
+            const positionLocation = gl.getAttribLocation(program, 'a_position')
             
-            requestAnimationFrame(render)
-          }
-          render()
-        }} />
+            if (positionLocation === -1) {
+              console.error('属性 a_position 未找到')
+              return
+            }
+            
+            gl.viewport(0, 0, canvas.width, canvas.height)
+            gl.clearColor(0.1, 0.1, 0.1, 1.0)
+            
+            let angle = 0
+            const render = () => {
+              angle += 0.02
+              const scale = Matrix.scaling(0.5, 0.5, 1)
+              const rotate = Matrix.rotationZ(angle)
+              const translate = Matrix.translation(0.2, 0, 0)
+              const matrix = Matrix.multiply(translate, Matrix.multiply(rotate, scale))
+              
+              gl.clear(gl.COLOR_BUFFER_BIT)
+              gl.useProgram(program)
+              gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+              gl.enableVertexAttribArray(positionLocation)
+              gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+              
+              gl.uniformMatrix4fv(matrixLocation, false, matrix)
+              gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
+              gl.drawArrays(gl.TRIANGLES, 0, 3)
+              
+              requestAnimationFrame(render)
+            }
+            render()
+          }}
+          codeBlocks={[
+            { title: '顶点着色器', code: `attribute vec2 a_position;
+uniform mat4 u_matrix;
+
+void main() {
+  gl_Position = u_matrix * vec4(a_position, 0.0, 1.0);
+}` },
+            { title: '片段着色器', code: `precision mediump float;
+uniform vec4 u_color;
+
+void main() {
+  gl_FragColor = u_color;
+}` },
+            { title: 'JavaScript 代码', code: `const program = createProgram(gl, vertexShader, fragmentShader)
+const positions = [0, 0.3, -0.3, -0.3, 0.3, -0.3]
+const positionBuffer = createBuffer(gl, positions)
+
+const matrixLocation = gl.getUniformLocation(program, 'u_matrix')
+const colorLocation = gl.getUniformLocation(program, 'u_color')
+const positionLocation = gl.getAttribLocation(program, 'a_position')
+
+gl.viewport(0, 0, canvas.width, canvas.height)
+gl.clearColor(0.1, 0.1, 0.1, 1.0)
+
+let angle = 0
+const render = () => {
+  angle += 0.02
+  const scale = Matrix.scaling(0.5, 0.5, 1)
+  const rotate = Matrix.rotationZ(angle)
+  const translate = Matrix.translation(0.2, 0, 0)
+  const matrix = Matrix.multiply(translate, Matrix.multiply(rotate, scale))
+  
+  gl.clear(gl.COLOR_BUFFER_BIT)
+  gl.useProgram(program)
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+  gl.enableVertexAttribArray(positionLocation)
+  gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+  
+  gl.uniformMatrix4fv(matrixLocation, false, matrix)
+  gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
+  gl.drawArrays(gl.TRIANGLES, 0, 3)
+  
+  requestAnimationFrame(render)
+}
+render()`, language: 'javascript' }
+          ]}
+        />
         
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">上面的示例展示了同时进行缩放、旋转和平移的组合变换。</p>
       </section>

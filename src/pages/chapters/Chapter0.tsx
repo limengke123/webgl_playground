@@ -1,5 +1,6 @@
 import WebGLCanvas from '../../components/WebGLCanvas'
 import CodeBlock from '../../components/CodeBlock'
+import FlipCard from '../../components/FlipCard'
 import ChapterNavigation from '../../components/ChapterNavigation'
 
 export default function Chapter0() {
@@ -297,22 +298,42 @@ window.addEventListener('DOMContentLoaded', () => {
           下面是一个可以运行的示例。这个示例展示了如何创建 canvas 并获取 WebGL 上下文，然后清除画布显示背景色。
         </p>
         
-        <WebGLCanvas width={400} height={300} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
-          // 设置视口
-          gl.viewport(0, 0, canvas.width, canvas.height)
-          
-          // 设置清除颜色为深蓝色
-          gl.clearColor(0.1, 0.2, 0.3, 1.0)
-          
-          // 清除画布
-          gl.clear(gl.COLOR_BUFFER_BIT)
-          
-          // 在控制台输出 WebGL2 信息
-          console.log('WebGL 版本:', gl.getParameter(gl.VERSION))
-          console.log('着色器语言版本:', gl.getParameter(gl.SHADING_LANGUAGE_VERSION))
-          console.log('渲染器:', gl.getParameter(gl.RENDERER))
-          console.log('供应商:', gl.getParameter(gl.VENDOR))
-        }} />
+        <FlipCard 
+          width={400} 
+          height={300} 
+          onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
+            // 设置视口
+            gl.viewport(0, 0, canvas.width, canvas.height)
+            
+            // 设置清除颜色为深蓝色
+            gl.clearColor(0.1, 0.2, 0.3, 1.0)
+            
+            // 清除画布
+            gl.clear(gl.COLOR_BUFFER_BIT)
+            
+            // 在控制台输出 WebGL2 信息
+            console.log('WebGL 版本:', gl.getParameter(gl.VERSION))
+            console.log('着色器语言版本:', gl.getParameter(gl.SHADING_LANGUAGE_VERSION))
+            console.log('渲染器:', gl.getParameter(gl.RENDERER))
+            console.log('供应商:', gl.getParameter(gl.VENDOR))
+          }}
+          codeBlocks={[
+            { title: 'JavaScript 代码', code: `// 设置视口
+gl.viewport(0, 0, canvas.width, canvas.height)
+
+// 设置清除颜色为深蓝色
+gl.clearColor(0.1, 0.2, 0.3, 1.0)
+
+// 清除画布
+gl.clear(gl.COLOR_BUFFER_BIT)
+
+// 在控制台输出 WebGL2 信息
+console.log('WebGL 版本:', gl.getParameter(gl.VERSION))
+console.log('着色器语言版本:', gl.getParameter(gl.SHADING_LANGUAGE_VERSION))
+console.log('渲染器:', gl.getParameter(gl.RENDERER))
+console.log('供应商:', gl.getParameter(gl.VENDOR))`, language: 'javascript' }
+          ]}
+        />
         
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           上面的示例展示了最基本的 WebGL2 初始化。虽然还没有绘制任何图形，但你已经成功创建了 WebGL2 上下文并设置了背景色。

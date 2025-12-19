@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import WebGLCanvas from '../../components/WebGLCanvas'
 import CodeBlock from '../../components/CodeBlock'
+import FlipCard from '../../components/FlipCard'
 import ChapterNavigation from '../../components/ChapterNavigation'
 import { createProgram, createBuffer, setAttribute, Matrix } from '../../utils/webgl'
 
@@ -560,85 +561,157 @@ function render() {
   requestAnimationFrame(render);
 }`} language="javascript" />
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
-          const vertexShader = `attribute vec2 a_position;
+        <FlipCard 
+          width={400} 
+          height={400} 
+          onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
+            const vertexShader = `attribute vec2 a_position;
 uniform mat4 u_matrix;
 
 void main() {
   gl_Position = u_matrix * vec4(a_position, 0.0, 1.0);
 }`
-          
-          const fragmentShader = `precision mediump float;
+            
+            const fragmentShader = `precision mediump float;
 uniform vec4 u_color;
 
 void main() {
   gl_FragColor = u_color;
 }`
-          
-          const program = createProgram(gl, vertexShader, fragmentShader)
-          const positions = [0, 0.3, -0.3, -0.3, 0.3, -0.3]
-          const positionBuffer = createBuffer(gl, positions)
-          
-          const matrixLocation = gl.getUniformLocation(program, 'u_matrix')
-          const colorLocation = gl.getUniformLocation(program, 'u_color')
-          const positionLocation = gl.getAttribLocation(program, 'a_position')
-          
-          if (positionLocation === -1) {
-            console.error('属性 a_position 未找到')
-            return
-          }
-          
-          gl.viewport(0, 0, canvas.width, canvas.height)
-          gl.clearColor(0.1, 0.1, 0.1, 1.0)
-          
-          let angle = 0
-          let mouseX = 0
-          let mouseY = 0
-          let isDragging = false
-          
-          canvas.addEventListener('mousedown', (e) => {
-            isDragging = true
-            const rect = canvas.getBoundingClientRect()
-            mouseX = e.clientX - rect.left
-            mouseY = e.clientY - rect.top
-          })
-          
-          canvas.addEventListener('mousemove', (e) => {
-            if (isDragging) {
-              const rect = canvas.getBoundingClientRect()
-              const newX = e.clientX - rect.left
-              const newY = e.clientY - rect.top
-              angle += (newX - mouseX) * 0.01
-              mouseX = newX
-              mouseY = newY
+            
+            const program = createProgram(gl, vertexShader, fragmentShader)
+            const positions = [0, 0.3, -0.3, -0.3, 0.3, -0.3]
+            const positionBuffer = createBuffer(gl, positions)
+            
+            const matrixLocation = gl.getUniformLocation(program, 'u_matrix')
+            const colorLocation = gl.getUniformLocation(program, 'u_color')
+            const positionLocation = gl.getAttribLocation(program, 'a_position')
+            
+            if (positionLocation === -1) {
+              console.error('属性 a_position 未找到')
+              return
             }
-          })
-          
-          canvas.addEventListener('mouseup', () => {
-            isDragging = false
-          })
-          
-          canvas.addEventListener('mouseleave', () => {
-            isDragging = false
-          })
-          
-          const render = () => {
-            const rotation = Matrix.rotationZ(angle)
             
-            gl.clear(gl.COLOR_BUFFER_BIT)
-            gl.useProgram(program)
-            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-            gl.enableVertexAttribArray(positionLocation)
-            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+            gl.viewport(0, 0, canvas.width, canvas.height)
+            gl.clearColor(0.1, 0.1, 0.1, 1.0)
             
-            gl.uniformMatrix4fv(matrixLocation, false, rotation)
-            gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
-            gl.drawArrays(gl.TRIANGLES, 0, 3)
+            let angle = 0
+            let mouseX = 0
+            let mouseY = 0
+            let isDragging = false
             
-            requestAnimationFrame(render)
-          }
-          render()
-        }} />
+            canvas.addEventListener('mousedown', (e) => {
+              isDragging = true
+              const rect = canvas.getBoundingClientRect()
+              mouseX = e.clientX - rect.left
+              mouseY = e.clientY - rect.top
+            })
+            
+            canvas.addEventListener('mousemove', (e) => {
+              if (isDragging) {
+                const rect = canvas.getBoundingClientRect()
+                const newX = e.clientX - rect.left
+                const newY = e.clientY - rect.top
+                angle += (newX - mouseX) * 0.01
+                mouseX = newX
+                mouseY = newY
+              }
+            })
+            
+            canvas.addEventListener('mouseup', () => {
+              isDragging = false
+            })
+            
+            canvas.addEventListener('mouseleave', () => {
+              isDragging = false
+            })
+            
+            const render = () => {
+              const rotation = Matrix.rotationZ(angle)
+              
+              gl.clear(gl.COLOR_BUFFER_BIT)
+              gl.useProgram(program)
+              gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+              gl.enableVertexAttribArray(positionLocation)
+              gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+              
+              gl.uniformMatrix4fv(matrixLocation, false, rotation)
+              gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
+              gl.drawArrays(gl.TRIANGLES, 0, 3)
+              
+              requestAnimationFrame(render)
+            }
+            render()
+          }}
+          codeBlocks={[
+            { title: '顶点着色器', code: `attribute vec2 a_position;
+uniform mat4 u_matrix;
+
+void main() {
+  gl_Position = u_matrix * vec4(a_position, 0.0, 1.0);
+}` },
+            { title: '片段着色器', code: `precision mediump float;
+uniform vec4 u_color;
+
+void main() {
+  gl_FragColor = u_color;
+}` },
+            { title: 'JavaScript 代码', code: `const program = createProgram(gl, vertexShader, fragmentShader)
+const positions = [0, 0.3, -0.3, -0.3, 0.3, -0.3]
+const positionBuffer = createBuffer(gl, positions)
+
+const matrixLocation = gl.getUniformLocation(program, 'u_matrix')
+const colorLocation = gl.getUniformLocation(program, 'u_color')
+const positionLocation = gl.getAttribLocation(program, 'a_position')
+
+gl.viewport(0, 0, canvas.width, canvas.height)
+gl.clearColor(0.1, 0.1, 0.1, 1.0)
+
+let angle = 0
+let mouseX = 0
+let mouseY = 0
+let isDragging = false
+
+canvas.addEventListener('mousedown', (e) => {
+  isDragging = true
+  const rect = canvas.getBoundingClientRect()
+  mouseX = e.clientX - rect.left
+  mouseY = e.clientY - rect.top
+})
+
+canvas.addEventListener('mousemove', (e) => {
+  if (isDragging) {
+    const rect = canvas.getBoundingClientRect()
+    const newX = e.clientX - rect.left
+    const newY = e.clientY - rect.top
+    angle += (newX - mouseX) * 0.01
+    mouseX = newX
+    mouseY = newY
+  }
+})
+
+canvas.addEventListener('mouseup', () => {
+  isDragging = false
+})
+
+const render = () => {
+  const rotation = Matrix.rotationZ(angle)
+  
+  gl.clear(gl.COLOR_BUFFER_BIT)
+  gl.useProgram(program)
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+  gl.enableVertexAttribArray(positionLocation)
+  gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+  
+  gl.uniformMatrix4fv(matrixLocation, false, rotation)
+  gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
+  gl.drawArrays(gl.TRIANGLES, 0, 3)
+  
+  requestAnimationFrame(render)
+}
+render()`, language: 'javascript' }
+          ]}
+        />
         
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           尝试用鼠标拖动上面的三角形来旋转它。
@@ -1309,64 +1382,119 @@ function animate(start, end, duration, easing) {
           下面是一个使用不同缓动函数的动画示例：
         </p>
         
-        <WebGLCanvas width={400} height={400} onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
-          const vertexShader = `attribute vec2 a_position;
+        <FlipCard 
+          width={400} 
+          height={400} 
+          onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
+            const vertexShader = `attribute vec2 a_position;
 uniform mat4 u_matrix;
 
 void main() {
   gl_Position = u_matrix * vec4(a_position, 0.0, 1.0);
 }`
-          
-          const fragmentShader = `precision mediump float;
+            
+            const fragmentShader = `precision mediump float;
 uniform vec4 u_color;
 
 void main() {
   gl_FragColor = u_color;
 }`
-          
-          const program = createProgram(gl, vertexShader, fragmentShader)
-          const positions = [0, 0.1, -0.1, -0.1, 0.1, -0.1]
-          const positionBuffer = createBuffer(gl, positions)
-          
-          const matrixLocation = gl.getUniformLocation(program, 'u_matrix')
-          const colorLocation = gl.getUniformLocation(program, 'u_color')
-          const positionLocation = gl.getAttribLocation(program, 'a_position')
-          
-          if (positionLocation === -1) {
-            console.error('属性 a_position 未找到')
-            return
-          }
-          
-          gl.viewport(0, 0, canvas.width, canvas.height)
-          gl.clearColor(0.1, 0.1, 0.1, 1.0)
-          
-          // 缓动函数
-          const easeInOut = (t: number) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
-          
-          let time = 0
-          const render = () => {
-            time += 0.02
-            const t = (Math.sin(time) + 1) / 2 // 0 到 1 之间循环
-            const eased = easeInOut(t)
             
-            // 使用缓动值控制位置
-            const x = (eased - 0.5) * 0.6
-            const translation = Matrix.translation(x, 0, 0)
+            const program = createProgram(gl, vertexShader, fragmentShader)
+            const positions = [0, 0.1, -0.1, -0.1, 0.1, -0.1]
+            const positionBuffer = createBuffer(gl, positions)
             
-            gl.clear(gl.COLOR_BUFFER_BIT)
-            gl.useProgram(program)
-            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-            gl.enableVertexAttribArray(positionLocation)
-            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+            const matrixLocation = gl.getUniformLocation(program, 'u_matrix')
+            const colorLocation = gl.getUniformLocation(program, 'u_color')
+            const positionLocation = gl.getAttribLocation(program, 'a_position')
             
-            gl.uniformMatrix4fv(matrixLocation, false, translation)
-            gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
-            gl.drawArrays(gl.TRIANGLES, 0, 3)
+            if (positionLocation === -1) {
+              console.error('属性 a_position 未找到')
+              return
+            }
             
-            requestAnimationFrame(render)
-          }
-          render()
-        }} />
+            gl.viewport(0, 0, canvas.width, canvas.height)
+            gl.clearColor(0.1, 0.1, 0.1, 1.0)
+            
+            // 缓动函数
+            const easeInOut = (t: number) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
+            
+            let time = 0
+            const render = () => {
+              time += 0.02
+              const t = (Math.sin(time) + 1) / 2 // 0 到 1 之间循环
+              const eased = easeInOut(t)
+              
+              // 使用缓动值控制位置
+              const x = (eased - 0.5) * 0.6
+              const translation = Matrix.translation(x, 0, 0)
+              
+              gl.clear(gl.COLOR_BUFFER_BIT)
+              gl.useProgram(program)
+              gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+              gl.enableVertexAttribArray(positionLocation)
+              gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+              
+              gl.uniformMatrix4fv(matrixLocation, false, translation)
+              gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
+              gl.drawArrays(gl.TRIANGLES, 0, 3)
+              
+              requestAnimationFrame(render)
+            }
+            render()
+          }}
+          codeBlocks={[
+            { title: '顶点着色器', code: `attribute vec2 a_position;
+uniform mat4 u_matrix;
+
+void main() {
+  gl_Position = u_matrix * vec4(a_position, 0.0, 1.0);
+}` },
+            { title: '片段着色器', code: `precision mediump float;
+uniform vec4 u_color;
+
+void main() {
+  gl_FragColor = u_color;
+}` },
+            { title: 'JavaScript 代码', code: `const program = createProgram(gl, vertexShader, fragmentShader)
+const positions = [0, 0.1, -0.1, -0.1, 0.1, -0.1]
+const positionBuffer = createBuffer(gl, positions)
+
+const matrixLocation = gl.getUniformLocation(program, 'u_matrix')
+const colorLocation = gl.getUniformLocation(program, 'u_color')
+const positionLocation = gl.getAttribLocation(program, 'a_position')
+
+gl.viewport(0, 0, canvas.width, canvas.height)
+gl.clearColor(0.1, 0.1, 0.1, 1.0)
+
+// 缓动函数
+const easeInOut = (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
+
+let time = 0
+const render = () => {
+  time += 0.02
+  const t = (Math.sin(time) + 1) / 2 // 0 到 1 之间循环
+  const eased = easeInOut(t)
+  
+  // 使用缓动值控制位置
+  const x = (eased - 0.5) * 0.6
+  const translation = Matrix.translation(x, 0, 0)
+  
+  gl.clear(gl.COLOR_BUFFER_BIT)
+  gl.useProgram(program)
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+  gl.enableVertexAttribArray(positionLocation)
+  gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+  
+  gl.uniformMatrix4fv(matrixLocation, false, translation)
+  gl.uniform4f(colorLocation, 0.2, 0.6, 1.0, 1.0)
+  gl.drawArrays(gl.TRIANGLES, 0, 3)
+  
+  requestAnimationFrame(render)
+}
+render()`, language: 'javascript' }
+          ]}
+        />
         
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
           上面的示例使用了 easeInOut 缓动函数，注意观察三角形移动的速度变化：开始时加速，中间匀速，结束时减速。
