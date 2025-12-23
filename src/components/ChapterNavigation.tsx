@@ -11,6 +11,7 @@ const chapters = [
   { id: 7, title: '材质与纹理', path: '/chapter/7' },
   { id: 8, title: '交互与动画', path: '/chapter/8' },
   { id: 9, title: '性能优化', path: '/chapter/9' },
+  { id: 10, title: '高级渲染技术', path: '/chapter/10' },
 ]
 
 export default function ChapterNavigation() {

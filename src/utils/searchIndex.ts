@@ -104,6 +104,14 @@ export const searchIndex: SearchItem[] = [
     path: '/chapter/9',
     keywords: ['性能优化', 'optimization', '性能', '效率', '优化技巧', '帧率', 'fps', '性能', 'performance', '优化', 'optimization', '效率', 'efficiency', '帧率', 'fps', 'frames per second', '优化技巧', 'optimization techniques', '渲染优化', 'rendering optimization', '批处理', 'batching', '实例化', 'instancing', '减少绘制调用', 'reduce draw calls', '纹理优化', 'texture optimization', '缓冲区优化', 'buffer optimization', '着色器优化', 'shader optimization'],
     type: 'chapter'
+  },
+  {
+    id: 'chapter-10',
+    title: '高级渲染技术',
+    description: '掌握透明度、深度测试、面剔除、帧缓冲区和后处理等高级渲染技术',
+    path: '/chapter/10',
+    keywords: ['高级渲染', '透明度', '混合', '深度测试', '面剔除', '帧缓冲区', '后处理', 'advanced rendering', 'transparency', 'blending', 'alpha', '深度测试', 'depth test', 'depth buffer', '面剔除', 'face culling', 'cull face', '帧缓冲区', 'framebuffer', 'render target', '后处理', 'post processing', 'post process', '混合', 'blending', 'blend func', 'blend equation', '透明度', 'transparency', 'alpha通道', 'alpha channel', '混合模式', 'blend mode', '深度写入', 'depth mask', '深度函数', 'depth func', '模板测试', 'stencil test', '裁剪测试', 'scissor test', '渲染状态', 'render state', '状态管理', 'state management'],
+    type: 'chapter'
   }
 ]
 

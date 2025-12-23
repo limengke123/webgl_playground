@@ -61,6 +61,12 @@ const chapters = [
     description: '学习 WebGL 性能优化技巧，提升渲染效率',
     path: '/chapter/9'
   },
+  {
+    id: 10,
+    title: '高级渲染技术',
+    description: '掌握透明度、深度测试、面剔除、帧缓冲区和后处理等高级渲染技术',
+    path: '/chapter/10'
+  },
 ]
 
 export default function Home() {

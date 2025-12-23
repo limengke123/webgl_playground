@@ -1,1334 +1,1926 @@
+import { useEffect } from 'react'
 import WebGLCanvas from '../../components/WebGLCanvas'
 import CodeBlock from '../../components/CodeBlock'
 import FlipCard from '../../components/FlipCard'
 import ChapterNavigation from '../../components/ChapterNavigation'
-import { createProgram, createBuffer, setAttribute, Matrix, createIndexBuffer } from '../../utils/webgl'
+import { createProgram, createBuffer, setAttribute, createTexture } from '../../utils/webgl'
 
 export default function Chapter7() {
   return (
     <div className="w-full">
-      <h1 className="text-4xl mb-8 text-primary border-b-2 border-dark-border dark:border-dark-border border-light-border pb-4">第七章：高级渲染技术</h1>
+      <h1 className="text-4xl mb-8 text-primary border-b-2 border-dark-border dark:border-dark-border border-light-border pb-4">第七章：材质与纹理</h1>
       
       <section className="mb-12">
-        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">透明度与混合</h2>
+        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">什么是材质？</h2>
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          透明度（Transparency）是创建玻璃、水、烟雾、火焰等效果的关键技术。
-          在 WebGL 中，我们需要启用混合（Blending）来实现透明度效果。
+          材质（Material）定义了物体表面的视觉属性，决定了物体在渲染时的外观。
+          材质系统是 3D 图形学中非常重要的概念，它连接了几何形状和视觉效果。
         </p>
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          <strong className="text-primary font-semibold">什么是混合？</strong>：
-        </p>
-        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li>混合是将新绘制的片段颜色与已存在的颜色进行组合的过程</li>
-          <li>源颜色（Source）：新绘制的片段颜色</li>
-          <li>目标颜色（Destination）：已存在的颜色（帧缓冲区中的颜色）</li>
-          <li>混合函数决定如何组合这两种颜色</li>
-        </ul>
-        
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">混合函数</h3>
-        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          混合函数使用公式：<code className="bg-dark-bg dark:bg-dark-bg px-1 py-0.5 rounded">result = srcFactor × srcColor + dstFactor × dstColor</code>
-        </p>
-        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          <strong className="text-primary font-semibold">混合因子（Blend Factors）</strong>：
+          <strong className="text-primary font-semibold">材质的组成</strong>：
+          一个完整的材质系统通常包含以下属性：
         </p>
         <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li><strong>gl.ZERO</strong>：0.0</li>
-          <li><strong>gl.ONE</strong>：1.0</li>
-          <li><strong>gl.SRC_COLOR</strong>：源颜色的 RGB 值</li>
-          <li><strong>gl.ONE_MINUS_SRC_COLOR</strong>：1.0 - 源颜色的 RGB 值</li>
-          <li><strong>gl.DST_COLOR</strong>：目标颜色的 RGB 值</li>
-          <li><strong>gl.ONE_MINUS_DST_COLOR</strong>：1.0 - 目标颜色的 RGB 值</li>
-          <li><strong>gl.SRC_ALPHA</strong>：源颜色的 Alpha 值</li>
-          <li><strong>gl.ONE_MINUS_SRC_ALPHA</strong>：1.0 - 源颜色的 Alpha 值</li>
-          <li><strong>gl.DST_ALPHA</strong>：目标颜色的 Alpha 值</li>
-          <li><strong>gl.ONE_MINUS_DST_ALPHA</strong>：1.0 - 目标颜色的 Alpha 值</li>
-        </ul>
-        
-        <CodeBlock title="启用混合" code={`// 启用混合
-gl.enable(gl.BLEND);
-
-// 设置混合函数
-// blendFunc(srcFactor, dstFactor)
-// result = srcFactor × srcColor + dstFactor × dstColor
-gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-// 常见的混合模式：
-// 1. 标准透明度（最常用）
-gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-// 结果 = srcColor × srcAlpha + dstColor × (1 - srcAlpha)
-// 适用于：玻璃、水、半透明物体
-
-// 2. 加法混合（Additive Blending）
-gl.blendFunc(gl.ONE, gl.ONE);
-// 结果 = srcColor + dstColor
-// 适用于：发光效果、火焰、粒子效果
-
-// 3. 乘法混合（Multiplicative Blending）
-gl.blendFunc(gl.DST_COLOR, gl.ZERO);
-// 结果 = srcColor × dstColor
-// 适用于：阴影、暗化效果
-
-// 4. 减法混合（Subtractive Blending，需要 WebGL 2.0）
-gl.blendEquation(gl.FUNC_SUBTRACT);
-gl.blendFunc(gl.ONE, gl.ONE);
-// 结果 = dstColor - srcColor
-// 适用于：特殊效果
-
-// 5. 预乘 Alpha（Premultiplied Alpha）
-gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-// 适用于：预乘 Alpha 的纹理`} />
-        
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">混合方程</h3>
-        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          WebGL 还支持不同的混合方程（Blend Equation）：
-        </p>
-        <CodeBlock title="混合方程" code={`// 设置混合方程（默认是加法）
-gl.blendEquation(gl.FUNC_ADD);  // result = srcFactor × src + dstFactor × dst
-
-// WebGL 2.0 支持：
-gl.blendEquation(gl.FUNC_SUBTRACT);  // result = srcFactor × src - dstFactor × dst
-gl.blendEquation(gl.FUNC_REVERSE_SUBTRACT);  // result = dstFactor × dst - srcFactor × src
-
-// 分别设置 RGB 和 Alpha 的混合方程（WebGL 2.0）
-gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
-
-// 分别设置 RGB 和 Alpha 的混合因子（WebGL 2.0）
-gl.blendFuncSeparate(
-  gl.SRC_ALPHA,           // RGB 源因子
-  gl.ONE_MINUS_SRC_ALPHA, // RGB 目标因子
-  gl.ONE,                 // Alpha 源因子
-  gl.ONE_MINUS_SRC_ALPHA  // Alpha 目标因子
-);`} />
-        
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">绘制顺序的重要性</h3>
-        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          绘制透明物体时，顺序非常重要：
-        </p>
-        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li><strong className="text-primary font-semibold">从后往前绘制</strong>：
+          <li><strong className="text-primary font-semibold">基础颜色（Albedo/Diffuse）</strong>：
             <ul className="mt-2 pl-6">
-              <li>先绘制远处的透明物体</li>
-              <li>再绘制近处的透明物体</li>
-              <li>确保正确的混合效果</li>
+              <li>物体表面的基础颜色，通常使用纹理贴图或纯色</li>
+              <li>在物理渲染（PBR）中，这应该是去除光照后的真实颜色</li>
+              <li>通常使用 RGB 或 RGBA 格式</li>
             </ul>
           </li>
-          <li><strong className="text-primary font-semibold">分离不透明和透明物体</strong>：
+          <li><strong className="text-primary font-semibold">纹理贴图（Texture Maps）</strong>：
             <ul className="mt-2 pl-6">
-              <li>先绘制所有不透明物体（启用深度测试和深度写入）</li>
-              <li>再绘制透明物体（启用混合，禁用深度写入）</li>
+              <li>漫反射贴图（Diffuse Map）：基础颜色纹理</li>
+              <li>法线贴图（Normal Map）：表面细节的法线信息</li>
+              <li>粗糙度贴图（Roughness Map）：表面粗糙程度</li>
+              <li>金属度贴图（Metallic Map）：金属属性</li>
+              <li>环境光遮蔽贴图（AO Map）：阴影细节</li>
             </ul>
           </li>
-          <li><strong className="text-primary font-semibold">按深度排序</strong>：
+          <li><strong className="text-primary font-semibold">光照属性</strong>：
             <ul className="mt-2 pl-6">
-              <li>对透明物体按深度排序</li>
-              <li>从远到近绘制</li>
+              <li>环境光系数（Ambient）：物体在无光照情况下的颜色</li>
+              <li>漫反射系数（Diffuse）：物体对漫反射光的响应</li>
+              <li>镜面反射系数（Specular）：物体对镜面反射光的响应</li>
+              <li>高光强度（Shininess）：镜面反射的锐利程度</li>
+            </ul>
+          </li>
+          <li><strong className="text-primary font-semibold">透明度（Transparency）</strong>：
+            <ul className="mt-2 pl-6">
+              <li>Alpha 通道：控制物体的不透明度（0 = 完全透明，1 = 完全不透明）</li>
+              <li>用于实现玻璃、水、半透明物体等效果</li>
+            </ul>
+          </li>
+          <li><strong className="text-primary font-semibold">自发光（Emissive）</strong>：
+            <ul className="mt-2 pl-6">
+              <li>物体自身发出的光，不受光照影响</li>
+              <li>用于实现发光物体，如灯泡、屏幕等</li>
             </ul>
           </li>
         </ul>
-        <CodeBlock title="正确的绘制顺序" code={`// 1. 绘制不透明物体
-gl.enable(gl.DEPTH_TEST);
-gl.depthMask(true);  // 启用深度写入
-gl.disable(gl.BLEND);
-renderOpaqueObjects();
-
-// 2. 对透明物体按深度排序
-const transparentObjects = getTransparentObjects();
-transparentObjects.sort((a, b) => {
-  const distA = distance(camera.position, a.position);
-  const distB = distance(camera.position, b.position);
-  return distB - distA;  // 从远到近排序
-});
-
-// 3. 绘制透明物体（从后往前）
-gl.enable(gl.BLEND);
-gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-gl.depthMask(false);  // 禁用深度写入（透明物体不写入深度）
-for (const obj of transparentObjects) {
-  renderObject(obj);
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          <strong className="text-primary font-semibold">材质系统的重要性</strong>：
+        </p>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li>材质决定了物体的视觉外观，是区分不同物体的关键</li>
+          <li>好的材质系统可以大大提升渲染质量</li>
+          <li>材质可以复用，提高开发效率</li>
+          <li>材质参数可以动态调整，实现动画效果</li>
+        </ul>
+        <CodeBlock title="材质数据结构示例" code={`// 简单的材质结构
+class Material {
+  constructor() {
+    this.diffuseColor = [1.0, 1.0, 1.0];  // RGB 基础颜色
+    this.diffuseTexture = null;            // 漫反射纹理
+    this.normalTexture = null;             // 法线纹理
+    this.specular = 0.5;                   // 镜面反射强度
+    this.shininess = 32.0;                 // 高光锐度
+    this.alpha = 1.0;                      // 透明度
+    this.emissive = [0.0, 0.0, 0.0];      // 自发光颜色
+  }
 }
-gl.depthMask(true);  // 恢复深度写入`} language="javascript" />
-        
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">透明度示例</h3>
+
+// 使用示例
+const woodMaterial = new Material();
+woodMaterial.diffuseTexture = loadTexture('wood.jpg');
+woodMaterial.specular = 0.3;
+woodMaterial.shininess = 16.0;
+
+const metalMaterial = new Material();
+metalMaterial.diffuseColor = [0.8, 0.8, 0.9];
+metalMaterial.specular = 0.9;
+metalMaterial.shininess = 128.0;`} language="javascript" />
+      </section>
+
+      <section className="mb-12">
+        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">纹理基础</h2>
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          下面展示了透明度的效果：
+          纹理（Texture）是 2D 图像，可以映射到 3D 物体的表面，为物体添加细节和真实感。
+          纹理是图形学中最重要的技术之一，它让我们可以用相对简单的几何体创建复杂的视觉效果。
+        </p>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          <strong className="text-primary font-semibold">什么是纹理？</strong>：
+        </p>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li>纹理本质上是一个 2D 图像（通常是位图）</li>
+          <li>纹理被映射到 3D 物体的表面上</li>
+          <li>每个顶点都有对应的纹理坐标（UV 坐标），指定纹理上的哪个位置</li>
+          <li>片段着色器使用插值后的纹理坐标来采样纹理颜色</li>
+        </ul>
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">纹理坐标（UV 坐标）</h3>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          纹理坐标（Texture Coordinates），也称为 UV 坐标，用于指定纹理图像上的位置。
+          U 和 V 分别对应纹理的水平和垂直方向，范围通常从 0 到 1。
+        </p>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          <strong className="text-primary font-semibold">UV 坐标系统</strong>：
+        </p>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li><strong>U 轴</strong>：水平方向，从左到右（0 → 1）</li>
+          <li><strong>V 轴</strong>：垂直方向，从下到上（0 → 1）</li>
+          <li><strong>原点 (0, 0)</strong>：通常位于纹理的左下角（注意：有些系统使用左上角）</li>
+          <li><strong>范围 [0, 1]</strong>：标准范围，超出此范围的行为由纹理包装模式决定</li>
+        </ul>
+        <CodeBlock title="纹理坐标示例" code={`// 纹理坐标 (u, v) 的布局
+// 注意：WebGL 中 (0,0) 在左下角
+//
+// (0,1) -------- (1,1)
+//   |               |
+//   |    纹理图像    |
+//   |               |
+// (0,0) -------- (1,0)
+
+// 一个矩形的纹理坐标
+const texCoords = [
+  0.0, 0.0,  // 左下角顶点
+  1.0, 0.0,  // 右下角顶点
+  1.0, 1.0,  // 右上角顶点
+  0.0, 1.0   // 左上角顶点
+]
+
+// 在顶点数据中，纹理坐标通常与位置一起存储
+const vertices = [
+  // 位置 (x, y, z)    纹理坐标 (u, v)
+  -0.5, -0.5, 0.0,    0.0, 0.0,
+   0.5, -0.5, 0.0,    1.0, 0.0,
+   0.5,  0.5, 0.0,    1.0, 1.0,
+  -0.5,  0.5, 0.0,    0.0, 1.0
+]`} language="javascript" />
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">UV 映射</h3>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          UV 映射是将 3D 模型的顶点映射到 2D 纹理图像上的过程。
+          这是一个重要的建模步骤，决定了纹理如何应用到模型上。
+        </p>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          <strong className="text-primary font-semibold">UV 映射的挑战</strong>：
+        </p>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li><strong>展开 3D 表面</strong>：需要将 3D 表面"展开"到 2D 平面上</li>
+          <li><strong>避免重叠</strong>：确保不同的 3D 区域映射到纹理的不同部分</li>
+          <li><strong>最小化扭曲</strong>：尽量保持纹理的比例和形状</li>
+          <li><strong>有效利用空间</strong>：最大化利用纹理空间，减少浪费</li>
+        </ul>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          <strong className="text-primary font-semibold">常见的 UV 映射技术</strong>：
+        </p>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li><strong>平面映射</strong>：将模型投影到一个平面上（适合平面物体）</li>
+          <li><strong>圆柱映射</strong>：将模型包裹在圆柱上（适合圆柱形物体）</li>
+          <li><strong>球面映射</strong>：将模型包裹在球面上（适合球形物体）</li>
+          <li><strong>手动展开</strong>：在 3D 建模软件中手动编辑 UV（最灵活，最耗时）</li>
+        </ul>
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">纹理坐标的插值</h3>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          在光栅化过程中，纹理坐标会在三角形内部进行插值。
+          这意味着每个片段都会得到插值后的纹理坐标，用于采样纹理。
+        </p>
+        <CodeBlock title="纹理坐标插值示例" code={`// 顶点着色器：传递纹理坐标
+attribute vec2 a_texCoord;
+varying vec2 v_texCoord;
+
+void main() {
+  gl_Position = u_matrix * vec4(a_position, 1.0);
+  v_texCoord = a_texCoord;  // 传递给片段着色器
+}
+
+// 片段着色器：接收插值后的纹理坐标
+precision mediump float;
+varying vec2 v_texCoord;  // 已经过插值的纹理坐标
+uniform sampler2D u_texture;
+
+void main() {
+  // 使用插值后的纹理坐标采样纹理
+  gl_FragColor = texture2D(u_texture, v_texCoord);
+}
+
+// 插值过程（WebGL 自动完成）：
+// 1. 顶点着色器输出每个顶点的纹理坐标
+// 2. 光栅化时，在三角形内部进行线性插值
+// 3. 每个片段得到对应的插值后的纹理坐标
+// 4. 片段着色器使用这个坐标采样纹理`} />
+      </section>
+
+      <section className="mb-12">
+        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">创建纹理</h2>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          在 WebGL 中创建和使用纹理需要遵循特定的步骤。
+          理解这些步骤对于正确使用纹理非常重要。
+        </p>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          <strong className="text-primary font-semibold">创建纹理的完整流程</strong>：
+        </p>
+        <ol className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li><strong>创建纹理对象</strong>：使用 gl.createTexture() 创建纹理对象</li>
+          <li><strong>绑定纹理</strong>：使用 gl.bindTexture() 绑定到纹理单元</li>
+          <li><strong>设置纹理参数</strong>：设置过滤模式、包装模式等参数</li>
+          <li><strong>上传图像数据</strong>：使用 gl.texImage2D() 上传图像数据到 GPU</li>
+          <li><strong>生成 Mipmap（可选）</strong>：使用 gl.generateMipmap() 生成多级纹理</li>
+          <li><strong>在着色器中采样</strong>：使用 texture2D() 函数采样纹理</li>
+        </ol>
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">从图像创建纹理</h3>
+        <CodeBlock title="完整的纹理创建函数" code={`// 从图像创建纹理（异步加载）
+function loadTexture(gl, url) {
+  return new Promise((resolve, reject) => {
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    
+    // 创建临时图像（1x1 像素，紫色）
+    // 在图像加载完成前显示这个临时图像
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      1,
+      1,
+      0,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      new Uint8Array([255, 0, 255, 255])  // 紫色
+    );
+    
+    const image = new Image();
+    image.crossOrigin = 'anonymous';  // 允许跨域加载
+    
+    image.onload = () => {
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      
+      // 设置纹理参数
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      
+      // 上传图像数据
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,                    // mipmap 级别（0 = 基础级别）
+        gl.RGBA,              // 内部格式
+        gl.RGBA,              // 源格式
+        gl.UNSIGNED_BYTE,     // 数据类型
+        image                 // 图像数据
+      );
+      
+      // 生成 Mipmap（可选，但推荐）
+      gl.generateMipmap(gl.TEXTURE_2D);
+      
+      resolve(texture);
+    };
+    
+    image.onerror = () => {
+      reject(new Error(\`无法加载纹理: \${url}\`));
+    };
+    
+    image.src = url;
+  });
+}
+
+// 使用示例
+loadTexture(gl, 'texture.jpg')
+  .then(texture => {
+    console.log('纹理加载成功');
+    // 使用纹理进行渲染
+  })
+  .catch(error => {
+    console.error('纹理加载失败:', error);
+  });`} language="javascript" />
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">从 Canvas 创建纹理</h3>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          除了从图像文件加载纹理，还可以从 Canvas 元素创建纹理。
+          这对于程序化生成纹理或动态更新纹理非常有用。
+        </p>
+        <CodeBlock title="从 Canvas 创建纹理" code={`// 从 Canvas 创建纹理
+function createTextureFromCanvas(gl, canvas) {
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  
+  // 设置纹理参数
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  // 上传 Canvas 数据
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
+  
+  return texture;
+}
+
+// 示例：创建程序化纹理
+const canvas = document.createElement('canvas');
+canvas.width = 256;
+canvas.height = 256;
+const ctx = canvas.getContext('2d');
+
+// 绘制渐变
+const gradient = ctx.createLinearGradient(0, 0, 256, 256);
+gradient.addColorStop(0, 'red');
+gradient.addColorStop(1, 'blue');
+ctx.fillStyle = gradient;
+ctx.fillRect(0, 0, 256, 256);
+
+// 创建纹理
+const texture = createTextureFromCanvas(gl, canvas);`} language="javascript" />
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">从像素数据创建纹理</h3>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          也可以直接从像素数据（TypedArray）创建纹理。
+          这对于动态生成纹理或处理图像数据非常有用。
+        </p>
+        <CodeBlock title="从像素数据创建纹理" code={`// 从像素数据创建纹理
+function createTextureFromData(gl, width, height, data) {
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  
+  // 设置纹理参数
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  // 上传像素数据
+  gl.texImage2D(
+    gl.TEXTURE_2D,
+    0,
+    gl.RGBA,
+    width,
+    height,
+    0,
+    gl.RGBA,
+    gl.UNSIGNED_BYTE,
+    data  // Uint8Array，格式为 RGBA
+  );
+  
+  return texture;
+}
+
+// 示例：创建棋盘格纹理
+function createCheckerboardTexture(gl, size = 256) {
+  const pixels = new Uint8Array(size * size * 4);
+  const tileSize = size / 8;
+  
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const tileX = Math.floor(x / tileSize);
+      const tileY = Math.floor(y / tileSize);
+      const isWhite = (tileX + tileY) % 2 === 0;
+      
+      const index = (y * size + x) * 4;
+      const color = isWhite ? 255 : 0;
+      pixels[index] = color;     // R
+      pixels[index + 1] = color; // G
+      pixels[index + 2] = color; // B
+      pixels[index + 3] = 255;    // A
+    }
+  }
+  
+  return createTextureFromData(gl, size, size, pixels);
+}`} language="javascript" />
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">纹理格式和限制</h3>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          <strong className="text-primary font-semibold">支持的纹理格式</strong>：
+        </p>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li><strong>RGBA</strong>：红、绿、蓝、Alpha（最常用）</li>
+          <li><strong>RGB</strong>：红、绿、蓝（无 Alpha）</li>
+          <li><strong>LUMINANCE</strong>：灰度图像</li>
+          <li><strong>LUMINANCE_ALPHA</strong>：灰度 + Alpha</li>
+          <li><strong>ALPHA</strong>：仅 Alpha 通道</li>
+        </ul>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          <strong className="text-primary font-semibold">纹理尺寸限制</strong>：
+        </p>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li>WebGL 要求纹理尺寸必须是 2 的幂（1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048...）</li>
+          <li>最大纹理尺寸可以通过 <code className="bg-dark-bg dark:bg-dark-bg px-1 py-0.5 rounded">gl.getParameter(gl.MAX_TEXTURE_SIZE)</code> 查询</li>
+          <li>如果图像不是 2 的幂，需要调整大小或使用非 2 的幂纹理（功能受限）</li>
+        </ul>
+        <CodeBlock title="检查纹理尺寸限制" code={`// 检查最大纹理尺寸
+const maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+console.log('最大纹理尺寸:', maxTextureSize);  // 通常是 2048 或 4096
+
+// 检查纹理是否是 2 的幂
+function isPowerOfTwo(value) {
+  return (value & (value - 1)) === 0;
+}
+
+// 调整图像大小到 2 的幂
+function resizeToPowerOfTwo(image) {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  
+  // 计算最接近的 2 的幂
+  const width = Math.pow(2, Math.ceil(Math.log2(image.width)));
+  const height = Math.pow(2, Math.ceil(Math.log2(image.height)));
+  
+  canvas.width = width;
+  canvas.height = height;
+  ctx.drawImage(image, 0, 0, width, height);
+  
+  return canvas;
+}`} language="javascript" />
+      </section>
+
+      <section className="mb-12">
+        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">纹理过滤</h2>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          纹理过滤（Texture Filtering）决定当纹理被放大或缩小时如何采样纹理像素。
+          选择合适的过滤模式对于获得良好的视觉效果非常重要。
+        </p>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          <strong className="text-primary font-semibold">为什么需要纹理过滤？</strong>：
+        </p>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li>当纹理被放大时，一个纹理像素可能覆盖多个屏幕像素（需要插值）</li>
+          <li>当纹理被缩小时，多个纹理像素可能映射到一个屏幕像素（需要平均）</li>
+          <li>过滤可以避免锯齿和闪烁，提供平滑的视觉效果</li>
+        </ul>
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">放大过滤（MAG_FILTER）</h3>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          当纹理被放大时（纹理像素小于屏幕像素），使用 MAG_FILTER。
+        </p>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li><strong className="text-primary font-semibold">gl.NEAREST</strong>：
+            <ul className="mt-2 pl-6">
+              <li>选择最近的纹理像素，不做插值</li>
+              <li>产生像素化的效果（马赛克）</li>
+              <li>性能最好，但质量较低</li>
+              <li>适用于像素艺术风格的游戏</li>
+            </ul>
+          </li>
+          <li><strong className="text-primary font-semibold">gl.LINEAR</strong>：
+            <ul className="mt-2 pl-6">
+              <li>在最近的 4 个纹理像素之间进行双线性插值</li>
+              <li>产生平滑的效果</li>
+              <li>性能稍差，但质量更好</li>
+              <li>大多数情况下推荐使用</li>
+            </ul>
+          </li>
+        </ul>
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">缩小过滤（MIN_FILTER）</h3>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          当纹理被缩小时（纹理像素大于屏幕像素），使用 MIN_FILTER。
+          缩小过滤可以使用 Mipmap 来提升质量。
+        </p>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li><strong className="text-primary font-semibold">gl.NEAREST</strong>：选择最近的纹理像素</li>
+          <li><strong className="text-primary font-semibold">gl.LINEAR</strong>：双线性插值</li>
+          <li><strong className="text-primary font-semibold">gl.NEAREST_MIPMAP_NEAREST</strong>：选择最近的 mipmap 级别，然后使用最近邻采样</li>
+          <li><strong className="text-primary font-semibold">gl.LINEAR_MIPMAP_NEAREST</strong>：选择最近的 mipmap 级别，然后使用线性插值</li>
+          <li><strong className="text-primary font-semibold">gl.NEAREST_MIPMAP_LINEAR</strong>：在两个 mipmap 级别之间插值，然后使用最近邻采样</li>
+          <li><strong className="text-primary font-semibold">gl.LINEAR_MIPMAP_LINEAR</strong>：三线性过滤（最平滑，推荐）</li>
+        </ul>
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">Mipmap（多级纹理）</h3>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          Mipmap 是纹理的预计算缩小版本序列。
+          每个 mipmap 级别都是前一级别的一半大小，形成一个金字塔结构。
+        </p>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          <strong className="text-primary font-semibold">Mipmap 的结构</strong>：
+        </p>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li>级别 0：原始纹理（例如 512x512）</li>
+          <li>级别 1：256x256</li>
+          <li>级别 2：128x128</li>
+          <li>级别 3：64x64</li>
+          <li>级别 4：32x32</li>
+          <li>... 直到 1x1</li>
+        </ul>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          <strong className="text-primary font-semibold">Mipmap 的优势</strong>：
+        </p>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li><strong>提升远距离渲染质量</strong>：当纹理被缩小时，使用较小的 mipmap 级别可以避免闪烁和锯齿</li>
+          <li><strong>提高性能</strong>：使用较小的 mipmap 级别意味着更少的纹理数据需要采样</li>
+          <li><strong>减少内存带宽</strong>：较小的 mipmap 级别占用更少的内存带宽</li>
+        </ul>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          <strong className="text-primary font-semibold">Mipmap 的代价</strong>：
+        </p>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li>额外的内存占用（约增加 33%）</li>
+          <li>需要预计算时间（但通常可以忽略）</li>
+        </ul>
+        <CodeBlock title="生成和使用 Mipmap" code={`// 创建纹理并生成 Mipmap
+function createTextureWithMipmap(gl, image) {
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  
+  // 上传基础级别（级别 0）
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+  
+  // 生成 Mipmap（WebGL 自动生成所有级别）
+  gl.generateMipmap(gl.TEXTURE_2D);
+  
+  // 设置过滤模式（使用 Mipmap）
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  return texture;
+}
+
+// 手动创建 Mipmap（如果需要更多控制）
+function createMipmapManually(gl, texture, width, height) {
+  let level = 0;
+  let currentWidth = width;
+  let currentHeight = height;
+  
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  
+  while (currentWidth > 1 && currentHeight > 1) {
+    level++;
+    currentWidth = Math.max(1, currentWidth / 2);
+    currentHeight = Math.max(1, currentHeight / 2);
+    
+    canvas.width = currentWidth;
+    canvas.height = currentHeight;
+    
+    // 绘制缩小后的图像
+    ctx.drawImage(image, 0, 0, currentWidth, currentHeight);
+    
+    // 上传到对应的 mipmap 级别
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      level,
+      gl.RGBA,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      canvas
+    );
+  }
+}`} language="javascript" />
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">过滤模式的选择</h3>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          <strong className="text-primary font-semibold">推荐配置</strong>：
+        </p>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li><strong>高质量</strong>：
+            <ul className="mt-2 pl-6">
+              <li>MIN_FILTER: gl.LINEAR_MIPMAP_LINEAR（三线性过滤）</li>
+              <li>MAG_FILTER: gl.LINEAR（双线性插值）</li>
+              <li>需要生成 Mipmap</li>
+            </ul>
+          </li>
+          <li><strong>平衡</strong>：
+            <ul className="mt-2 pl-6">
+              <li>MIN_FILTER: gl.LINEAR_MIPMAP_NEAREST</li>
+              <li>MAG_FILTER: gl.LINEAR</li>
+              <li>需要生成 Mipmap</li>
+            </ul>
+          </li>
+          <li><strong>性能优先</strong>：
+            <ul className="mt-2 pl-6">
+              <li>MIN_FILTER: gl.NEAREST</li>
+              <li>MAG_FILTER: gl.NEAREST</li>
+              <li>不需要 Mipmap</li>
+            </ul>
+          </li>
+          <li><strong>像素艺术</strong>：
+            <ul className="mt-2 pl-6">
+              <li>MIN_FILTER: gl.NEAREST</li>
+              <li>MAG_FILTER: gl.NEAREST</li>
+              <li>保持像素化的风格</li>
+            </ul>
+          </li>
+        </ul>
+        <CodeBlock title="设置纹理过滤" code={`// 设置纹理过滤参数
+function setTextureFiltering(gl, texture, minFilter, magFilter) {
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minFilter);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magFilter);
+}
+
+// 使用示例
+// 高质量配置
+setTextureFiltering(gl, texture, gl.LINEAR_MIPMAP_LINEAR, gl.LINEAR);
+
+// 性能优先配置
+setTextureFiltering(gl, texture, gl.NEAREST, gl.NEAREST);
+
+// 像素艺术配置
+setTextureFiltering(gl, texture, gl.NEAREST, gl.NEAREST);`} language="javascript" />
+      </section>
+
+      <section className="mb-12">
+        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">纹理包装</h2>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          纹理包装决定超出 [0,1] 范围的纹理坐标如何处理。这对于创建无缝重复的纹理或处理边界情况很重要。
+        </p>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li><strong className="text-primary font-semibold">gl.REPEAT</strong>：重复纹理，创建平铺效果</li>
+          <li><strong className="text-primary font-semibold">gl.CLAMP_TO_EDGE</strong>：夹紧到边缘，使用边缘像素填充</li>
+          <li><strong className="text-primary font-semibold">gl.MIRRORED_REPEAT</strong>：镜像重复，创建对称的平铺效果</li>
+        </ul>
+        
+        <CodeBlock title="设置纹理包装模式" code={`// 设置 S 方向（水平）的包装模式
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+
+// 设置 T 方向（垂直）的包装模式
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+
+// 示例：创建无缝平铺的纹理
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+
+// 在着色器中使用超出 [0,1] 的纹理坐标
+vec2 repeatedUV = v_texCoord * 5.0;  // 重复 5 次
+vec4 color = texture2D(u_texture, repeatedUV);`} />
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">纹理包装示例</h3>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          下面展示了不同包装模式的效果：
         </p>
         
         <FlipCard 
           width={400} 
           height={400} 
           onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
-            const vertexShader = `
-              attribute vec3 a_position;
-              uniform mat4 u_mvpMatrix;
-              
-              void main() {
-                gl_Position = u_mvpMatrix * vec4(a_position, 1.0);
-              }
-            `
-            
-            const fragmentShader = `
-              precision mediump float;
-              uniform vec4 u_color;
-              
-              void main() {
-                gl_FragColor = u_color;
-              }
-            `
-            
-            const program = createProgram(gl, vertexShader, fragmentShader)
-            
-            // 创建多个重叠的透明矩形
-            const positions: number[] = []
-            const indices: number[] = []
-            const colors = [
-              [1.0, 0.0, 0.0, 0.5],  // 红色，50% 透明度
-              [0.0, 1.0, 0.0, 0.5],  // 绿色，50% 透明度
-              [0.0, 0.0, 1.0, 0.5],  // 蓝色，50% 透明度
-            ]
-            
-            for (let i = 0; i < 3; i++) {
-              const offset = i * 0.3 - 0.3
-              const rectPositions = [
-                -0.3 + offset, -0.3, 0,  0.3 + offset, -0.3, 0,
-                 0.3 + offset,  0.3, 0, -0.3 + offset,  0.3, 0,
-              ]
-              positions.push(...rectPositions)
-              
-              const base = i * 4
-              indices.push(base, base + 1, base + 2, base, base + 2, base + 3)
-            }
-            
-            const positionBuffer = createBuffer(gl, positions)
-            const indexBuffer = createIndexBuffer(gl, indices)
-            
-            const mvpMatrixLocation = gl.getUniformLocation(program, 'u_mvpMatrix')
-            const colorLocation = gl.getUniformLocation(program, 'u_color')
-            
-            gl.viewport(0, 0, canvas.width, canvas.height)
-            gl.enable(gl.DEPTH_TEST)
-            gl.enable(gl.BLEND)
-            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-            gl.clearColor(0.1, 0.1, 0.1, 1.0)
-            
-            const aspect = canvas.width / canvas.height
-            const projectionMatrix = Matrix.perspective(Math.PI / 4, aspect, 0.1, 100)
-            const viewMatrix = Matrix.lookAt(0, 0, 2, 0, 0, 0, 0, 1, 0)
-            const modelMatrix = Matrix.identity()
-            const mvpMatrix = Matrix.multiply(projectionMatrix, Matrix.multiply(viewMatrix, modelMatrix))
-            
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-            gl.useProgram(program)
-            
-            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-            setAttribute(gl, program, 'a_position', 3)
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
-            
-            gl.uniformMatrix4fv(mvpMatrixLocation, false, mvpMatrix)
-            
-            // 从后往前绘制（重要！）
-            for (let i = 2; i >= 0; i--) {
-              gl.uniform4f(colorLocation, colors[i][0], colors[i][1], colors[i][2], colors[i][3])
-              gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, i * 6 * 2)
-            }
-          }}
-          codeBlocks={[
-            { title: '顶点着色器', code: `attribute vec3 a_position;
-uniform mat4 u_mvpMatrix;
-
-void main() {
-  gl_Position = u_mvpMatrix * vec4(a_position, 1.0);
-}` },
-            { title: '片段着色器', code: `precision mediump float;
-uniform vec4 u_color;
-
-void main() {
-  gl_FragColor = u_color;
-}` },
-            { title: 'JavaScript 代码', code: `const program = createProgram(gl, vertexShader, fragmentShader)
-
-// 创建多个重叠的透明矩形
-const positions = []
-const indices = []
-const colors = [
-  [1.0, 0.0, 0.0, 0.5],  // 红色，50% 透明度
-  [0.0, 1.0, 0.0, 0.5],  // 绿色，50% 透明度
-  [0.0, 0.0, 1.0, 0.5],  // 蓝色，50% 透明度
-]
-
-for (let i = 0; i < 3; i++) {
-  const offset = i * 0.3 - 0.3
-  const rectPositions = [
-    -0.3 + offset, -0.3, 0,  0.3 + offset, -0.3, 0,
-     0.3 + offset,  0.3, 0, -0.3 + offset,  0.3, 0,
-  ]
-  positions.push(...rectPositions)
-  
-  const base = i * 4
-  indices.push(base, base + 1, base + 2, base, base + 2, base + 3)
-}
-
-const positionBuffer = createBuffer(gl, positions)
-const indexBuffer = createIndexBuffer(gl, indices)
-
-gl.viewport(0, 0, canvas.width, canvas.height)
-gl.enable(gl.DEPTH_TEST)
-gl.enable(gl.BLEND)
-gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-gl.clearColor(0.1, 0.1, 0.1, 1.0)
-
-const aspect = canvas.width / canvas.height
-const projectionMatrix = Matrix.perspective(Math.PI / 4, aspect, 0.1, 100)
-const viewMatrix = Matrix.lookAt(0, 0, 2, 0, 0, 0, 0, 1, 0)
-const modelMatrix = Matrix.identity()
-const mvpMatrix = Matrix.multiply(projectionMatrix, Matrix.multiply(viewMatrix, modelMatrix))
-
-gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-gl.useProgram(program)
-
-gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
-setAttribute(gl, program, 'a_position', 3)
-gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
-
-gl.uniformMatrix4fv(mvpMatrixLocation, false, mvpMatrix)
-
-// 从后往前绘制（重要！）
-for (let i = 2; i >= 0; i--) {
-  gl.uniform4f(colorLocation, colors[i][0], colors[i][1], colors[i][2], colors[i][3])
-  gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, i * 6 * 2)
-}`, language: 'javascript' }
-          ]}
-        />
-        
-        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          <strong className="text-primary font-semibold">重要提示</strong>：绘制透明物体时，需要从后往前绘制，才能得到正确的混合效果。
-        </p>
-      </section>
-
-      <section className="mb-12">
-        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">深度测试</h2>
-        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          深度测试（Depth Test）用于确定哪些片段应该被绘制，哪些应该被丢弃。
-          这对于正确渲染 3D 场景至关重要，确保近处的物体遮挡远处的物体。
-        </p>
-        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          <strong className="text-primary font-semibold">深度缓冲区（Depth Buffer）</strong>：
-        </p>
-        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li>深度缓冲区存储每个片段的深度值（Z 值）</li>
-          <li>深度值范围通常是 0.0（近平面）到 1.0（远平面）</li>
-          <li>在片段着色器执行后，深度测试会检查新片段的深度值</li>
-          <li>如果新片段更近（深度值更小），则通过测试并更新深度缓冲区</li>
-          <li>如果新片段更远（深度值更大），则被丢弃</li>
-        </ul>
-        
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">深度测试函数</h3>
-        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          深度测试函数决定片段何时通过深度测试：
-        </p>
-        <CodeBlock title="深度测试设置" code={`// 启用深度测试
-gl.enable(gl.DEPTH_TEST);
-
-// 设置深度测试函数
-gl.depthFunc(gl.LESS);  // 默认：只绘制更近的片段（深度值更小）
-
-// 深度测试函数选项：
-// gl.LESS: 新片段深度 < 已有深度 → 通过（默认，最常用）
-// gl.LEQUAL: 新片段深度 <= 已有深度 → 通过
-// gl.GREATER: 新片段深度 > 已有深度 → 通过
-// gl.GEQUAL: 新片段深度 >= 已有深度 → 通过
-// gl.EQUAL: 新片段深度 == 已有深度 → 通过（用于特殊效果）
-// gl.NOTEQUAL: 新片段深度 != 已有深度 → 通过
-// gl.ALWAYS: 总是通过（相当于禁用深度测试）
-// gl.NEVER: 永远不通过
-
-// 清除深度缓冲区（每帧开始时）
-gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-// 设置深度清除值（默认 1.0，表示最远）
-gl.clearDepth(1.0);
-
-// 清除深度缓冲区到指定值
-gl.clear(gl.DEPTH_BUFFER_BIT);`} />
-        
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">深度写入控制</h3>
-        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          深度写入控制是否将片段的深度值写入深度缓冲区：
-        </p>
-        <CodeBlock title="控制深度写入" code={`// 禁用深度写入（用于透明物体）
-gl.depthMask(false);
-
-// 启用深度写入（默认）
-gl.depthMask(true);
-
-// 示例：绘制透明物体
-gl.depthMask(false);  // 不写入深度（透明物体不遮挡后面的物体）
-gl.enable(gl.BLEND);
-gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-// 绘制透明物体...
-gl.depthMask(true);  // 恢复深度写入
-
-// 为什么透明物体要禁用深度写入？
-// 1. 透明物体应该能看到后面的物体
-// 2. 如果写入深度，后面的透明物体会被前面的透明物体遮挡
-// 3. 禁用深度写入后，透明物体按绘制顺序混合`} />
-        
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">深度精度和范围</h3>
-        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          深度值的精度和范围设置：
-        </p>
-        <CodeBlock title="深度精度设置" code={`// 设置深度范围（WebGL 2.0）
-// depthRange(near, far) - 将深度值映射到 [near, far] 范围
-gl.depthRange(0.0, 1.0);  // 默认：[0.0, 1.0]
-
-// 示例：反转深度范围（用于某些特殊效果）
-gl.depthRange(1.0, 0.0);
-
-// 设置深度清除值
-gl.clearDepth(1.0);  // 默认：1.0（最远）
-
-// 获取深度缓冲区精度（只读）
-const depthBits = gl.getParameter(gl.DEPTH_BITS);
-// 通常是 16、24 或 32 位
-
-// 检查是否支持深度纹理（WebGL 2.0）
-const supportsDepthTexture = gl.getExtension('WEBGL_depth_texture');`} />
-        
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">深度测试的常见问题</h3>
-        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          <strong className="text-primary font-semibold">Z-Fighting（深度冲突）</strong>：
-        </p>
-        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li>当两个表面非常接近时，由于深度精度限制，会出现闪烁</li>
-          <li><strong className="text-primary font-semibold">解决方法</strong>：
-            <ul className="mt-2 pl-6">
-              <li>增加近平面和远平面的距离比</li>
-              <li>使用更高的深度精度（24 位或 32 位）</li>
-              <li>稍微偏移其中一个表面的深度值</li>
-              <li>使用多边形偏移（Polygon Offset）</li>
-            </ul>
-          </li>
-        </ul>
-        <CodeBlock title="多边形偏移（解决 Z-Fighting）" code={`// 启用多边形偏移
-gl.enable(gl.POLYGON_OFFSET_FILL);
-
-// 设置偏移量
-// polygonOffset(factor, units)
-// 深度偏移 = factor × maxSlope + units × constant
-gl.polygonOffset(1.0, 1.0);
-
-// 绘制需要偏移的物体
-renderObject();
-
-// 禁用多边形偏移
-gl.disable(gl.POLYGON_OFFSET_FILL);
-
-// 示例：绘制线框时避免 Z-Fighting
-gl.enable(gl.POLYGON_OFFSET_FILL);
-gl.polygonOffset(1.0, 1.0);
-renderSolid();  // 绘制实体
-
-gl.disable(gl.POLYGON_OFFSET_FILL);
-renderWireframe();  // 绘制线框`} />
-        
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">深度测试的性能优化</h3>
-        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li><strong className="text-primary font-semibold">早深度测试（Early Z-Test）</strong>：
-            <ul className="mt-2 pl-6">
-              <li>现代 GPU 会在片段着色器执行前进行深度测试</li>
-              <li>如果片段会被遮挡，就不执行片段着色器</li>
-              <li>避免在片段着色器中修改 gl_FragDepth（会禁用早深度测试）</li>
-            </ul>
-          </li>
-          <li><strong className="text-primary font-semibold">合理设置近远平面</strong>：
-            <ul className="mt-2 pl-6">
-              <li>近平面不要太近（避免精度问题）</li>
-              <li>远平面不要太远（避免精度损失）</li>
-              <li>尽量缩小近远平面的距离比</li>
-            </ul>
-          </li>
-        </ul>
-      </section>
-
-      <section className="mb-12">
-        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">面剔除（Face Culling）</h2>
-        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          面剔除（Face Culling）用于优化性能，不绘制不可见的背面。
-          这对于封闭的 3D 模型特别有效，可以减少约 50% 的渲染工作量。
-        </p>
-        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          <strong className="text-primary font-semibold">什么是正面和背面？</strong>：
-        </p>
-        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li>正面（Front Face）：面向相机的面</li>
-          <li>背面（Back Face）：背向相机的面</li>
-          <li>通过顶点顺序判断：逆时针（CCW）或顺时针（CW）</li>
-          <li>对于封闭模型，背面通常不可见，可以安全剔除</li>
-        </ul>
-        
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">面剔除设置</h3>
-        <CodeBlock title="面剔除设置" code={`// 启用面剔除
-gl.enable(gl.CULL_FACE);
-
-// 设置剔除哪一面
-gl.cullFace(gl.BACK);   // 默认：剔除背面（最常用）
-// gl.cullFace(gl.FRONT); // 剔除正面（用于特殊效果）
-// gl.cullFace(gl.FRONT_AND_BACK); // 剔除两面（不推荐，什么都看不到）
-
-// 设置顶点顺序（用于判断正面/背面）
-gl.frontFace(gl.CCW);  // 默认：逆时针为正面（最常用）
-// gl.frontFace(gl.CW);  // 顺时针为正面
-
-// 完整示例
-gl.enable(gl.CULL_FACE);
-gl.cullFace(gl.BACK);
-gl.frontFace(gl.CCW);
-// 现在只会绘制逆时针顺序的三角形（正面）`} />
-        
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">顶点顺序的重要性</h3>
-        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          顶点顺序决定了面的朝向：
-        </p>
-        <CodeBlock title="顶点顺序示例" code={`// 正确的顶点顺序（逆时针，从正面看）
-// 矩形（从正面看是逆时针）
-const positions = [
-  // 第一个三角形
-  -0.5, -0.5, 0,  // v0
-   0.5, -0.5, 0,  // v1
-   0.5,  0.5, 0,  // v2
-  
-  // 第二个三角形
-  -0.5, -0.5, 0,  // v0
-   0.5,  0.5, 0,  // v2
-  -0.5,  0.5, 0,  // v3
-];
-
-// 从正面看（Z 轴正方向），顶点顺序是逆时针（CCW）
-// 从背面看（Z 轴负方向），顶点顺序是顺时针（CW）
-
-// 如果顶点顺序错误，面会被错误地剔除
-// 解决方法：
-// 1. 修正顶点顺序
-// 2. 或者改变 frontFace 设置（gl.CW）`} />
-        
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">面剔除的应用场景</h3>
-        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li><strong className="text-primary font-semibold">封闭模型</strong>：
-            <ul className="mt-2 pl-6">
-              <li>立方体、球体、复杂 3D 模型</li>
-              <li>背面永远不可见，可以安全剔除</li>
-              <li>性能提升约 50%</li>
-            </ul>
-          </li>
-          <li><strong className="text-primary font-semibold">开放模型</strong>：
-            <ul className="mt-2 pl-6">
-              <li>平面、单面物体（如广告牌）</li>
-              <li>可能需要禁用面剔除</li>
-              <li>或者只剔除正面（gl.cullFace(gl.FRONT)）</li>
-            </ul>
-          </li>
-          <li><strong className="text-primary font-semibold">双面材质</strong>：
-            <ul className="mt-2 pl-6">
-              <li>某些材质需要看到两面（如布料、纸张）</li>
-              <li>禁用面剔除（gl.disable(gl.CULL_FACE)）</li>
-            </ul>
-          </li>
-        </ul>
-        
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">面剔除的调试</h3>
-        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          如果模型看起来不完整，可能是面剔除的问题：
-        </p>
-        <CodeBlock title="调试面剔除" code={`// 1. 禁用面剔除，检查模型是否完整
-gl.disable(gl.CULL_FACE);
-renderModel();
-// 如果模型完整，说明是面剔除的问题
-
-// 2. 尝试改变 frontFace
-gl.enable(gl.CULL_FACE);
-gl.frontFace(gl.CW);  // 改为顺时针
-renderModel();
-
-// 3. 尝试改变 cullFace
-gl.cullFace(gl.FRONT);  // 剔除正面而不是背面
-renderModel();
-
-// 4. 可视化法线检查面的朝向
-// 在片段着色器中：
-varying vec3 v_normal;
-void main() {
-  vec3 color = v_normal * 0.5 + 0.5;  // 可视化法线
-  gl_FragColor = vec4(color, 1.0);
-}
-
-// 5. 检查顶点顺序
-// 确保从正面看，顶点是逆时针顺序（CCW）`} />
-        
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">性能考虑</h3>
-        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li><strong className="text-primary font-semibold">性能提升</strong>：
-            <ul className="mt-2 pl-6">
-              <li>对于封闭模型，面剔除可以减少约 50% 的渲染工作量</li>
-              <li>减少顶点处理、片段着色器执行</li>
-              <li>减少深度测试和混合计算</li>
-            </ul>
-          </li>
-          <li><strong className="text-primary font-semibold">最佳实践</strong>：
-            <ul className="mt-2 pl-6">
-              <li>对于封闭模型，始终启用面剔除</li>
-              <li>确保顶点顺序正确（从正面看是逆时针）</li>
-              <li>对于开放模型，根据具体情况决定是否启用</li>
-            </ul>
-          </li>
-        </ul>
-      </section>
-
-      <section className="mb-12">
-        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">帧缓冲区（Framebuffer）</h2>
-        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          帧缓冲区（Framebuffer）允许我们将场景渲染到纹理中，而不是直接渲染到屏幕。
-          这对于后处理效果、阴影、反射、渲染到纹理等非常重要。
-        </p>
-        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          <strong className="text-primary font-semibold">帧缓冲区的组成</strong>：
-        </p>
-        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li><strong>颜色附件（Color Attachment）</strong>：存储颜色信息（通常是纹理）</li>
-          <li><strong>深度附件（Depth Attachment）</strong>：存储深度信息（纹理或渲染缓冲区）</li>
-          <li><strong>模板附件（Stencil Attachment）</strong>：存储模板信息（可选）</li>
-        </ul>
-        
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">创建帧缓冲区</h3>
-        <CodeBlock title="创建帧缓冲区" code={`// 创建帧缓冲区
-const framebuffer = gl.createFramebuffer();
-gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-
-// ========== 1. 创建颜色附件（纹理）==========
-const texture = gl.createTexture();
-gl.bindTexture(gl.TEXTURE_2D, texture);
-gl.texImage2D(
-  gl.TEXTURE_2D,
-  0,                    // mipmap 级别
-  gl.RGBA,              // 内部格式
-  width,                // 宽度
-  height,               // 高度
-  0,                    // 边框
-  gl.RGBA,              // 格式
-  gl.UNSIGNED_BYTE,     // 类型
-  null                  // 数据（null 表示分配内存但不初始化）
-);
-
-// 设置纹理参数
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-// 将纹理附加到帧缓冲区
-gl.framebufferTexture2D(
-  gl.FRAMEBUFFER,           // 目标
-  gl.COLOR_ATTACHMENT0,     // 附件点
-  gl.TEXTURE_2D,            // 纹理目标
-  texture,                  // 纹理对象
-  0                         // mipmap 级别
-);
-
-// ========== 2. 创建深度缓冲区（方法 1：使用渲染缓冲区）==========
-const depthBuffer = gl.createRenderbuffer();
-gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuffer);
-gl.renderbufferStorage(
-  gl.RENDERBUFFER,
-  gl.DEPTH_COMPONENT16,     // 深度格式（16 位）
-  width,
-  height
-);
-gl.framebufferRenderbuffer(
-  gl.FRAMEBUFFER,
-  gl.DEPTH_ATTACHMENT,
-  gl.RENDERBUFFER,
-  depthBuffer
-);
-
-// ========== 3. 创建深度缓冲区（方法 2：使用深度纹理，WebGL 2.0）==========
-// 需要扩展：WEBGL_depth_texture
-const depthTexture = gl.createTexture();
-gl.bindTexture(gl.TEXTURE_2D, depthTexture);
-gl.texImage2D(
-  gl.TEXTURE_2D,
-  0,
-  gl.DEPTH_COMPONENT,       // 深度格式
-  width,
-  height,
-  0,
-  gl.DEPTH_COMPONENT,
-  gl.UNSIGNED_SHORT,
-  null
-);
-gl.framebufferTexture2D(
-  gl.FRAMEBUFFER,
-  gl.DEPTH_ATTACHMENT,
-  gl.TEXTURE_2D,
-  depthTexture,
-  0
-);
-
-// ========== 4. 检查帧缓冲区是否完整 ==========
-const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
-if (status !== gl.FRAMEBUFFER_COMPLETE) {
-  switch (status) {
-    case gl.FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-      console.error('帧缓冲区附件不完整');
-      break;
-    case gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
-      console.error('帧缓冲区尺寸不一致');
-      break;
-    case gl.FRAMEBUFFER_UNSUPPORTED:
-      console.error('帧缓冲区格式不支持');
-      break;
-    default:
-      console.error('帧缓冲区不完整');
-  }
-}
-
-// ========== 5. 使用帧缓冲区 ==========
-// 渲染到帧缓冲区
-gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-gl.viewport(0, 0, width, height);
-gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-// ... 渲染场景 ...
-
-// 切换回默认帧缓冲区（屏幕）
-gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-gl.viewport(0, 0, canvas.width, canvas.height);
-// ... 使用纹理进行后处理 ...`} />
-        
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">多渲染目标（MRT）</h3>
-        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          WebGL 2.0 支持多渲染目标（Multiple Render Targets），可以同时渲染到多个纹理：
-        </p>
-        <CodeBlock title="多渲染目标（WebGL 2.0）" code={`// WebGL 2.0 支持多个颜色附件
-const framebuffer = gl.createFramebuffer();
-gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-
-// 创建多个颜色纹理
-const colorTexture0 = createTexture(width, height, gl.RGBA);
-const colorTexture1 = createTexture(width, height, gl.RGBA);
-const normalTexture = createTexture(width, height, gl.RGBA);
-
-// 附加到不同的颜色附件点
-gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, colorTexture0, 0);
-gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT1, gl.TEXTURE_2D, colorTexture1, 0);
-gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT2, gl.TEXTURE_2D, normalTexture, 0);
-
-// 指定要绘制到的附件
-const drawBuffers = [
-  gl.COLOR_ATTACHMENT0,
-  gl.COLOR_ATTACHMENT1,
-  gl.COLOR_ATTACHMENT2
-];
-gl.drawBuffers(drawBuffers);
-
-// 在片段着色器中输出到多个目标
-// #version 300 es
-// layout(location = 0) out vec4 fragColor;
-// layout(location = 1) out vec4 fragColor1;
-// layout(location = 2) out vec4 fragNormal;
-// 
-// void main() {
-//   fragColor = vec4(1.0, 0.0, 0.0, 1.0);   // 输出到 COLOR_ATTACHMENT0
-//   fragColor1 = vec4(0.0, 1.0, 0.0, 1.0);  // 输出到 COLOR_ATTACHMENT1
-//   fragNormal = vec4(normal, 1.0);         // 输出到 COLOR_ATTACHMENT2
-// }`} />
-        
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">帧缓冲区的应用场景</h3>
-        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li><strong className="text-primary font-semibold">后处理效果</strong>：
-            <ul className="mt-2 pl-6">
-              <li>模糊、色调映射、边缘检测等</li>
-              <li>先渲染场景到纹理，再对纹理进行处理</li>
-            </ul>
-          </li>
-          <li><strong className="text-primary font-semibold">阴影映射（Shadow Mapping）</strong>：
-            <ul className="mt-2 pl-6">
-              <li>从光源视角渲染场景到深度纹理</li>
-              <li>使用深度纹理判断阴影</li>
-            </ul>
-          </li>
-          <li><strong className="text-primary font-semibold">反射和折射</strong>：
-            <ul className="mt-2 pl-6">
-              <li>渲染反射场景到纹理</li>
-              <li>在物体表面使用反射纹理</li>
-            </ul>
-          </li>
-          <li><strong className="text-primary font-semibold">渲染到纹理</strong>：
-            <ul className="mt-2 pl-6">
-              <li>动态生成纹理</li>
-              <li>用于 UI、小地图等</li>
-            </ul>
-          </li>
-          <li><strong className="text-primary font-semibold">延迟渲染（Deferred Rendering）</strong>：
-            <ul className="mt-2 pl-6">
-              <li>先渲染几何信息到多个纹理（G-Buffer）</li>
-              <li>再在光照阶段使用这些信息</li>
-            </ul>
-          </li>
-        </ul>
-        
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">帧缓冲区的性能优化</h3>
-        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li><strong className="text-primary font-semibold">合理设置尺寸</strong>：
-            <ul className="mt-2 pl-6">
-              <li>不需要全分辨率时，使用较小的尺寸</li>
-              <li>例如：后处理可以使用一半分辨率</li>
-            </ul>
-          </li>
-          <li><strong className="text-primary font-semibold">复用帧缓冲区</strong>：
-            <ul className="mt-2 pl-6">
-              <li>创建一次，多次使用</li>
-              <li>避免频繁创建和销毁</li>
-            </ul>
-          </li>
-          <li><strong className="text-primary font-semibold">使用渲染缓冲区</strong>：
-            <ul className="mt-2 pl-6">
-              <li>如果不需要读取深度值，使用渲染缓冲区而不是纹理</li>
-              <li>渲染缓冲区性能更好</li>
-            </ul>
-          </li>
-        </ul>
-      </section>
-
-      <section className="mb-12">
-        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">后处理效果</h2>
-        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          后处理（Post-Processing）是在场景渲染完成后对图像进行的处理。
-          后处理可以大大增强视觉效果，创建电影级的画面质量。
-        </p>
-        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          <strong className="text-primary font-semibold">后处理的基本流程</strong>：
-        </p>
-        <ol className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li>渲染场景到帧缓冲区的纹理</li>
-          <li>切换到默认帧缓冲区（屏幕）</li>
-          <li>使用后处理着色器渲染全屏四边形</li>
-          <li>对纹理进行图像处理</li>
-        </ol>
-        
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">创建全屏四边形</h3>
-        <CodeBlock title="全屏四边形" code={`// 创建全屏四边形的顶点数据
-const quadPositions = [
-  -1, -1,  // 左下
-   1, -1,  // 右下
-  -1,  1,  // 左上
-   1,  1,  // 右上
-];
-
-const quadTexCoords = [
-  0, 0,  // 左下
-  1, 0,  // 右下
-  0, 1,  // 左上
-  1, 1,  // 右上
-];
-
-const quadIndices = [0, 1, 2, 1, 3, 2];
-
-// 顶点着色器（全屏四边形）
-attribute vec2 a_position;
+            const vertexShader = `attribute vec2 a_position;
 attribute vec2 a_texCoord;
 varying vec2 v_texCoord;
 
 void main() {
   gl_Position = vec4(a_position, 0.0, 1.0);
   v_texCoord = a_texCoord;
-}
-
-// 片段着色器（后处理）
-precision mediump float;
-uniform sampler2D u_texture;
+}`
+            
+            const fragmentShader = `precision mediump float;
 varying vec2 v_texCoord;
+uniform float u_wrapMode;
 
 void main() {
-  vec4 color = texture2D(u_texture, v_texCoord);
-  gl_FragColor = color;
-}`} />
-        
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">常见的后处理效果</h3>
-        
-        <h4 className="text-xl my-6 text-dark-text dark:text-dark-text text-light-text">1. 灰度效果</h4>
-        <CodeBlock title="灰度效果" code={`precision mediump float;
-uniform sampler2D u_texture;
-varying vec2 v_texCoord;
-
-void main() {
-  vec4 color = texture2D(u_texture, v_texCoord);
-  // 使用亮度公式转换为灰度
-  float gray = dot(color.rgb, vec3(0.299, 0.587, 0.114));
-  gl_FragColor = vec4(gray, gray, gray, color.a);
-}`} />
-        
-        <h4 className="text-xl my-6 text-dark-text dark:text-dark-text text-light-text">2. 高斯模糊</h4>
-        <CodeBlock title="高斯模糊" code={`precision mediump float;
-uniform sampler2D u_texture;
-uniform vec2 u_resolution;
-uniform float u_blurRadius;
-varying vec2 v_texCoord;
-
-void main() {
-  vec4 color = vec4(0.0);
-  float total = 0.0;
-  
-  // 高斯模糊核（5x5）
-  float weights[25] = float[](
-    0.003765, 0.015019, 0.023792, 0.015019, 0.003765,
-    0.015019, 0.059912, 0.094907, 0.059912, 0.015019,
-    0.023792, 0.094907, 0.150342, 0.094907, 0.023792,
-    0.015019, 0.059912, 0.094907, 0.059912, 0.015019,
-    0.003765, 0.015019, 0.023792, 0.015019, 0.003765
-  );
-  
-  vec2 texelSize = 1.0 / u_resolution;
-  
-  for (int y = -2; y <= 2; y++) {
-    for (int x = -2; x <= 2; x++) {
-      vec2 offset = vec2(float(x), float(y)) * texelSize * u_blurRadius;
-      float weight = weights[(y + 2) * 5 + (x + 2)];
-      color += texture2D(u_texture, v_texCoord + offset) * weight;
-      total += weight;
-    }
-  }
-  
-  gl_FragColor = color / total;
-}
-
-// 更高效的方法：分离式高斯模糊（两次一维模糊）
-// 先水平模糊，再垂直模糊`} />
-        
-        <h4 className="text-xl my-6 text-dark-text dark:text-dark-text text-light-text">3. 边缘检测（Sobel）</h4>
-        <CodeBlock title="Sobel 边缘检测" code={`precision mediump float;
-uniform sampler2D u_texture;
-uniform vec2 u_resolution;
-varying vec2 v_texCoord;
-
-void main() {
-  vec2 texelSize = 1.0 / u_resolution;
-  
-  // Sobel 算子
-  float topLeft = dot(texture2D(u_texture, v_texCoord + vec2(-texelSize.x, -texelSize.y)).rgb, vec3(0.299, 0.587, 0.114));
-  float top = dot(texture2D(u_texture, v_texCoord + vec2(0.0, -texelSize.y)).rgb, vec3(0.299, 0.587, 0.114));
-  float topRight = dot(texture2D(u_texture, v_texCoord + vec2(texelSize.x, -texelSize.y)).rgb, vec3(0.299, 0.587, 0.114));
-  float left = dot(texture2D(u_texture, v_texCoord + vec2(-texelSize.x, 0.0)).rgb, vec3(0.299, 0.587, 0.114));
-  float center = dot(texture2D(u_texture, v_texCoord).rgb, vec3(0.299, 0.587, 0.114));
-  float right = dot(texture2D(u_texture, v_texCoord + vec2(texelSize.x, 0.0)).rgb, vec3(0.299, 0.587, 0.114));
-  float bottomLeft = dot(texture2D(u_texture, v_texCoord + vec2(-texelSize.x, texelSize.y)).rgb, vec3(0.299, 0.587, 0.114));
-  float bottom = dot(texture2D(u_texture, v_texCoord + vec2(0.0, texelSize.y)).rgb, vec3(0.299, 0.587, 0.114));
-  float bottomRight = dot(texture2D(u_texture, v_texCoord + vec2(texelSize.x, texelSize.y)).rgb, vec3(0.299, 0.587, 0.114));
-  
-  // Sobel X 和 Y
-  float sobelX = -topLeft - 2.0 * top - topRight + bottomLeft + 2.0 * bottom + bottomRight;
-  float sobelY = -topLeft - 2.0 * left - bottomLeft + topRight + 2.0 * right + bottomRight;
-  
-  float edge = sqrt(sobelX * sobelX + sobelY * sobelY);
-  gl_FragColor = vec4(edge, edge, edge, 1.0);
-}`} />
-        
-        <h4 className="text-xl my-6 text-dark-text dark:text-dark-text text-light-text">4. 色调映射和颜色调整</h4>
-        <CodeBlock title="色调映射和颜色调整" code={`precision mediump float;
-uniform sampler2D u_texture;
-uniform float u_brightness;    // 亮度（-1 到 1）
-uniform float u_contrast;      // 对比度（-1 到 1）
-uniform float u_saturation;    // 饱和度（0 到 2）
-uniform float u_exposure;      // 曝光（0.1 到 5.0）
-varying vec2 v_texCoord;
-
-void main() {
-  vec4 color = texture2D(u_texture, v_texCoord);
-  
-  // 曝光调整
-  color.rgb *= u_exposure;
-  
-  // 亮度调整
-  color.rgb += u_brightness;
-  
-  // 对比度调整
-  color.rgb = (color.rgb - 0.5) * (1.0 + u_contrast) + 0.5;
-  
-  // 饱和度调整
-  float gray = dot(color.rgb, vec3(0.299, 0.587, 0.114));
-  color.rgb = mix(vec3(gray), color.rgb, u_saturation);
-  
-  // 色调映射（Reinhard）
-  color.rgb = color.rgb / (1.0 + color.rgb);
-  
-  gl_FragColor = color;
-}`} />
-        
-        <h4 className="text-xl my-6 text-dark-text dark:text-dark-text text-light-text">5. Bloom 效果</h4>
-        <CodeBlock title="Bloom 效果" code={`// Bloom 效果需要多个步骤：
-// 1. 提取亮部
-// 2. 模糊亮部
-// 3. 与原始图像混合
-
-// 步骤 1：提取亮部
-precision mediump float;
-uniform sampler2D u_texture;
-uniform float u_threshold;  // 亮度阈值
-varying vec2 v_texCoord;
-
-void main() {
-  vec4 color = texture2D(u_texture, v_texCoord);
-  float brightness = dot(color.rgb, vec3(0.299, 0.587, 0.114));
-  
-  if (brightness > u_threshold) {
-    gl_FragColor = color;
+  vec2 uv = v_texCoord * 3.0;
+  vec2 wrappedUV;
+  if (u_wrapMode < 0.33) {
+    wrappedUV = fract(uv);
+  } else if (u_wrapMode < 0.66) {
+    wrappedUV = clamp(uv, 0.0, 1.0);
   } else {
-    gl_FragColor = vec4(0.0);
+    vec2 f = fract(uv);
+    vec2 m = mod(floor(uv), 2.0);
+    wrappedUV = mix(f, 1.0 - f, m);
   }
-}
-
-// 步骤 2：模糊亮部（使用高斯模糊）
-
-// 步骤 3：混合
-precision mediump float;
-uniform sampler2D u_original;
-uniform sampler2D u_bloom;
-uniform float u_bloomIntensity;
+  vec2 grid = floor(wrappedUV * 4.0);
+  float checker = mod(grid.x + grid.y, 2.0);
+  vec3 color = vec3(checker * 0.8 + 0.2);
+  gl_FragColor = vec4(color, 1.0);
+}`
+            
+            const program = createProgram(gl, vertexShader, fragmentShader)
+            const positions = [-1, -1, 1, -1, 1, 1, -1, 1]
+            const texCoords = [0, 0, 1, 0, 1, 1, 0, 1]
+            const indices = [0, 1, 2, 0, 2, 3]
+            
+            const positionBuffer = createBuffer(gl, positions)
+            const texCoordBuffer = createBuffer(gl, texCoords)
+            const indexBuffer = gl.createBuffer()
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
+            
+            const wrapModeLocation = gl.getUniformLocation(program, 'u_wrapMode')
+            const positionLocation = gl.getAttribLocation(program, 'a_position')
+            const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord')
+            
+            if (positionLocation === -1 || texCoordLocation === -1) {
+              console.error('属性未找到')
+              return
+            }
+            
+            gl.viewport(0, 0, canvas.width, canvas.height)
+            gl.clearColor(0.1, 0.1, 0.1, 1.0)
+            
+            let time = 0
+            const render = () => {
+              time += 0.01
+              const wrapMode = (Math.sin(time) + 1) / 2
+              
+              gl.clear(gl.COLOR_BUFFER_BIT)
+              gl.useProgram(program)
+              
+              gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+              gl.enableVertexAttribArray(positionLocation)
+              gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+              
+              gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer)
+              gl.enableVertexAttribArray(texCoordLocation)
+              gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0)
+              
+              gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+              gl.uniform1f(wrapModeLocation, wrapMode)
+              
+              gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
+              requestAnimationFrame(render)
+            }
+            render()
+          }}
+          codeBlocks={[
+            { title: '顶点着色器', code: `attribute vec2 a_position;
+attribute vec2 a_texCoord;
 varying vec2 v_texCoord;
 
 void main() {
-  vec4 original = texture2D(u_original, v_texCoord);
-  vec4 bloom = texture2D(u_bloom, v_texCoord);
+  gl_Position = vec4(a_position, 0.0, 1.0);
+  v_texCoord = a_texCoord;
+}` },
+            { title: '片段着色器', code: `precision mediump float;
+varying vec2 v_texCoord;
+uniform float u_wrapMode;
+
+void main() {
+  vec2 uv = v_texCoord * 3.0;
+  vec2 wrappedUV;
+  if (u_wrapMode < 0.33) {
+    wrappedUV = fract(uv);
+  } else if (u_wrapMode < 0.66) {
+    wrappedUV = clamp(uv, 0.0, 1.0);
+  } else {
+    vec2 f = fract(uv);
+    vec2 m = mod(floor(uv), 2.0);
+    wrappedUV = mix(f, 1.0 - f, m);
+  }
+  vec2 grid = floor(wrappedUV * 4.0);
+  float checker = mod(grid.x + grid.y, 2.0);
+  vec3 color = vec3(checker * 0.8 + 0.2);
+  gl_FragColor = vec4(color, 1.0);
+}` },
+            { title: 'JavaScript 代码', code: `const program = createProgram(gl, vertexShader, fragmentShader)
+const positions = [-1, -1, 1, -1, 1, 1, -1, 1]
+const texCoords = [0, 0, 1, 0, 1, 1, 0, 1]
+const indices = [0, 1, 2, 0, 2, 3]
+
+const positionBuffer = createBuffer(gl, positions)
+const texCoordBuffer = createBuffer(gl, texCoords)
+const indexBuffer = gl.createBuffer()
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
+
+const wrapModeLocation = gl.getUniformLocation(program, 'u_wrapMode')
+const positionLocation = gl.getAttribLocation(program, 'a_position')
+const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord')
+
+gl.viewport(0, 0, canvas.width, canvas.height)
+gl.clearColor(0.1, 0.1, 0.1, 1.0)
+
+let time = 0
+const render = () => {
+  time += 0.01
+  const wrapMode = (Math.sin(time) + 1) / 2
   
-  // 加法混合
-  gl_FragColor = original + bloom * u_bloomIntensity;
-}`} />
+  gl.clear(gl.COLOR_BUFFER_BIT)
+  gl.useProgram(program)
+  
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+  gl.enableVertexAttribArray(positionLocation)
+  gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+  
+  gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer)
+  gl.enableVertexAttribArray(texCoordLocation)
+  gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0)
+  
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+  gl.uniform1f(wrapModeLocation, wrapMode)
+  
+  gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
+  requestAnimationFrame(render)
+}
+render()`, language: 'javascript' }
+          ]}
+        />
         
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">后处理链</h3>
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          多个后处理效果可以串联使用：
+          上面的示例展示了不同包装模式的效果。注意观察纹理在边界处的处理方式。
         </p>
-        <CodeBlock title="后处理链" code={`// 后处理链示例
-function renderWithPostProcessing() {
-  // 1. 渲染场景到第一个帧缓冲区
-  gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer1);
-  renderScene();
+      </section>
+
+      <section className="mb-12">
+        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">程序化纹理</h2>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          程序化纹理使用着色器代码生成纹理，而不是加载图像。这种方法有很多优势：
+        </p>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li><strong className="text-primary font-semibold">无内存占用</strong>：不需要存储图像数据</li>
+          <li><strong className="text-primary font-semibold">无限分辨率</strong>：可以任意缩放而不失真</li>
+          <li><strong className="text-primary font-semibold">可参数化</strong>：可以通过 uniform 变量动态调整</li>
+          <li><strong className="text-primary font-semibold">可动画化</strong>：可以随时间变化</li>
+        </ul>
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">示例 1：基础波形纹理</h3>
+        <FlipCard 
+          width={400} 
+          height={400} 
+          onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
+            const vertexShader = `attribute vec2 a_position;
+attribute vec2 a_texCoord;
+varying vec2 v_texCoord;
+
+void main() {
+  gl_Position = vec4(a_position, 0.0, 1.0);
+  v_texCoord = a_texCoord;
+}`
+            
+            const fragmentShader = `precision mediump float;
+varying vec2 v_texCoord;
+uniform float u_time;
+
+void main() {
+  vec2 uv = v_texCoord * 10.0;
+  float pattern = sin(uv.x + u_time) * sin(uv.y + u_time);
+  gl_FragColor = vec4(pattern * 0.5 + 0.5, pattern * 0.3 + 0.5, 1.0, 1.0);
+}`
+            
+            const program = createProgram(gl, vertexShader, fragmentShader)
+            const positions = [-1, -1, 1, -1, 1, 1, -1, 1]
+            const texCoords = [0, 0, 1, 0, 1, 1, 0, 1]
+            const indices = [0, 1, 2, 0, 2, 3]
+            
+            const positionBuffer = createBuffer(gl, positions)
+            const texCoordBuffer = createBuffer(gl, texCoords)
+            const indexBuffer = gl.createBuffer()
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
+            
+            const timeLocation = gl.getUniformLocation(program, 'u_time')
+            const positionLocation = gl.getAttribLocation(program, 'a_position')
+            const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord')
+            
+            if (positionLocation === -1 || texCoordLocation === -1) {
+              console.error('属性未找到')
+              return
+            }
+            
+            gl.viewport(0, 0, canvas.width, canvas.height)
+            gl.clearColor(0.1, 0.1, 0.1, 1.0)
+            
+            let time = 0
+            const render = () => {
+              time += 0.02
+              gl.clear(gl.COLOR_BUFFER_BIT)
+              gl.useProgram(program)
+              
+              gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+              gl.enableVertexAttribArray(positionLocation)
+              gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+              
+              gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer)
+              gl.enableVertexAttribArray(texCoordLocation)
+              gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0)
+              
+              gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+              gl.uniform1f(timeLocation, time)
+              gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
+              
+              requestAnimationFrame(render)
+            }
+            render()
+          }}
+          codeBlocks={[
+            { title: '顶点着色器', code: `attribute vec2 a_position;
+attribute vec2 a_texCoord;
+varying vec2 v_texCoord;
+
+void main() {
+  gl_Position = vec4(a_position, 0.0, 1.0);
+  v_texCoord = a_texCoord;
+}` },
+            { title: '片段着色器', code: `precision mediump float;
+varying vec2 v_texCoord;
+uniform float u_time;
+
+void main() {
+  vec2 uv = v_texCoord * 10.0;
+  float pattern = sin(uv.x + u_time) * sin(uv.y + u_time);
+  gl_FragColor = vec4(pattern * 0.5 + 0.5, pattern * 0.3 + 0.5, 1.0, 1.0);
+}` },
+            { title: 'JavaScript 代码', code: `const program = createProgram(gl, vertexShader, fragmentShader)
+const positions = [-1, -1, 1, -1, 1, 1, -1, 1]
+const texCoords = [0, 0, 1, 0, 1, 1, 0, 1]
+const indices = [0, 1, 2, 0, 2, 3]
+
+const positionBuffer = createBuffer(gl, positions)
+const texCoordBuffer = createBuffer(gl, texCoords)
+const indexBuffer = gl.createBuffer()
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
+
+const timeLocation = gl.getUniformLocation(program, 'u_time')
+const positionLocation = gl.getAttribLocation(program, 'a_position')
+const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord')
+
+gl.viewport(0, 0, canvas.width, canvas.height)
+gl.clearColor(0.1, 0.1, 0.1, 1.0)
+
+let time = 0
+const render = () => {
+  time += 0.02
+  gl.clear(gl.COLOR_BUFFER_BIT)
+  gl.useProgram(program)
   
-  // 2. 应用第一个后处理效果（如提取亮部）
-  gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer2);
-  applyPostProcess(postProcessProgram1, texture1);
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+  gl.enableVertexAttribArray(positionLocation)
+  gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
   
-  // 3. 应用第二个后处理效果（如模糊）
-  gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer1);
-  applyPostProcess(postProcessProgram2, texture2);
+  gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer)
+  gl.enableVertexAttribArray(texCoordLocation)
+  gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0)
   
-  // 4. 应用第三个后处理效果（如混合）
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  applyPostProcess(postProcessProgram3, texture1, texture2);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+  gl.uniform1f(timeLocation, time)
+  gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
+  
+  requestAnimationFrame(render)
+}
+render()`, language: 'javascript' }
+          ]}
+        />
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">示例 2：噪声纹理</h3>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          使用噪声函数创建自然纹理：
+        </p>
+        
+        <FlipCard 
+          width={400} 
+          height={400} 
+          onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
+            const vertexShader = `attribute vec2 a_position;
+attribute vec2 a_texCoord;
+varying vec2 v_texCoord;
+
+void main() {
+  gl_Position = vec4(a_position, 0.0, 1.0);
+  v_texCoord = a_texCoord;
+}`
+            
+            const fragmentShader = `precision mediump float;
+varying vec2 v_texCoord;
+uniform float u_time;
+
+float random(vec2 st) {
+  return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
 }
 
-// 通用后处理函数
-function applyPostProcess(program, ...textures) {
-  gl.useProgram(program);
+float noise(vec2 st) {
+  vec2 i = floor(st);
+  vec2 f = fract(st);
+  float a = random(i);
+  float b = random(i + vec2(1.0, 0.0));
+  float c = random(i + vec2(0.0, 1.0));
+  float d = random(i + vec2(1.0, 1.0));
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+}
+
+void main() {
+  vec2 uv = v_texCoord * 8.0;
+  float n = noise(uv + u_time * 0.5);
+  vec3 color = vec3(n * 0.5 + 0.5);
+  gl_FragColor = vec4(color, 1.0);
+}`
+            
+            const program = createProgram(gl, vertexShader, fragmentShader)
+            const positions = [-1, -1, 1, -1, 1, 1, -1, 1]
+            const texCoords = [0, 0, 1, 0, 1, 1, 0, 1]
+            const indices = [0, 1, 2, 0, 2, 3]
+            
+            const positionBuffer = createBuffer(gl, positions)
+            const texCoordBuffer = createBuffer(gl, texCoords)
+            const indexBuffer = gl.createBuffer()
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
+            
+            const timeLocation = gl.getUniformLocation(program, 'u_time')
+            const positionLocation = gl.getAttribLocation(program, 'a_position')
+            const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord')
+            
+            if (positionLocation === -1 || texCoordLocation === -1) {
+              console.error('属性未找到')
+              return
+            }
+            
+            gl.viewport(0, 0, canvas.width, canvas.height)
+            gl.clearColor(0.1, 0.1, 0.1, 1.0)
+            
+            let time = 0
+            const render = () => {
+              time += 0.02
+              gl.clear(gl.COLOR_BUFFER_BIT)
+              gl.useProgram(program)
+              
+              gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+              gl.enableVertexAttribArray(positionLocation)
+              gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+              
+              gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer)
+              gl.enableVertexAttribArray(texCoordLocation)
+              gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0)
+              
+              gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+              gl.uniform1f(timeLocation, time)
+              gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
+              
+              requestAnimationFrame(render)
+            }
+            render()
+          }}
+          codeBlocks={[
+            { title: '顶点着色器', code: `attribute vec2 a_position;
+attribute vec2 a_texCoord;
+varying vec2 v_texCoord;
+
+void main() {
+  gl_Position = vec4(a_position, 0.0, 1.0);
+  v_texCoord = a_texCoord;
+}` },
+            { title: '片段着色器', code: `precision mediump float;
+varying vec2 v_texCoord;
+uniform float u_time;
+
+float random(vec2 st) {
+  return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
+}
+
+float noise(vec2 st) {
+  vec2 i = floor(st);
+  vec2 f = fract(st);
+  float a = random(i);
+  float b = random(i + vec2(1.0, 0.0));
+  float c = random(i + vec2(0.0, 1.0));
+  float d = random(i + vec2(1.0, 1.0));
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+}
+
+void main() {
+  vec2 uv = v_texCoord * 8.0;
+  float n = noise(uv + u_time * 0.5);
+  vec3 color = vec3(n * 0.5 + 0.5);
+  gl_FragColor = vec4(color, 1.0);
+}` },
+            { title: 'JavaScript 代码', code: `const program = createProgram(gl, vertexShader, fragmentShader)
+const positions = [-1, -1, 1, -1, 1, 1, -1, 1]
+const texCoords = [0, 0, 1, 0, 1, 1, 0, 1]
+const indices = [0, 1, 2, 0, 2, 3]
+
+const positionBuffer = createBuffer(gl, positions)
+const texCoordBuffer = createBuffer(gl, texCoords)
+const indexBuffer = gl.createBuffer()
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
+
+const timeLocation = gl.getUniformLocation(program, 'u_time')
+const positionLocation = gl.getAttribLocation(program, 'a_position')
+const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord')
+
+gl.viewport(0, 0, canvas.width, canvas.height)
+gl.clearColor(0.1, 0.1, 0.1, 1.0)
+
+let time = 0
+const render = () => {
+  time += 0.02
+  gl.clear(gl.COLOR_BUFFER_BIT)
+  gl.useProgram(program)
   
-  // 绑定纹理
-  textures.forEach((texture, index) => {
-    gl.activeTexture(gl.TEXTURE0 + index);
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.uniform1i(gl.getUniformLocation(program, 'u_texture' + index), index);
-  });
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+  gl.enableVertexAttribArray(positionLocation)
+  gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
   
-  // 渲染全屏四边形
-  gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
-  gl.drawArrays(gl.TRIANGLES, 0, 6);
-}`} language="javascript" />
+  gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer)
+  gl.enableVertexAttribArray(texCoordLocation)
+  gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0)
+  
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+  gl.uniform1f(timeLocation, time)
+  gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
+  
+  requestAnimationFrame(render)
+}
+render()`, language: 'javascript' }
+          ]}
+        />
         
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">后处理的性能优化</h3>
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">示例 3：径向渐变纹理</h3>
+        <FlipCard 
+          width={400} 
+          height={400} 
+          onInit={(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement) => {
+            const vertexShader = `attribute vec2 a_position;
+attribute vec2 a_texCoord;
+varying vec2 v_texCoord;
+
+void main() {
+  gl_Position = vec4(a_position, 0.0, 1.0);
+  v_texCoord = a_texCoord;
+}`
+            
+            const fragmentShader = `precision mediump float;
+varying vec2 v_texCoord;
+uniform float u_time;
+
+void main() {
+  vec2 center = vec2(0.5);
+  float dist = distance(v_texCoord, center);
+  float gradient = smoothstep(0.7, 0.0, dist);
+  vec2 dir = v_texCoord - center;
+  float angle = atan(dir.y, dir.x) + u_time;
+  float pattern = sin(angle * 8.0) * 0.3 + 0.7;
+  vec3 color = vec3(gradient * pattern, gradient * 0.5, gradient);
+  gl_FragColor = vec4(color, 1.0);
+}`
+            
+            const program = createProgram(gl, vertexShader, fragmentShader)
+            const positions = [-1, -1, 1, -1, 1, 1, -1, 1]
+            const texCoords = [0, 0, 1, 0, 1, 1, 0, 1]
+            const indices = [0, 1, 2, 0, 2, 3]
+            
+            const positionBuffer = createBuffer(gl, positions)
+            const texCoordBuffer = createBuffer(gl, texCoords)
+            const indexBuffer = gl.createBuffer()
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
+            
+            const timeLocation = gl.getUniformLocation(program, 'u_time')
+            const positionLocation = gl.getAttribLocation(program, 'a_position')
+            const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord')
+            
+            if (positionLocation === -1 || texCoordLocation === -1) {
+              console.error('属性未找到')
+              return
+            }
+            
+            gl.viewport(0, 0, canvas.width, canvas.height)
+            gl.clearColor(0.1, 0.1, 0.1, 1.0)
+            
+            let time = 0
+            const render = () => {
+              time += 0.02
+              gl.clear(gl.COLOR_BUFFER_BIT)
+              gl.useProgram(program)
+              
+              gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+              gl.enableVertexAttribArray(positionLocation)
+              gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+              
+              gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer)
+              gl.enableVertexAttribArray(texCoordLocation)
+              gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0)
+              
+              gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+              gl.uniform1f(timeLocation, time)
+              gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
+              
+              requestAnimationFrame(render)
+            }
+            render()
+          }}
+          codeBlocks={[
+            { title: '顶点着色器', code: `attribute vec2 a_position;
+attribute vec2 a_texCoord;
+varying vec2 v_texCoord;
+
+void main() {
+  gl_Position = vec4(a_position, 0.0, 1.0);
+  v_texCoord = a_texCoord;
+}` },
+            { title: '片段着色器', code: `precision mediump float;
+varying vec2 v_texCoord;
+uniform float u_time;
+
+void main() {
+  vec2 center = vec2(0.5);
+  float dist = distance(v_texCoord, center);
+  float gradient = smoothstep(0.7, 0.0, dist);
+  vec2 dir = v_texCoord - center;
+  float angle = atan(dir.y, dir.x) + u_time;
+  float pattern = sin(angle * 8.0) * 0.3 + 0.7;
+  vec3 color = vec3(gradient * pattern, gradient * 0.5, gradient);
+  gl_FragColor = vec4(color, 1.0);
+}` },
+            { title: 'JavaScript 代码', code: `const program = createProgram(gl, vertexShader, fragmentShader)
+const positions = [-1, -1, 1, -1, 1, 1, -1, 1]
+const texCoords = [0, 0, 1, 0, 1, 1, 0, 1]
+const indices = [0, 1, 2, 0, 2, 3]
+
+const positionBuffer = createBuffer(gl, positions)
+const texCoordBuffer = createBuffer(gl, texCoords)
+const indexBuffer = gl.createBuffer()
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
+
+const timeLocation = gl.getUniformLocation(program, 'u_time')
+const positionLocation = gl.getAttribLocation(program, 'a_position')
+const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord')
+
+gl.viewport(0, 0, canvas.width, canvas.height)
+gl.clearColor(0.1, 0.1, 0.1, 1.0)
+
+let time = 0
+const render = () => {
+  time += 0.02
+  gl.clear(gl.COLOR_BUFFER_BIT)
+  gl.useProgram(program)
+  
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+  gl.enableVertexAttribArray(positionLocation)
+  gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+  
+  gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer)
+  gl.enableVertexAttribArray(texCoordLocation)
+  gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0)
+  
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer)
+  gl.uniform1f(timeLocation, time)
+  gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0)
+  
+  requestAnimationFrame(render)
+}
+render()`, language: 'javascript' }
+          ]}
+        />
+        
+        <CodeBlock title="程序化纹理技巧" code={`// 1. 使用 fract 创建重复图案
+vec2 repeatedUV = fract(v_texCoord * 5.0);
+
+// 2. 使用 distance 创建径向效果
+float dist = distance(v_texCoord, vec2(0.5));
+
+// 3. 使用噪声函数创建自然纹理
+float n = noise(v_texCoord * 10.0);
+
+// 4. 组合多个函数创建复杂效果
+float pattern1 = sin(uv.x * 10.0);
+float pattern2 = cos(uv.y * 10.0);
+float combined = pattern1 * pattern2;
+
+// 5. 使用 smoothstep 创建平滑过渡
+float gradient = smoothstep(0.0, 1.0, dist);`} />
+        
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          程序化纹理非常强大，可以创建各种效果，从简单的图案到复杂的自然纹理。通过组合不同的数学函数，你可以创造出无限的可能性。
+        </p>
+      </section>
+
+      <section className="mb-12">
+        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">多纹理</h2>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          WebGL 支持同时使用多个纹理，这让我们可以实现复杂的材质效果。
+          通过组合不同的纹理贴图，可以创建非常真实和详细的表面效果。
+        </p>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          <strong className="text-primary font-semibold">纹理单元（Texture Units）</strong>：
+        </p>
         <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li><strong className="text-primary font-semibold">降低分辨率</strong>：
+          <li>WebGL 有多个纹理单元（通常是 8 个或更多）</li>
+          <li>每个纹理单元可以绑定一个纹理</li>
+          <li>使用 gl.activeTexture() 选择当前活动的纹理单元</li>
+          <li>纹理单元编号从 gl.TEXTURE0 开始</li>
+        </ul>
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">常见的纹理贴图类型</h3>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li><strong className="text-primary font-semibold">漫反射贴图（Diffuse/Albedo Map）</strong>：
             <ul className="mt-2 pl-6">
-              <li>后处理不需要全分辨率</li>
-              <li>可以使用一半或四分之一分辨率</li>
-              <li>性能提升显著，视觉差异不大</li>
+              <li>物体的基础颜色</li>
+              <li>最常用的纹理贴图</li>
+              <li>通常使用 RGB 或 RGBA 格式</li>
             </ul>
           </li>
-          <li><strong className="text-primary font-semibold">分离式模糊</strong>：
+          <li><strong className="text-primary font-semibold">法线贴图（Normal Map）</strong>：
             <ul className="mt-2 pl-6">
-              <li>将二维模糊分离为两次一维模糊</li>
-              <li>性能提升约 2 倍</li>
+              <li>存储表面的法线信息</li>
+              <li>用于添加表面细节，而不增加几何复杂度</li>
+              <li>通常使用 RGB 格式（每个通道存储法线的一个分量）</li>
             </ul>
           </li>
-          <li><strong className="text-primary font-semibold">减少采样次数</strong>：
+          <li><strong className="text-primary font-semibold">粗糙度贴图（Roughness Map）</strong>：
             <ul className="mt-2 pl-6">
-              <li>使用较小的采样核</li>
-              <li>使用下采样和上采样</li>
+              <li>控制表面的粗糙程度</li>
+              <li>用于物理渲染（PBR）</li>
+              <li>通常使用单通道（灰度）格式</li>
             </ul>
           </li>
+          <li><strong className="text-primary font-semibold">金属度贴图（Metallic Map）</strong>：
+            <ul className="mt-2 pl-6">
+              <li>控制表面的金属属性</li>
+              <li>用于物理渲染（PBR）</li>
+              <li>通常使用单通道（灰度）格式</li>
+            </ul>
+          </li>
+          <li><strong className="text-primary font-semibold">环境光遮蔽贴图（AO Map）</strong>：
+            <ul className="mt-2 pl-6">
+              <li>存储环境光遮蔽信息</li>
+              <li>用于添加阴影细节</li>
+              <li>通常使用单通道（灰度）格式</li>
+            </ul>
+          </li>
+          <li><strong className="text-primary font-semibold">高光贴图（Specular Map）</strong>：
+            <ul className="mt-2 pl-6">
+              <li>控制镜面反射的强度和颜色</li>
+              <li>用于传统光照模型</li>
+              <li>通常使用 RGB 格式</li>
+            </ul>
+          </li>
+        </ul>
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">多纹理的使用</h3>
+        <CodeBlock title="多纹理示例" code={`// JavaScript 端：绑定多个纹理
+function bindTextures(gl, program, textures) {
+  // 绑定漫反射纹理到纹理单元 0
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, textures.diffuse);
+  gl.uniform1i(gl.getUniformLocation(program, 'u_diffuseTexture'), 0);
+  
+  // 绑定法线纹理到纹理单元 1
+  gl.activeTexture(gl.TEXTURE1);
+  gl.bindTexture(gl.TEXTURE_2D, textures.normal);
+  gl.uniform1i(gl.getUniformLocation(program, 'u_normalTexture'), 1);
+  
+  // 绑定粗糙度纹理到纹理单元 2
+  gl.activeTexture(gl.TEXTURE2);
+  gl.bindTexture(gl.TEXTURE_2D, textures.roughness);
+  gl.uniform1i(gl.getUniformLocation(program, 'u_roughnessTexture'), 2);
+}
+
+// 片段着色器：采样多个纹理
+precision mediump float;
+uniform sampler2D u_diffuseTexture;
+uniform sampler2D u_normalTexture;
+uniform sampler2D u_roughnessTexture;
+varying vec2 v_texCoord;
+
+void main() {
+  // 采样各个纹理
+  vec4 diffuseColor = texture2D(u_diffuseTexture, v_texCoord);
+  vec3 normal = texture2D(u_normalTexture, v_texCoord).rgb * 2.0 - 1.0;  // 从 [0,1] 转换到 [-1,1]
+  float roughness = texture2D(u_roughnessTexture, v_texCoord).r;
+  
+  // 组合使用
+  // ... 光照计算 ...
+  
+  gl_FragColor = vec4(diffuseColor.rgb, diffuseColor.a);
+}`} />
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">纹理组合技巧</h3>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          <strong className="text-primary font-semibold">混合模式</strong>：
+          可以使用不同的混合模式组合多个纹理。
+        </p>
+        <CodeBlock title="纹理混合示例" code={`// 片段着色器中的纹理混合
+precision mediump float;
+uniform sampler2D u_texture1;
+uniform sampler2D u_texture2;
+uniform float u_blendFactor;  // 混合因子 [0, 1]
+varying vec2 v_texCoord;
+
+void main() {
+  vec4 color1 = texture2D(u_texture1, v_texCoord);
+  vec4 color2 = texture2D(u_texture2, v_texCoord);
+  
+  // 线性混合
+  vec4 blended = mix(color1, color2, u_blendFactor);
+  
+  // 乘法混合（用于细节纹理）
+  // vec4 blended = color1 * color2;
+  
+  // 加法混合（用于发光效果）
+  // vec4 blended = color1 + color2;
+  
+  // 叠加混合
+  // vec4 blended = color1 + color2 - color1 * color2;
+  
+  gl_FragColor = blended;
+}`} />
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">纹理打包</h3>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          为了减少纹理单元的使用，可以将多个纹理打包到一个纹理中。
+          例如，可以将粗糙度和金属度打包到 RG 通道中。
+        </p>
+        <CodeBlock title="纹理打包示例" code={`// 将粗糙度和金属度打包到一个纹理
+// R 通道：粗糙度
+// G 通道：金属度
+// B 通道：未使用
+// A 通道：未使用
+
+precision mediump float;
+uniform sampler2D u_roughnessMetallicTexture;
+varying vec2 v_texCoord;
+
+void main() {
+  vec4 packed = texture2D(u_roughnessMetallicTexture, v_texCoord);
+  float roughness = packed.r;
+  float metallic = packed.g;
+  
+  // 使用粗糙度和金属度进行 PBR 计算
+  // ...
+}`} />
+      </section>
+
+      <section className="mb-12">
+        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">立方体贴图（Cubemap）</h2>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          立方体贴图（Cubemap）是一种特殊的纹理类型，由 6 个 2D 纹理组成，形成一个立方体的 6 个面。
+          立方体贴图广泛应用于环境映射、天空盒、反射等效果。
+        </p>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          <strong className="text-primary font-semibold">立方体贴图的结构</strong>：
+        </p>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li><strong>正面（+X）</strong>：右面</li>
+          <li><strong>背面（-X）</strong>：左面</li>
+          <li><strong>顶面（+Y）</strong>：上面</li>
+          <li><strong>底面（-Y）</strong>：下面</li>
+          <li><strong>前面（+Z）</strong>：前面</li>
+          <li><strong>后面（-Z）</strong>：后面</li>
+        </ul>
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">创建立方体贴图</h3>
+        <CodeBlock title="创建立方体贴图" code={`// 创建立方体贴图
+function createCubemap(gl, images) {
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+  
+  // 立方体贴图的 6 个面
+  const faces = [
+    gl.TEXTURE_CUBE_MAP_POSITIVE_X,  // 右面 (+X)
+    gl.TEXTURE_CUBE_MAP_NEGATIVE_X,  // 左面 (-X)
+    gl.TEXTURE_CUBE_MAP_POSITIVE_Y,  // 上面 (+Y)
+    gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,  // 下面 (-Y)
+    gl.TEXTURE_CUBE_MAP_POSITIVE_Z,  // 前面 (+Z)
+    gl.TEXTURE_CUBE_MAP_NEGATIVE_Z   // 后面 (-Z)
+  ];
+  
+  // 上传每个面的纹理数据
+  for (let i = 0; i < 6; i++) {
+    gl.texImage2D(
+      faces[i],
+      0,                    // mipmap 级别
+      gl.RGBA,              // 内部格式
+      gl.RGBA,              // 源格式
+      gl.UNSIGNED_BYTE,     // 数据类型
+      images[i]             // 图像数据
+    );
+  }
+  
+  // 设置纹理参数
+  gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  
+  return texture;
+}
+
+// 使用示例
+const cubemapImages = [
+  'right.jpg',   // +X
+  'left.jpg',    // -X
+  'top.jpg',     // +Y
+  'bottom.jpg',  // -Y
+  'front.jpg',   // +Z
+  'back.jpg'     // -Z
+];
+
+Promise.all(cubemapImages.map(url => loadImage(url)))
+  .then(images => {
+    const cubemap = createCubemap(gl, images);
+    // 使用立方体贴图
+  });`} language="javascript" />
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">采样立方体贴图</h3>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          立方体贴图使用 3D 方向向量进行采样，而不是 2D 纹理坐标。
+          WebGL 会根据方向向量自动选择对应的面并进行采样。
+        </p>
+        <CodeBlock title="在着色器中采样立方体贴图" code={`// 顶点着色器
+attribute vec3 a_position;
+attribute vec3 a_normal;
+uniform mat4 u_modelMatrix;
+uniform mat4 u_viewMatrix;
+uniform mat4 u_projectionMatrix;
+uniform vec3 u_cameraPosition;
+
+varying vec3 v_worldPosition;
+varying vec3 v_normal;
+varying vec3 v_viewDirection;
+
+void main() {
+  vec4 worldPos = u_modelMatrix * vec4(a_position, 1.0);
+  v_worldPosition = worldPos.xyz;
+  v_normal = mat3(u_modelMatrix) * a_normal;
+  v_viewDirection = normalize(u_cameraPosition - worldPos.xyz);
+  
+  gl_Position = u_projectionMatrix * u_viewMatrix * worldPos;
+}
+
+// 片段着色器
+precision mediump float;
+uniform samplerCube u_cubemap;
+varying vec3 v_worldPosition;
+varying vec3 v_normal;
+varying vec3 v_viewDirection;
+
+void main() {
+  // 计算反射方向
+  vec3 normal = normalize(v_normal);
+  vec3 viewDir = normalize(v_viewDirection);
+  vec3 reflectDir = reflect(-viewDir, normal);
+  
+  // 采样立方体贴图
+  vec4 color = textureCube(u_cubemap, reflectDir);
+  
+  gl_FragColor = color;
+}`} />
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">应用场景</h3>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li><strong className="text-primary font-semibold">天空盒（Skybox）</strong>：
+            <ul className="mt-2 pl-6">
+              <li>渲染远处的环境（天空、云彩、山脉等）</li>
+              <li>通常使用一个大的立方体，相机位于中心</li>
+              <li>使用视图方向（而不是反射方向）采样</li>
+            </ul>
+          </li>
+          <li><strong className="text-primary font-semibold">环境映射（Environment Mapping）</strong>：
+            <ul className="mt-2 pl-6">
+              <li>模拟物体表面的反射</li>
+              <li>使用反射方向采样立方体贴图</li>
+              <li>可以创建镜面反射效果</li>
+            </ul>
+          </li>
+          <li><strong className="text-primary font-semibold">折射（Refraction）</strong>：
+            <ul className="mt-2 pl-6">
+              <li>模拟透明物体的折射效果</li>
+              <li>使用折射方向采样立方体贴图</li>
+              <li>需要计算折射向量</li>
+            </ul>
+          </li>
+          <li><strong className="text-primary font-semibold">IBL（Image-Based Lighting）</strong>：
+            <ul className="mt-2 pl-6">
+              <li>基于图像的光照</li>
+              <li>使用立方体贴图存储环境光照信息</li>
+              <li>用于物理渲染（PBR）</li>
+            </ul>
+          </li>
+        </ul>
+        <CodeBlock title="天空盒示例" code={`// 天空盒片段着色器
+precision mediump float;
+uniform samplerCube u_skybox;
+varying vec3 v_viewDirection;  // 视图方向（从顶点到相机）
+
+void main() {
+  // 天空盒使用视图方向采样（注意：方向是从顶点指向相机的）
+  vec3 dir = normalize(v_viewDirection);
+  vec4 color = textureCube(u_skybox, dir);
+  gl_FragColor = color;
+}
+
+// 反射示例
+precision mediump float;
+uniform samplerCube u_cubemap;
+varying vec3 v_normal;
+varying vec3 v_viewDirection;
+
+void main() {
+  vec3 normal = normalize(v_normal);
+  vec3 viewDir = normalize(v_viewDirection);
+  
+  // 计算反射方向
+  vec3 reflectDir = reflect(-viewDir, normal);
+  
+  // 采样立方体贴图
+  vec4 color = textureCube(u_cubemap, reflectDir);
+  gl_FragColor = color;
+}
+
+// 折射示例
+precision mediump float;
+uniform samplerCube u_cubemap;
+uniform float u_refractiveIndex;  // 折射率
+varying vec3 v_normal;
+varying vec3 v_viewDirection;
+
+void main() {
+  vec3 normal = normalize(v_normal);
+  vec3 viewDir = normalize(v_viewDirection);
+  
+  // 计算折射方向
+  float ratio = 1.0 / u_refractiveIndex;
+  vec3 refractDir = refract(-viewDir, normal, ratio);
+  
+  // 采样立方体贴图
+  vec4 color = textureCube(u_cubemap, refractDir);
+  gl_FragColor = color;
+}`} />
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">立方体贴图的注意事项</h3>
+        <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
+          <li>立方体贴图的 6 个面必须具有相同的尺寸</li>
+          <li>每个面的尺寸必须是 2 的幂</li>
+          <li>立方体贴图支持 Mipmap（WebGL2 中支持）</li>
+          <li>采样方向向量不需要归一化（WebGL 会自动处理）</li>
+          <li>立方体贴图的内存占用是单个 2D 纹理的 6 倍</li>
         </ul>
       </section>
 
       <section className="mb-12">
-        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">渲染状态管理</h2>
+        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">纹理优化技巧</h2>
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          在复杂的场景中，合理管理渲染状态非常重要。
-          良好的状态管理可以显著提升性能，减少状态切换的开销。
+          纹理优化对于提升性能和减少内存占用非常重要。
+          下面介绍一些常用的优化技巧。
         </p>
         
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">渲染状态分类</h3>
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">纹理压缩</h3>
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          WebGL 的渲染状态包括：
+          WebGL 支持多种压缩纹理格式，可以大大减少内存占用和带宽使用。
         </p>
         <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li><strong className="text-primary font-semibold">深度测试</strong>：gl.enable(gl.DEPTH_TEST)、gl.depthFunc()、gl.depthMask()</li>
-          <li><strong className="text-primary font-semibold">混合</strong>：gl.enable(gl.BLEND)、gl.blendFunc()、gl.blendEquation()</li>
-          <li><strong className="text-primary font-semibold">面剔除</strong>：gl.enable(gl.CULL_FACE)、gl.cullFace()、gl.frontFace()</li>
-          <li><strong className="text-primary font-semibold">着色器程序</strong>：gl.useProgram()</li>
-          <li><strong className="text-primary font-semibold">纹理</strong>：gl.bindTexture()、gl.activeTexture()</li>
-          <li><strong className="text-primary font-semibold">缓冲区</strong>：gl.bindBuffer()、gl.bindFramebuffer()</li>
-          <li><strong className="text-primary font-semibold">视口</strong>：gl.viewport()</li>
+          <li><strong className="text-primary font-semibold">DXT/BC 格式</strong>：桌面 GPU 常用（WebGL 2.0 支持）</li>
+          <li><strong className="text-primary font-semibold">ETC1/ETC2</strong>：移动设备常用</li>
+          <li><strong className="text-primary font-semibold">PVRTC</strong>：PowerVR GPU 专用</li>
+          <li><strong className="text-primary font-semibold">ASTC</strong>：现代移动 GPU 支持</li>
         </ul>
+        <CodeBlock title="检查压缩纹理支持" code={`// 检查支持的压缩纹理格式
+const extensions = [
+  'WEBGL_compressed_texture_s3tc',      // DXT
+  'WEBGL_compressed_texture_etc1',      // ETC1
+  'WEBGL_compressed_texture_pvrtc',    // PVRTC
+  'WEBGL_compressed_texture_astc'       // ASTC
+];
+
+const supportedFormats = [];
+extensions.forEach(ext => {
+  if (gl.getExtension(ext)) {
+    supportedFormats.push(ext);
+  }
+});
+
+console.log('支持的压缩格式:', supportedFormats);`} language="javascript" />
         
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">按状态分组绘制</h3>
-        <CodeBlock title="渲染状态管理最佳实践" code={`// ========== 1. 按状态分组绘制 ==========
-// 先绘制所有不透明的物体
-gl.enable(gl.DEPTH_TEST);
-gl.depthFunc(gl.LESS);
-gl.depthMask(true);      // 启用深度写入
-gl.disable(gl.BLEND);
-gl.enable(gl.CULL_FACE);
-gl.cullFace(gl.BACK);
-renderOpaqueObjects();
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">纹理图集（Texture Atlas）</h3>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          将多个小纹理打包到一个大纹理中，可以减少纹理切换，提高性能。
+        </p>
+        <CodeBlock title="纹理图集示例" code={`// 纹理图集：将多个小纹理打包到一个大纹理中
+// 优点：
+// 1. 减少纹理切换（Draw Call）
+// 2. 减少内存碎片
+// 3. 提高批处理效率
 
-// 然后绘制透明物体
-gl.enable(gl.BLEND);
-gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-gl.depthMask(false);     // 禁用深度写入（透明物体不写入深度）
-gl.disable(gl.CULL_FACE); // 透明物体可能需要双面渲染
-renderTransparentObjects();
-gl.depthMask(true);      // 恢复深度写入
-
-// ========== 2. 减少状态切换 ==========
-// 不好的做法：频繁切换状态
-for (let obj of objects) {
-  gl.useProgram(obj.program);
-  gl.bindTexture(gl.TEXTURE_2D, obj.texture);
-  gl.uniformMatrix4fv(mvpLocation, false, obj.mvpMatrix);
-  render(obj);
+// 计算纹理图集中的 UV 坐标
+function getAtlasUV(atlasWidth, atlasHeight, tileX, tileY, tileWidth, tileHeight) {
+  const u = tileX / atlasWidth;
+  const v = tileY / atlasHeight;
+  const uSize = tileWidth / atlasWidth;
+  const vSize = tileHeight / atlasHeight;
+  
+  return {
+    u: u,
+    v: v,
+    uSize: uSize,
+    vSize: vSize
+  };
 }
 
-// 好的做法：按状态分组
-const grouped = groupByState(objects);
-for (let group of grouped) {
-  // 设置一次状态
-  gl.useProgram(group.program);
-  gl.bindTexture(gl.TEXTURE_2D, group.texture);
-  
-  // 绘制所有使用相同状态的物体
-  for (let obj of group.objects) {
-    gl.uniformMatrix4fv(mvpLocation, false, obj.mvpMatrix);
-    render(obj);
-  }
-}
+// 在着色器中使用
+// 顶点着色器
+attribute vec2 a_texCoord;
+varying vec2 v_texCoord;
 
-// ========== 3. 状态分组函数示例 ==========
-function groupByState(objects) {
-  const groups = new Map();
-  
-  for (const obj of objects) {
-    const key = obj.program.id + '_' + obj.texture.id;
-    if (!groups.has(key)) {
-      groups.set(key, {
-        program: obj.program,
-        texture: obj.texture,
-        objects: []
-      });
-    }
-    groups.get(key).objects.push(obj);
-  }
-  
-  return Array.from(groups.values());
-}
-
-// ========== 4. 渲染顺序优化 ==========
-function renderScene() {
-  // 1. 不透明物体（启用深度测试）
-  gl.enable(gl.DEPTH_TEST);
-  gl.depthMask(true);
-  gl.disable(gl.BLEND);
-  renderOpaqueObjects();
-  
-  // 2. 透明物体（按深度排序，从后往前）
-  const transparentObjects = getTransparentObjects();
-  transparentObjects.sort((a, b) => {
-    return distance(camera, b) - distance(camera, a);
-  });
-  
-  gl.enable(gl.BLEND);
-  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-  gl.depthMask(false);
-  for (const obj of transparentObjects) {
-    renderObject(obj);
-  }
-  gl.depthMask(true);
-  
-  // 3. UI 元素（禁用深度测试）
-  gl.disable(gl.DEPTH_TEST);
-  renderUI();
+void main() {
+  // 将局部 UV 坐标转换为图集 UV 坐标
+  vec2 atlasUV = vec2(
+    u_atlasU + a_texCoord.x * u_atlasUSize,
+    u_atlasV + a_texCoord.y * u_atlasVSize
+  );
+  v_texCoord = atlasUV;
+  // ...
 }`} language="javascript" />
         
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">状态缓存和查询</h3>
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">纹理流式加载</h3>
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          避免不必要的状态设置：
+          对于大型场景，可以使用纹理流式加载，根据需要动态加载和卸载纹理。
         </p>
-        <CodeBlock title="状态缓存" code={`// 状态缓存类
-class StateCache {
+        <CodeBlock title="纹理管理示例" code={`// 简单的纹理管理器
+class TextureManager {
   constructor(gl) {
     this.gl = gl;
-    this.currentProgram = null;
-    this.currentTexture = null;
-    this.depthTestEnabled = false;
-    this.blendEnabled = false;
-    // ... 其他状态
+    this.textures = new Map();
+    this.loadingPromises = new Map();
   }
   
-  useProgram(program) {
-    if (this.currentProgram !== program) {
-      this.gl.useProgram(program);
-      this.currentProgram = program;
+  async loadTexture(url) {
+    // 如果已经加载，直接返回
+    if (this.textures.has(url)) {
+      return this.textures.get(url);
+    }
+    
+    // 如果正在加载，返回 Promise
+    if (this.loadingPromises.has(url)) {
+      return this.loadingPromises.get(url);
+    }
+    
+    // 开始加载
+    const promise = this.loadTextureInternal(url);
+    this.loadingPromises.set(url, promise);
+    
+    const texture = await promise;
+    this.textures.set(url, texture);
+    this.loadingPromises.delete(url);
+    
+    return texture;
+  }
+  
+  async loadTextureInternal(url) {
+    const image = await this.loadImage(url);
+    return this.createTexture(image);
+  }
+  
+  unloadTexture(url) {
+    if (this.textures.has(url)) {
+      const texture = this.textures.get(url);
+      this.gl.deleteTexture(texture);
+      this.textures.delete(url);
     }
   }
   
-  bindTexture(target, texture) {
-    if (this.currentTexture !== texture) {
-      this.gl.bindTexture(target, texture);
-      this.currentTexture = texture;
-    }
-  }
-  
-  enable(cap) {
-    if (cap === gl.DEPTH_TEST && !this.depthTestEnabled) {
-      this.gl.enable(cap);
-      this.depthTestEnabled = true;
-    } else if (cap === gl.BLEND && !this.blendEnabled) {
-      this.gl.enable(cap);
-      this.blendEnabled = true;
-    }
-  }
-  
-  disable(cap) {
-    if (cap === gl.DEPTH_TEST && this.depthTestEnabled) {
-      this.gl.disable(cap);
-      this.depthTestEnabled = false;
-    } else if (cap === gl.BLEND && this.blendEnabled) {
-      this.gl.disable(cap);
-      this.blendEnabled = false;
-    }
-  }
-}
+  // ... 其他方法
+}`} language="javascript" />
+      </section>
 
-// 使用状态缓存
-const stateCache = new StateCache(gl);
-stateCache.useProgram(program);  // 只在状态改变时调用 gl.useProgram
-stateCache.bindTexture(gl.TEXTURE_2D, texture);`} language="javascript" />
+      <section className="mb-12">
+        <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">常见问题和调试</h2>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          下面列出一些常见问题和调试技巧。
+        </p>
         
-        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">性能优化建议</h3>
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">常见问题</h3>
         <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li><strong className="text-primary font-semibold">减少状态切换</strong>：
+          <li><strong className="text-primary font-semibold">纹理显示为黑色或紫色</strong>：
             <ul className="mt-2 pl-6">
-              <li>按状态分组绘制物体</li>
-              <li>使用状态缓存避免重复设置</li>
-              <li>批量绘制相同状态的物体</li>
+              <li>检查纹理是否成功加载</li>
+              <li>检查纹理坐标是否正确</li>
+              <li>检查纹理单元绑定是否正确</li>
+              <li>检查 uniform 变量是否正确设置</li>
             </ul>
           </li>
-          <li><strong className="text-primary font-semibold">合理的绘制顺序</strong>：
+          <li><strong className="text-primary font-semibold">纹理显示错误</strong>：
             <ul className="mt-2 pl-6">
-              <li>先绘制不透明物体</li>
-              <li>再绘制透明物体（按深度排序）</li>
-              <li>最后绘制 UI 元素</li>
+              <li>检查 UV 坐标是否翻转（V 轴可能上下颠倒）</li>
+              <li>检查纹理尺寸是否是 2 的幂</li>
+              <li>检查纹理格式是否匹配</li>
             </ul>
           </li>
-          <li><strong className="text-primary font-semibold">减少 Draw Call</strong>：
+          <li><strong className="text-primary font-semibold">纹理模糊</strong>：
             <ul className="mt-2 pl-6">
-              <li>合并相同材质的物体</li>
-              <li>使用实例化渲染（Instancing）</li>
-              <li>使用纹理图集（Texture Atlas）</li>
+              <li>检查过滤模式设置</li>
+              <li>检查是否生成了 Mipmap</li>
+              <li>检查纹理分辨率是否足够</li>
+            </ul>
+          </li>
+          <li><strong className="text-primary font-semibold">性能问题</strong>：
+            <ul className="mt-2 pl-6">
+              <li>检查纹理尺寸是否过大</li>
+              <li>检查是否使用了过多的纹理</li>
+              <li>检查纹理切换次数（Draw Call）</li>
             </ul>
           </li>
         </ul>
+        
+        <h3 className="text-2xl my-8 text-dark-text dark:text-dark-text text-light-text">调试技巧</h3>
+        <CodeBlock title="纹理调试技巧" code={`// 1. 可视化纹理坐标
+// 在片段着色器中
+gl_FragColor = vec4(v_texCoord, 0.0, 1.0);
+// R 通道显示 U，G 通道显示 V
+
+// 2. 检查纹理是否加载
+function checkTexture(gl, texture) {
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  const width = gl.getTexParameter(gl.TEXTURE_2D, gl.TEXTURE_WIDTH);
+  const height = gl.getTexParameter(gl.TEXTURE_2D, gl.TEXTURE_HEIGHT);
+  console.log('纹理尺寸:', width, 'x', height);
+  
+  if (width === 0 || height === 0) {
+    console.error('纹理未正确加载！');
+  }
+}
+
+// 3. 检查纹理单元绑定
+function checkTextureBinding(gl, unit) {
+  gl.activeTexture(gl.TEXTURE0 + unit);
+  const texture = gl.getParameter(gl.TEXTURE_BINDING_2D);
+  console.log(\`纹理单元 \${unit} 绑定的纹理:\`, texture);
+}
+
+// 4. 导出纹理数据（用于调试）
+function readTextureData(gl, texture, width, height) {
+  const framebuffer = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+  gl.framebufferTexture2D(
+    gl.FRAMEBUFFER,
+    gl.COLOR_ATTACHMENT0,
+    gl.TEXTURE_2D,
+    texture,
+    0
+  );
+  
+  const pixels = new Uint8Array(width * height * 4);
+  gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+  
+  gl.deleteFramebuffer(framebuffer);
+  return pixels;
+}`} language="javascript" />
       </section>
 
       <section className="mb-12">
         <h2 className="text-3xl my-10 text-dark-text dark:text-dark-text text-light-text">关键概念总结</h2>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          本章介绍了材质和纹理的核心概念，以下是关键内容的总结：
+        </p>
         <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li><strong className="text-primary font-semibold">透明度与混合</strong>：
+          <li><strong className="text-primary font-semibold">材质（Material）</strong>：
             <ul className="mt-2 pl-6">
-              <li>使用 gl.BLEND 实现透明效果</li>
-              <li>混合公式：result = srcFactor × srcColor + dstFactor × dstColor</li>
-              <li>标准透明度：gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)</li>
-              <li>绘制顺序：从后往前绘制透明物体</li>
-              <li>透明物体应禁用深度写入（gl.depthMask(false)）</li>
+              <li>定义物体表面的视觉属性</li>
+              <li>包括颜色、纹理、光照属性、透明度等</li>
+              <li>材质系统连接几何形状和视觉效果</li>
             </ul>
           </li>
-          <li><strong className="text-primary font-semibold">深度测试</strong>：
+          <li><strong className="text-primary font-semibold">纹理坐标（UV 坐标）</strong>：
             <ul className="mt-2 pl-6">
-              <li>确定片段的可见性，确保近处物体遮挡远处物体</li>
-              <li>深度测试函数：gl.depthFunc(gl.LESS)（默认）</li>
-              <li>深度写入控制：gl.depthMask(true/false)</li>
-              <li>Z-Fighting 问题：使用多边形偏移解决</li>
-              <li>性能优化：合理设置近远平面距离比</li>
+              <li>范围 [0, 1]，指定纹理上的位置</li>
+              <li>U 轴：水平方向，V 轴：垂直方向</li>
+              <li>在光栅化过程中会被插值</li>
             </ul>
           </li>
-          <li><strong className="text-primary font-semibold">面剔除</strong>：
+          <li><strong className="text-primary font-semibold">纹理过滤</strong>：
             <ul className="mt-2 pl-6">
-              <li>优化性能，不绘制不可见的背面</li>
-              <li>对于封闭模型，可以减少约 50% 的渲染工作量</li>
-              <li>设置：gl.cullFace(gl.BACK)、gl.frontFace(gl.CCW)</li>
-              <li>确保顶点顺序正确（从正面看是逆时针）</li>
+              <li>NEAREST：最近邻采样，像素化效果</li>
+              <li>LINEAR：线性插值，平滑效果</li>
+              <li>Mipmap：多级纹理，提升远距离渲染质量</li>
             </ul>
           </li>
-          <li><strong className="text-primary font-semibold">帧缓冲区</strong>：
+          <li><strong className="text-primary font-semibold">纹理包装</strong>：
             <ul className="mt-2 pl-6">
-              <li>渲染到纹理，用于后处理、阴影、反射等</li>
-              <li>组成：颜色附件、深度附件、模板附件</li>
-              <li>WebGL 2.0 支持多渲染目标（MRT）</li>
-              <li>应用场景：后处理、阴影映射、延迟渲染等</li>
-              <li>性能优化：合理设置尺寸，复用帧缓冲区</li>
+              <li>REPEAT：重复纹理</li>
+              <li>CLAMP_TO_EDGE：夹紧到边缘</li>
+              <li>MIRRORED_REPEAT：镜像重复</li>
             </ul>
           </li>
-          <li><strong className="text-primary font-semibold">后处理</strong>：
+          <li><strong className="text-primary font-semibold">程序化纹理</strong>：
             <ul className="mt-2 pl-6">
-              <li>对渲染结果进行图像处理</li>
-              <li>常见效果：模糊、色调映射、边缘检测、Bloom 等</li>
-              <li>流程：渲染场景到纹理 → 切换到屏幕 → 后处理着色器</li>
-              <li>多个效果可以串联使用（后处理链）</li>
-              <li>性能优化：降低分辨率、分离式模糊、减少采样次数</li>
+              <li>使用着色器代码生成纹理</li>
+              <li>无内存占用，无限分辨率</li>
+              <li>可参数化和动画化</li>
             </ul>
           </li>
-          <li><strong className="text-primary font-semibold">渲染状态管理</strong>：
+          <li><strong className="text-primary font-semibold">多纹理</strong>：
             <ul className="mt-2 pl-6">
-              <li>合理组织绘制顺序，减少状态切换</li>
-              <li>按状态分组绘制：先不透明，再透明，最后 UI</li>
-              <li>使用状态缓存避免重复设置</li>
-              <li>减少 Draw Call：合并相同材质的物体</li>
-              <li>性能优化：批量绘制、实例化渲染、纹理图集</li>
+              <li>同时使用多个纹理单元</li>
+              <li>可以组合不同的纹理贴图（漫反射、法线、粗糙度等）</li>
+              <li>实现复杂的材质效果</li>
+            </ul>
+          </li>
+          <li><strong className="text-primary font-semibold">立方体贴图（Cubemap）</strong>：
+            <ul className="mt-2 pl-6">
+              <li>由 6 个 2D 纹理组成</li>
+              <li>使用 3D 方向向量采样</li>
+              <li>用于天空盒、环境映射、反射等</li>
+            </ul>
+          </li>
+          <li><strong className="text-primary font-semibold">纹理优化</strong>：
+            <ul className="mt-2 pl-6">
+              <li>纹理压缩：减少内存占用</li>
+              <li>纹理图集：减少纹理切换</li>
+              <li>纹理流式加载：动态加载和卸载</li>
             </ul>
           </li>
         </ul>
         <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          掌握这些高级渲染技术，可以创建更加真实和美观的 3D 场景。
-          合理使用这些技术，既能提升视觉效果，又能优化性能。
-        </p>
-        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
-          <strong className="text-primary font-semibold">最佳实践总结</strong>：
+          <strong className="text-primary font-semibold">学习建议</strong>：
         </p>
         <ul className="text-dark-text dark:text-dark-text text-light-text-muted leading-loose pl-8 mb-5">
-          <li>始终启用深度测试和面剔除（对于封闭模型）</li>
-          <li>透明物体从后往前绘制，禁用深度写入</li>
-          <li>按状态分组绘制，减少状态切换</li>
-          <li>后处理使用较低分辨率，性能提升显著</li>
-          <li>使用帧缓冲区实现复杂效果（阴影、反射等）</li>
-          <li>合理管理渲染状态，提升整体性能</li>
+          <li>多实践，尝试不同的纹理参数设置</li>
+          <li>理解纹理坐标的插值过程</li>
+          <li>学习使用程序化纹理创建各种效果</li>
+          <li>掌握多纹理的使用，创建复杂的材质</li>
+          <li>注意纹理优化，提升性能</li>
         </ul>
+        <p className="text-dark-text dark:text-dark-text text-light-text-muted leading-relaxed mb-4">
+          掌握材质和纹理后，你就可以创建更加真实和丰富的 3D 场景了！
+        </p>
       </section>
       
       <ChapterNavigation />
     </div>
   )
 }
+

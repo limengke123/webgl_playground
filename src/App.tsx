@@ -15,6 +15,7 @@ import Chapter6 from './pages/chapters/Chapter6'
 import Chapter7 from './pages/chapters/Chapter7'
 import Chapter8 from './pages/chapters/Chapter8'
 import Chapter9 from './pages/chapters/Chapter9'
+import Chapter10 from './pages/chapters/Chapter10'
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
             <Route path="/chapter/7" element={<Chapter7 />} />
             <Route path="/chapter/8" element={<Chapter8 />} />
             <Route path="/chapter/9" element={<Chapter9 />} />
+            <Route path="/chapter/10" element={<Chapter10 />} />
           </Routes>
         </Layout>
         <ScrollToTop />
