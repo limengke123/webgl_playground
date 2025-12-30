@@ -1,0 +1,55 @@
+# 网站配置
+# 此文件用于配置网站的基本信息和搜索索引
+
+site:
+  title: "WebGL 学习教程"
+  description: "从零开始学习 WebGL，通过交互式示例深入理解图形学基础"
+
+# 首页内容配置
+home:
+  heroTitle: "WebGL 学习教程"
+  heroDescription: "从零开始学习 WebGL，通过交互式示例深入理解图形学基础"
+  playgroundButtonText: "进入 Playground"
+  aboutTitle: "关于本教程"
+  aboutDescription: |
+    这是一个交互式的 WebGL 学习平台，旨在帮助你从零开始掌握 WebGL 和图形学基础。
+    每个章节都包含详细的理论讲解和可交互的代码示例，让你在实践中学习。
+  learningPointsTitle: "你将学到："
+  learningPoints:
+    - "WebGL 基础概念和 API"
+    - "GLSL 着色器语言语法"
+    - "3D 数学（向量、矩阵、MVP 变换）"
+    - "渲染管线深入理解"
+    - "相机控制和投影矩阵"
+    - "光照模型（环境光、漫反射、镜面反射）"
+    - "材质、纹理和贴图"
+    - "交互控制和动画循环"
+    - "性能优化最佳实践"
+
+# 搜索索引配置
+search:
+  home:
+    title: "首页"
+    description: "WebGL 学习教程首页，浏览所有章节"
+    keywords:
+      - "首页"
+      - "主页"
+      - "home"
+      - "教程"
+      - "webgl"
+      - "学习"
+      - "图形学"
+  
+  playground:
+    title: "Playground"
+    description: "WebGL 交互式代码编辑器，在线编写和运行 WebGL 代码"
+    keywords:
+      - "playground"
+      - "编辑器"
+      - "代码"
+      - "在线"
+      - "运行"
+      - "交互"
+      - "实验"
+      - "测试"
+

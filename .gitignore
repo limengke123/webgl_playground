@@ -28,3 +28,10 @@ dist-ssr
 .env.local
 .env.production.local
 .env.development.local
+
+# Generated files from Markdown conversion
+# Uncomment the following lines if you want to ignore generated chapter components
+# src/pages/chapters/Chapter*.tsx
+# src/utils/chaptersMetadata.ts
+# src/utils/searchIndex.ts
+# src/utils/siteConfig.ts

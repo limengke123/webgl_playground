@@ -3,20 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import ThemeToggle from './ThemeToggle'
 import Search from './Search'
 import { useSearchHighlight } from '../hooks/useSearchHighlight'
-
-const chapters = [
-  { id: 0, title: '从零开始创建项目', path: '/chapter/0' },
-  { id: 1, title: 'WebGL 基础', path: '/chapter/1' },
-  { id: 2, title: 'GLSL 语法基础', path: '/chapter/2' },
-  { id: 3, title: '3D 数学基础', path: '/chapter/3' },
-  { id: 4, title: '渲染管线', path: '/chapter/4' },
-  { id: 5, title: '相机与投影', path: '/chapter/5' },
-  { id: 6, title: '光照', path: '/chapter/6' },
-  { id: 7, title: '材质与纹理', path: '/chapter/7' },
-  { id: 8, title: '交互与动画', path: '/chapter/8' },
-  { id: 9, title: '性能优化', path: '/chapter/9' },
-  { id: 10, title: '高级渲染技术', path: '/chapter/10' },
-]
+import { chaptersMetadata } from '../utils/chaptersMetadata'
 
 export default function Layout({ children }) {
   const location = useLocation()
@@ -80,7 +67,7 @@ export default function Layout({ children }) {
             )}
             <span className="relative z-10">🎮 Playground</span>
           </Link>
-          {chapters.map(chapter => (
+          {chaptersMetadata.map(chapter => (
             <Link
               key={chapter.id}
               to={chapter.path}
