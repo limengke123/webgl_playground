@@ -11,6 +11,8 @@
     "generate-index": "tsx scripts/generate-index.ts",
     "dev:convert": "tsx scripts/watch-markdown.ts",
     "validate": "tsx scripts/validate-consistency.ts",
+    "migrate-chapter": "tsx scripts/migrate-chapter.ts",
+    "migrate-chapter-v2": "tsx scripts/migrate-chapter-v2.ts",
     "prebuild": "pnpm convert"
   },
   "dependencies": {
